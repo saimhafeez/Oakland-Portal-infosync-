@@ -1,0 +1,66 @@
+[
+    {
+        "Type": "Square",
+        "Size": "01'' x 01''"
+    },
+    {
+        "Type": "Square",
+        "Size": "0.5'' x 0.5''"
+    },
+    {
+        "Type": "Solid Wood",
+        "Size": "1.5'' x 1.5''"
+    },
+    {
+        "Type": "Solid Wood",
+        "Size": "0.75'' x 0.75''"
+    },
+    {
+        "Type": "Square",
+        "Size": "01'' x 02''"
+    },
+    {
+        "Type": "Square",
+        "Size": "0.75'' x 0.75''"
+    },
+    {
+        "Type": "Square",
+        "Size": "1.5'' x 1.5''"
+    },
+    {
+        "Type": "Square",
+        "Size": "1.5'' x 04''"
+    },
+    {
+        "Type": "Square",
+        "Size": "02'' x 04''"
+    },
+    {
+        "Type": "Square",
+        "Size": "1.25'' x 1.25''"
+    },
+    {
+        "Type": "Square",
+        "Size": "1.25'' x 1.50''"
+    },
+    {
+        "Type": "Round",
+        "Size": "02''"
+    },
+    {
+        "Type": "Round",
+        "Size": "01''"
+    },
+    {
+        "Type": "Round",
+        "Size": "0.75''"
+    },
+    {
+        "Type": "Round",
+        "Size": "1.25''"
+    },
+    {
+        "Type": "Round",
+        "Size": "1.5''"
+    }
+]

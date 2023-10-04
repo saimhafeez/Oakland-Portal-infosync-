@@ -1,0 +1,39 @@
+{
+  "images":[
+    {
+      "id": 1,
+      "url": "https://secure.img1-ag.wfcdn.com/im/95391996/resize-h600-w600%5Ecompr-r85/1414/141404074/Smolan+Metal+6+-+Person+Dining+Table.jpg",
+      "alt": "Thumbnail Image 1"
+    },
+    {
+      "id": 2,
+      "url": "https://www.lazysusanfurniture.co.uk/media/image/c2/9a/f3/3oWJqYKGrmqioo_600x600.jpg",
+      "alt": "Dimensional Image 1"
+    },
+    {
+      "id": 4,
+      "url": "https://www.lazysusanfurniture.co.uk/media/image/0c/6f/f9/Madison-Table-AB-10-April-Chair-AB-SP-Cushion-ST-Parasol-Base-LazySusan-flowers-garden-5star_001-copy_600x600.jpg",
+      "alt": "Dimensional Image 2"
+    },
+    {
+      "id": 6,
+      "url": "https://www.gardenfurniturecovershop.com/media/image/e2/6c/da/RHS260200left-completeqs9as1ZHhzgMT.jpg",
+      "alt": "Dimensional Image 3"
+    },
+    {
+      "id": 3,
+      "url": "https://www.vivalagoon.com/43808/talenti-casilda-dining-table-260-x-100-cm.jpg",
+      "alt": "Ordinary Image 1"
+    },
+    {
+      "id": 5,
+      "url": "https://painespatio.com/newsite2018/wp-content/uploads/2018/04/Avallon-Seating-Augusta-Hickory-4-260x260.jpg",
+      "alt": "Ordinary Image 2"
+    },
+    {
+      "id": 7,
+      "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdlYwpAyDaO80xinEQy6a1UbCBTX-sdDBE3x-JaEoJflf3fUnEdSj88kgO8kWDnAnmqN8&usqp=CAU",
+      "alt": "Ordinary Image 3"
+    }
+  ]
+}

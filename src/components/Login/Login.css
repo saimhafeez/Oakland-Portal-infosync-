@@ -1,0 +1,12 @@
+.main-login-signup input {
+    border: 1px solid grey;
+    background-color: grey;
+    color: #fff;
+    padding: 12px;
+}
+.main-login-signup input::placeholder {
+    color: #fff
+}
+.main-login-signup button:disabled {
+    background-color: red !important;
+}
