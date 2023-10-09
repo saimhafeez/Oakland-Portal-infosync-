@@ -18,6 +18,9 @@ const Extraction = (props) => {
 
   const [selectedDiscard, setSelectedDiscard] = useState([]);
   const [imageSelectedIds, setImageSelectedIds] = useState([]);
+
+  const [defaultThumbnail, setDefaultThumbnail] = useState([]);
+  const [defaultDimension, setDefaultDimension] = useState([]);
   // const [jsonFormData, setJsonFormData] = useState("")
 
   // state for disable button
@@ -53,31 +56,82 @@ const Extraction = (props) => {
 
   // http://139.144.30.86:3001/api/fetch-data
   // 161.97.167.225/scrape
-  // http://161.97.167.225:5000/scrape
+  // http://161.97.167.225:8000/api/get_job
 
   const executePythonScript = async () => {
-    try {
-      const response = await fetch("http://139.144.30.86:3001/api/fetch-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url }),
-      });
-      const data = await response.json();
-
-      setAllImages(data.images);
-      // Convert the JSON object to a string
-      const jsonString = JSON.stringify(data, null, 2); // Add formatting (indentation)
-
-      setJsonResult(jsonString);
-      // Set the JSON string in the state
-    } catch (error) {
-      console.error("Error:", error);
-
-      // Handle the error, e.g., by displaying an error message
-      setJsonResult("An error occurred while fetching data.");
+    if (props.user) {
+      // Get the authentication token
+      props.user
+        .getIdToken()
+        .then((token) => {
+          // Define the API endpoint URL
+          const apiUrl = "http://161.97.167.225:5000/api/get_job";
+          console.log(token);
+          // Make an authenticated API request
+          fetch(apiUrl, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              // Handle the API response data
+              console.log("API Response:", data);
+              // Extract the first index image and add it to selectedThumbnail
+              // if (data.thumbnails.length > 0) {
+              //   setSelectedThumbnail([data.thumbnails[0]]);
+              //   data.unsorted = data.unsorted.slice(1); // Remove the first index image
+              //   console.log("selected thumbnail", selectedThumbnail);
+              // }
+              setAllImages(data.unsorted);
+              setDefaultThumbnail(data.thumbnails);
+              setDefaultDimension(data.dimensional);
+            })
+            .catch((error) => {
+              // Handle any errors
+              console.error("Error:", error);
+            });
+        })
+        .catch((error) => {
+          // Handle any errors while getting the token
+          console.error("Token Error:", error);
+        });
     }
+    // try {
+    //   const response = await fetch("http://139.144.30.86:3001/api/fetch-data", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ url }),
+    //   });
+    //   const data = await response.json();
+
+    //   setAllImages(data.images);
+
+    //   // Update the selectedThumbnail and selectedDimentional states with initial images
+    //   if (data.images.length >= 2) {
+    //     setSelectedThumbnail([data.images[0]]);
+    //     setSelectedDimentional([data.images[1]]);
+    //     setSelectedButton("Thumbnail"); // Highlight Thumbnail button by default
+    //   }
+    //   // Convert the JSON object to a string
+    //   const jsonString = JSON.stringify(data, null, 2); // Add formatting (indentation)
+
+    //   setJsonResult(jsonString);
+    //   // Set the JSON string in the state
+    // } catch (error) {
+    //   console.error("Error:", error);
+
+    //   // Handle the error, e.g., by displaying an error message
+    //   setJsonResult("An error occurred while fetching data.");
+    // }
     // console.log(JSON.stringify({ url }));
   };
 
@@ -315,34 +369,65 @@ const Extraction = (props) => {
   };
 
   const jsonData = () => {
+    // initialize an empty object to hold the structured data
+    const structuredData = {
+      SKU: "sdfsdfsdf",
+      dimensional: [],
+      thumbnails: [],
+      whitebg: [],
+      ordinary: [],
+      discard: [],
+      videos: [],
+    };
+
     if (selectedThumbnail.length > 0) {
-      const json = JSON.stringify(selectedThumbnail);
-      console.log("Selected Thumbnail=:", json + "\n");
+      structuredData.thumbnails = selectedThumbnail;
     }
-
     if (selectedDimentional.length > 0) {
-      const json = JSON.stringify(selectedDimentional);
-      console.log("Selected Dimensional:", json + "\n");
+      structuredData.dimensional = selectedDimentional;
     }
-
     if (selectedWhiteBg.length > 0) {
-      const json = JSON.stringify(selectedWhiteBg);
-      console.log("Selected WhiteBg:", json + "\n");
+      structuredData.whitebg = selectedWhiteBg;
     }
-
-    if (selectedDiscard.length > 0) {
-      const json = JSON.stringify(selectedDiscard);
-      console.log("Selected Discard:", json + "\n");
-    }
-
     if (selectedOrdinary.length > 0) {
-      const json = JSON.stringify(selectedOrdinary);
-      console.log("Selected Ordinary:", json + "\n");
+      structuredData.ordinary = selectedOrdinary;
     }
+    if (selectedDiscard.length > 0) {
+      structuredData.discard = selectedDiscard;
+    }
+
+    // Log the structured data as a JSON object.
+    console.log(JSON.stringify(structuredData, null, 2));
+
+    // if (selectedThumbnail.length > 0) {
+    //   const json = JSON.stringify(selectedThumbnail);
+    //   console.log("Selected Thumbnail=:", json + "\n");
+    // }
+
+    // if (selectedDimentional.length > 0) {
+    //   const json = JSON.stringify(selectedDimentional);
+    //   console.log("Selected Dimensional:", json + "\n");
+    // }
+
+    // if (selectedWhiteBg.length > 0) {
+    //   const json = JSON.stringify(selectedWhiteBg);
+    //   console.log("Selected WhiteBg:", json + "\n");
+    // }
+
+    // if (selectedDiscard.length > 0) {
+    //   const json = JSON.stringify(selectedDiscard);
+    //   console.log("Selected Discard:", json + "\n");
+    // }
+
+    // if (selectedOrdinary.length > 0) {
+    //   const json = JSON.stringify(selectedOrdinary);
+    //   console.log("Selected Ordinary:", json + "\n");
+    // }
   };
 
   return (
     <>
+      {/* {console.log("updated data", );} */}
       <HeaderSignOut
         userEmail={props.userEmail}
         userRole={props.userRole}
@@ -354,10 +439,10 @@ const Extraction = (props) => {
         <div className="header">
           <div className="container">
             <div className="row d-flex align-items-center justify-content-between">
-              <div className="col-lg-2 col-md-4">
+              <div className="col-lg-4 col-md-4">
                 <h3>Extraction</h3>
               </div>
-              <div className="col-lg-5 col-md-4 offset-1 offset-md-0">
+              {/* <div className="col-lg-4 col-md-4 offset-1 offset-md-0">
                 <div className="search-box d-flex align-items-center justify-content-between">
                   <i className="fa fa-search"></i>
                   <input
@@ -367,14 +452,17 @@ const Extraction = (props) => {
                     onChange={(e) => setUrl(e.target.value)}
                   />
                 </div>
-              </div>
-              <div className="col-lg-2 col-md-4 text-end">
-                <button className="btn" onClick={executePythonScript}>
-                  Fetch API
-                </button>
-              </div>
-              <div className="col-lg-2 col-md-4 text-end">
+              </div> */}
+              <div className="col-lg-4 col-md-4 text-end">
                 {/* <h6>{props.name}</h6> */}
+              </div>
+              <div className="col-lg-4 col-md-4 text-end">
+                <button
+                  className="btn d-block w-100"
+                  onClick={executePythonScript}
+                >
+                  Fetch Data
+                </button>
               </div>
               {/* <div className="col-lg-1 col-md-4 text-end">
               <button onClick={handleSignOut}>SignOut</button>
@@ -385,10 +473,10 @@ const Extraction = (props) => {
 
         {/* radio selector  */}
         <div className="container mt-5">
-          <div>
+          {/* <div>
             <h2>JSON Result:</h2>
             <pre>{jsonResult}</pre>
-          </div>
+          </div> */}
           <button
             onClick={() => handleButtonClick("Thumbnail")}
             className={`select-btn btn ${
@@ -450,7 +538,7 @@ const Extraction = (props) => {
                   }`}
                   onClick={() => selectMyItem(item)}
                 >
-                  <img src={item.url} alt={item.alt} id={`img-${item.id}`} />
+                  <img src={item.src} id={`img-${item.id}`} />
                 </div>
               </div>
             ))}
@@ -517,17 +605,38 @@ const Extraction = (props) => {
                         className="cross"
                         onClick={() => resetThumbnailImage(item)}
                       >
-                        <CancelIcon></CancelIcon>
+                        <CancelIcon />
                       </div>
                     )}
-                    <img
-                      className="card-img-top img-fluid"
-                      src={item.url}
-                      alt={item.alt}
-                    />
+                    <img className="card-img-top img-fluid" src={item.src} />
                   </div>
                 </div>
               ))}
+              {defaultThumbnail
+                ? defaultThumbnail.map((item) => (
+                    <div className="col-md-3 mb-4" key={item.id}>
+                      <div
+                        className={`card ${
+                          isThumbnailEditMode ? "edit-mode" : ""
+                        }`}
+                        onClick={() => selectMyItem(item)}
+                      >
+                        {isThumbnailEditMode && (
+                          <div
+                            className="cross"
+                            onClick={() => resetThumbnailImage(item)}
+                          >
+                            <CancelIcon />
+                          </div>
+                        )}
+                        <img
+                          className="card-img-top img-fluid"
+                          src={item.src}
+                        />
+                      </div>
+                    </div>
+                  ))
+                : ""}
             </div>
           </div>
         </div>
@@ -588,14 +697,35 @@ const Extraction = (props) => {
                         <CancelIcon />
                       </div>
                     )}
-                    <img
-                      className="card-img-top img-fluid"
-                      src={item.url}
-                      alt={item.alt}
-                    />
+                    <img className="card-img-top img-fluid" src={item.src} />
                   </div>
                 </div>
               ))}
+              {defaultDimension
+                ? defaultDimension.map((item) => (
+                    <div className="col-md-3 mb-4" key={item.id}>
+                      <div
+                        className={`card ${
+                          isDimensionalEditMode ? "edit-mode" : ""
+                        }`}
+                        onClick={() => selectMyItem(item)}
+                      >
+                        {isDimensionalEditMode && (
+                          <div
+                            className="cross"
+                            onClick={() => resetDimensionalImage(item)}
+                          >
+                            <CancelIcon />
+                          </div>
+                        )}
+                        <img
+                          className="card-img-top img-fluid"
+                          src={item.src}
+                        />
+                      </div>
+                    </div>
+                  ))
+                : ""}
             </div>
           </div>
         </div>
@@ -651,11 +781,7 @@ const Extraction = (props) => {
                         <CancelIcon />
                       </div>
                     )}
-                    <img
-                      className="card-img-top img-fluid"
-                      src={item.url}
-                      alt={item.alt}
-                    />
+                    <img className="card-img-top img-fluid" src={item.src} />
                   </div>
                 </div>
               ))}
@@ -717,11 +843,7 @@ const Extraction = (props) => {
                         <CancelIcon />
                       </div>
                     )}
-                    <img
-                      className="card-img-top img-fluid"
-                      src={item.url}
-                      alt={item.alt}
-                    />
+                    <img className="card-img-top img-fluid" src={item.src} />
                   </div>
                 </div>
               ))}
@@ -783,11 +905,7 @@ const Extraction = (props) => {
                         <CancelIcon />
                       </div>
                     )}
-                    <img
-                      className="card-img-top img-fluid"
-                      src={item.url}
-                      alt={item.alt}
-                    />
+                    <img className="card-img-top img-fluid" src={item.src} />
                   </div>
                 </div>
               ))}
