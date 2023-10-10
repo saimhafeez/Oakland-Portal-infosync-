@@ -23,6 +23,7 @@ const Extraction = (props) => {
   const [defaultDimension, setDefaultDimension] = useState([]);
   const [sku, setSku] = useState({});
   const [videos, setVideos] = useState([]);
+  const [token, setToken] = useState("");
   // const [jsonFormData, setJsonFormData] = useState("")
 
   // state for disable button
@@ -69,6 +70,7 @@ const Extraction = (props) => {
           // Define the API endpoint URL
           const apiUrl = "http://161.97.167.225:5000/api/get_job";
           console.log(token);
+          setToken(token);
           // Make an authenticated API request
           fetch(apiUrl, {
             method: "GET",
@@ -405,6 +407,30 @@ const Extraction = (props) => {
 
     // Log the structured data as a JSON object.
     console.log(JSON.stringify(structuredData, null, 2));
+
+    // Define the API endpoint and data payload
+    const apiUrl = "http://161.97.167.225:5000/api/submit";
+    // const data = {
+    //     key1: 'value1',
+    //     key2: 'value2'
+    // };
+
+    // Send the POST request
+    fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(structuredData),
+    })
+      .then((response) => response.json()) // Assuming server responds with json
+      .then((structuredData) => {
+        console.log("Success:", structuredData);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
 
     // if (selectedThumbnail.length > 0) {
     //   const json = JSON.stringify(selectedThumbnail);
