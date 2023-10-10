@@ -74,40 +74,6 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       if (authUser) {
-        // // Get the authentication token
-        // authUser
-        //   .getIdToken()
-        //   .then((token) => {
-        //     // Define the API endpoint URL
-        //     const apiUrl = "http://161.97.167.225:5000/api/get_job";
-        //     console.log(token);
-        //     // Make an authenticated API request
-        //     fetch(apiUrl, {
-        //       method: "GET",
-        //       headers: {
-        //         Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
-        //       },
-        //     })
-        //       .then((response) => {
-        //         if (!response.ok) {
-        //           throw new Error("Network response was not ok");
-        //         }
-        //         return response.json();
-        //       })
-        //       .then((data) => {
-        //         // Handle the API response data
-        //         console.log("API Response:", data);
-        //       })
-        //       .catch((error) => {
-        //         // Handle any errors
-        //         console.error("Error:", error);
-        //       });
-        //   })
-        //   .catch((error) => {
-        //     // Handle any errors while getting the token
-        //     console.error("Token Error:", error);
-        //   });
-
         // User is signed in
         setUser(authUser);
         // Fetch the user's role from Firestore

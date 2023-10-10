@@ -21,6 +21,8 @@ const Extraction = (props) => {
 
   const [defaultThumbnail, setDefaultThumbnail] = useState([]);
   const [defaultDimension, setDefaultDimension] = useState([]);
+  const [sku, setSku] = useState({});
+  const [videos, setVideos] = useState([]);
   // const [jsonFormData, setJsonFormData] = useState("")
 
   // state for disable button
@@ -92,6 +94,8 @@ const Extraction = (props) => {
               setAllImages(data.unsorted);
               setDefaultThumbnail(data.thumbnails);
               setDefaultDimension(data.dimensional);
+              setSku(data.id);
+              setVideos(data.videos);
             })
             .catch((error) => {
               // Handle any errors
@@ -371,7 +375,7 @@ const Extraction = (props) => {
   const jsonData = () => {
     // initialize an empty object to hold the structured data
     const structuredData = {
-      SKU: "sdfsdfsdf",
+      id: {},
       dimensional: [],
       thumbnails: [],
       whitebg: [],
@@ -379,7 +383,7 @@ const Extraction = (props) => {
       discard: [],
       videos: [],
     };
-
+    structuredData.id = sku;
     if (selectedThumbnail.length > 0) {
       structuredData.thumbnails = selectedThumbnail;
     }
@@ -394,6 +398,9 @@ const Extraction = (props) => {
     }
     if (selectedDiscard.length > 0) {
       structuredData.discard = selectedDiscard;
+    }
+    if (videos.length > 0) {
+      structuredData.videos = videos;
     }
 
     // Log the structured data as a JSON object.
