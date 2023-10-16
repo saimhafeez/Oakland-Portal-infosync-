@@ -85,7 +85,7 @@ function App() {
               setUserJdesc(docSnapshot.data().jdesc);
               setUserEmail(docSnapshot.data().email);
               setLoading(false);
-              // localStorage.setItem("userEmail", JSON.stringify(userEmail));
+              localStorage.setItem("userEmail", JSON.stringify(userEmail));
             } else {
               console.log("User role not found.");
               setLoading(false);
@@ -200,6 +200,7 @@ function App() {
                       userEmail={userEmail}
                       userRole={userRole}
                       userJdesc={userJdesc}
+                      user={user}
                     />
                   }
                 />
@@ -224,6 +225,7 @@ function App() {
                       userEmail={userEmail}
                       userRole={userRole}
                       userJdesc={userJdesc}
+                      user={user}
                     />
                   }
                 />
@@ -270,6 +272,7 @@ function App() {
                   path="/qa-extraction"
                   element={
                     <ExtractionQA
+                      user={user}
                       userEmail={userEmail}
                       userRole={userRole}
                       userJdesc={userJdesc}

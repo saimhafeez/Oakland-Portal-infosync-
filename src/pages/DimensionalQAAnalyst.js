@@ -12,11 +12,8 @@ import Paper from "@mui/material/Paper";
 import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
 import HeaderSignOut from "../components/header/HeaderSignOut";
 import {
-  Box,
   Button,
   CircularProgress,
-  FormControlLabel,
-  FormGroup,
   Grid,
   MenuItem,
   Select,
@@ -24,6 +21,7 @@ import {
   Switch,
   TableFooter,
   Typography,
+  colors,
 } from "@mui/material";
 
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -31,116 +29,138 @@ import PropsModel from "../res/PropsModel";
 import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTableRow";
 import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
-import { useNavigate } from "react-router";
-import axios from "axios";
-
-const productObject = {
-  productProps: {
-    ironPipeRows: [
-      {
-        pipeTypeNSize: "Square  01'' x 01''",
-        length: 2.3,
-        qty: 2,
-      },
-      {
-        pipeTypeNSize: "Square  01'' x 02''",
-        length: 2.5,
-        qty: 1,
-      },
-    ],
-    woodenSheetRows: [
-      {
-        type: "Horizontal",
-        length: 2,
-        width: 5.6,
-        qty: 5,
-      },
-      {
-        type: "Vertical",
-        length: 1.2,
-        width: 5.5,
-        qty: 1,
-      },
-    ],
-    woodTapeRows: [
-      {
-        size: "Big",
-        length: 4,
-        qty: 7,
-      },
-      {
-        size: "small",
-        length: 9,
-        qty: 1,
-      },
-      {
-        size: "small",
-        length: 10,
-        qty: 8,
-      },
-    ],
-    miscTableRows: [
-      {
-        item: "Wheels",
-        size: "Small",
-        qty: 8,
-      },
-      {
-        item: "Cross Rods",
-        size: "Big",
-        qty: 9,
-      },
-      {
-        item: "Realing",
-        size: "Small",
-        qty: 10,
-      },
-    ],
-  },
-  buildMaterial: "IRON PIPE / MDF",
-  images: [
-    "https://assets.wfcdn.com/im/00332598/resize-h755-w755%5Ecompr-r85/1596/159631341/Ossabaw+3+Piece+Bedroom+Set.jpg",
-    "https://assets.wfcdn.com/im/92000998/resize-h755-w755%5Ecompr-r85/2173/217355837/Ossabaw+3+Piece+Bedroom+Set.jpg",
-    "https://assets.wfcdn.com/im/47924497/resize-h755-w755%5Ecompr-r85/1574/157448937/Ossabaw+3+Piece+Bedroom+Set.jpg",
-  ],
-  version: 1,
-};
 
 function DimensionalQAAnalyst(props) {
-  const [pageLoading, setPageLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
-  const navigate = useNavigate();
+  const [productID, setProductID] = useState("");
+  const [productPropertiesOld, setProductPropertiesOld] = useState({
+    ironPipeRows: [],
+    woodenSheetRows: [],
+    woodTapeRows: [],
+    miscTableRows: [],
+  });
+  const [images, setImages] = useState([]);
+  const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
-  //   useEffect(() => {
-  //     new Promise(async (resolve, reject) => {
-  //       try {
-  //         const { data } = await axios.get(
-  //           "/api/v1/pages/dimensional-qa-analyst"
-  //         );
-  //         resolve(data);
-  //       } catch (error) {
-  //         reject(error);
-  //       }
-  //     })
-  //       .then((data) => {
-  //         setPageLoading(false);
-  //       })
-  //       .catch((error) => {
-  //         navigate("/not-allowed");
-  //       });
-  //   }, []);
+  const executePythonScript = async () => {
+    console.log("props.user", props.user);
+    if (props.user) {
+      // Get the authentication token
+      props.user
+        .getIdToken()
+        .then((token) => {
+          // Define the API endpoint URL
+          const apiUrl = "http://161.97.167.225:5001/api/get_job";
+          console.log(token);
+          // Make an authenticated API request
+          fetch(apiUrl, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              console.log("network response was ok");
+              return response.json();
+            })
+            .then((data) => {
+              // Handle the API response data
+              console.log("API Response:", data);
+
+              setImages(data.images);
+              setWeightAndDimentions(data["weight and dimensions"]);
+              setPageLoading(false);
+              setPreviewImage(data.images[0]);
+              setProductProperties(data.productProperties);
+              setProductPropertiesOld(data.productProperties);
+              setProductID(data.id);
+              setFilters((pre) => ({
+                ...pre,
+                buildMaterial: data.buildMaterial,
+              }));
+            })
+            .catch((error) => {
+              // Handle any errors
+              console.error("Error:", error);
+            });
+        })
+        .catch((error) => {
+          // Handle any errors while getting the token
+          console.error("Token Error:", error);
+        });
+    }
+  };
+
+  const executePythonScriptSubmit = async () => {
+    console.log("props.user", props.user);
+
+    const payload = exportData();
+    console.log("body", payload);
+
+    if (props.user) {
+      // Get the authentication token
+      props.user
+        .getIdToken()
+        .then((token) => {
+          // Define the API endpoint URL
+          const apiUrl = "http://161.97.167.225:5001/api/submit";
+          console.log(token);
+          // Make an authenticated API request
+          fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              console.log("network response was ok");
+              return response.json();
+            })
+            .then((data) => {
+              // Handle the API response data
+              console.log("API Response:", data);
+              setImages(data.images);
+              setWeightAndDimentions(data["weight and dimensions"]);
+              setPageLoading(false);
+              setPreviewImage(data.images[0]);
+            })
+            .catch((error) => {
+              // Handle any errors
+              console.error("Error:", error);
+            });
+        })
+        .catch((error) => {
+          // Handle any errors while getting the token
+          console.error("Token Error:", error);
+        });
+    }
+  };
+
+  useEffect(() => {
+    executePythonScript();
+  }, []);
 
   const [suggestEdit, setSuggestEdit] = useState(false);
   const [hideStaticTable, setHideStaticTable] = useState(false);
-  const [previewImage, setPreviewImage] = useState(productObject.images[0]);
-  const [filters, SetFilters] = useState({
+  const [previewImage, setPreviewImage] = useState(images[0]);
+
+  const [filters, setFilters] = useState({
     unitSelector: "Inch",
-    buildMaterial: productObject.buildMaterial,
+    buildMaterial: "",
     qaScorecard: "QA Scorecard",
   });
 
   const getFilledRows = (propType) => {
-    const filledData = Array.from(productObject.productProps[propType]);
+    const filledData = Array.from(productPropertiesOld[propType]);
     for (var i = filledData.length; i < 9; i++) {
       filledData.push(PropsModel[propType]);
     }
@@ -150,7 +170,7 @@ function DimensionalQAAnalyst(props) {
   const getMiscTableRows = () => {
     const rows = PropsModel["miscTableRows"];
     rows.map((row) => {
-      productObject.productProps.miscTableRows.map((misc) => {
+      productPropertiesOld.miscTableRows.map((misc) => {
         if (misc.item === row.item) {
           row.qty = misc.qty;
           row.size = misc.size;
@@ -160,7 +180,7 @@ function DimensionalQAAnalyst(props) {
     return rows;
   };
 
-  const [productProps, setProductProps] = useState({
+  const [productProperties, setProductProperties] = useState({
     ironPipeRows: getFilledRows("ironPipeRows"),
     woodenSheetRows: getFilledRows("woodenSheetRows"),
     woodTapeRows: getFilledRows("woodTapeRows"),
@@ -168,7 +188,7 @@ function DimensionalQAAnalyst(props) {
   });
 
   const addNewRow = (propType) => {
-    setProductProps((pre) => ({
+    setProductProperties((pre) => ({
       ...pre,
       [propType]: [...pre[propType], PropsModel[propType]],
     }));
@@ -185,7 +205,7 @@ function DimensionalQAAnalyst(props) {
         return;
       }
     }
-    setProductProps((pre) => {
+    setProductProperties((pre) => {
       const updatedRows = [...pre[propType]];
       updatedRows[key] = {
         ...updatedRows[key],
@@ -196,38 +216,41 @@ function DimensionalQAAnalyst(props) {
   };
 
   const exportData = () => {
-    var exportedIronPipeRows = productProps.ironPipeRows.filter(
+    var exportedIronPipeRows = productProperties.ironPipeRows.filter(
       (row) =>
         (row.length != 0 || row.length != "") && (row.qty != 0 || row.qty != "")
     );
 
-    var exportedWoodenSheetRows = productProps.woodenSheetRows.filter(
+    var exportedWoodenSheetRows = productProperties.woodenSheetRows.filter(
       (row) =>
         (row.length != 0 || row.length != "") &&
         (row.qty != 0 || row.qty != "") &&
         (row.width != 0 || row.width != "")
     );
 
-    var exportedWoodTapeRows = productProps.woodTapeRows.filter(
+    var exportedWoodTapeRows = productProperties.woodTapeRows.filter(
       (row) =>
         (row.length != 0 || row.length != "") && (row.qty != 0 || row.qty != "")
     );
 
-    var exportedMiscTableRows = productProps.miscTableRows.filter(
+    var exportedMiscTableRows = productProperties.miscTableRows.filter(
       (row) => row.qty != 0 || row.qty != ""
     );
 
-    console.log("version: 1", {
-      productProps: productObject.productProps,
-    });
-    console.log("version: 2", {
-      productProps: {
+    return {
+      id: productID,
+      images,
+      "weight and dimensions": weightAndDimentions,
+      buildMaterial: filters.buildMaterial,
+      productPropertiesOld: suggestEdit ? productPropertiesOld : null,
+      productProperties: {
         ironPipeRows: exportedIronPipeRows,
         woodenSheetRows: exportedWoodenSheetRows,
         woodTapeRows: exportedWoodTapeRows,
         miscTableRows: exportedMiscTableRows,
       },
-    });
+      qaScorecard: filters.qaScorecard,
+    };
   };
 
   return (
@@ -264,7 +287,7 @@ function DimensionalQAAnalyst(props) {
                     <TableCell>
                       <img width="100%" src={previewImage} />
                       <Stack justifyContent="center" direction="row">
-                        {productObject.images.map((source, index) => {
+                        {images.map((source, index) => {
                           return (
                             <img
                               onClick={() => setPreviewImage(source)}
@@ -277,19 +300,46 @@ function DimensionalQAAnalyst(props) {
                       </Stack>
                     </TableCell>
                     <TableCell></TableCell>
-                    <TableCell style={{ background: "#cbdcf7" }}>
-                      <Typography textAlign="center">
-                        Bed : 45.3'' H X 57.7'' W X 80.7'' L
-                        <br />
-                        <br />
-                        Headboard Width - Side to Side : 57.7'' W
-                        <br />
-                        <br />
-                        Footboard Width - Side to Side : 55.9'' W
-                        <br />
-                        <br />
-                        Bed Weight : 106 lb.
-                      </Typography>
+                    <TableCell style={{ background: "#cbdcf7", padding: 10 }}>
+                      {Object.keys(weightAndDimentions).map(
+                        (category, index) => {
+                          return (
+                            <Stack direction="column">
+                              <Typography fontWeight="bold">
+                                {category}
+                              </Typography>
+
+                              <Paper
+                                variant="outlined"
+                                direction="column"
+                                style={{ padding: 5 }}
+                              >
+                                {Object.keys(weightAndDimentions[category]).map(
+                                  (item, _index) => {
+                                    return (
+                                      <Stack
+                                        direction="row"
+                                        gap={1}
+                                        style={{
+                                          backgroundColor:
+                                            _index % 2 == 0
+                                              ? "transparent"
+                                              : colors.grey[200],
+                                        }}
+                                      >
+                                        <Typography>{item}: </Typography>
+                                        <Typography>
+                                          {weightAndDimentions[category][item]}
+                                        </Typography>
+                                      </Stack>
+                                    );
+                                  }
+                                )}
+                              </Paper>
+                            </Stack>
+                          );
+                        }
+                      )}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -315,7 +365,7 @@ function DimensionalQAAnalyst(props) {
                     size="small"
                     value={filters.buildMaterial}
                     onChange={(e) => {
-                      SetFilters((pre) => ({
+                      setFilters((pre) => ({
                         ...pre,
                         buildMaterial: e.target.value,
                       }));
@@ -334,7 +384,7 @@ function DimensionalQAAnalyst(props) {
                     size="small"
                     value={filters.unitSelector}
                     onChange={(e) => {
-                      SetFilters((pre) => ({
+                      setFilters((pre) => ({
                         ...pre,
                         unitSelector: e.target.value,
                       }));
@@ -349,7 +399,14 @@ function DimensionalQAAnalyst(props) {
 
                 <Stack direction="column" alignItems="center">
                   <Typography>Suggest Edit</Typography>
-                  <Switch onChange={(e) => setSuggestEdit(!suggestEdit)} />
+                  <Switch
+                    onChange={(e) => {
+                      if (suggestEdit) {
+                        setProductProperties(productPropertiesOld);
+                      }
+                      setSuggestEdit(!suggestEdit);
+                    }}
+                  />
                 </Stack>
               </Stack>
             </Paper>
@@ -376,20 +433,18 @@ function DimensionalQAAnalyst(props) {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {productObject.productProps.ironPipeRows.map(
-                          (row, index) => {
-                            return (
-                              <IronPipeTableRow
-                                key={index}
-                                _key={index}
-                                data={row}
-                                handleEdit={handleEdit}
-                                unitSelector={filters.unitSelector}
-                                editable={false}
-                              />
-                            );
-                          }
-                        )}
+                        {productPropertiesOld.ironPipeRows.map((row, index) => {
+                          return (
+                            <IronPipeTableRow
+                              key={index}
+                              _key={index}
+                              data={row}
+                              handleEdit={handleEdit}
+                              unitSelector={filters.unitSelector}
+                              editable={false}
+                            />
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -416,7 +471,7 @@ function DimensionalQAAnalyst(props) {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {productObject.productProps.woodenSheetRows.map(
+                        {productPropertiesOld.woodenSheetRows.map(
                           (row, index) => {
                             return (
                               <WoodenSheetTableRow
@@ -453,7 +508,7 @@ function DimensionalQAAnalyst(props) {
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {productObject.productProps.woodTapeRows.map(
+                          {productPropertiesOld.woodTapeRows.map(
                             (row, index) => {
                               return (
                                 <WoodTapeTableRow
@@ -489,7 +544,7 @@ function DimensionalQAAnalyst(props) {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {productObject.productProps.miscTableRows.map(
+                        {productPropertiesOld.miscTableRows.map(
                           (row, index) => {
                             return (
                               <MiscTableRow
@@ -530,7 +585,7 @@ function DimensionalQAAnalyst(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {productProps.ironPipeRows.map((row, index) => {
+                      {productProperties.ironPipeRows.map((row, index) => {
                         return (
                           <IronPipeTableRow
                             key={index}
@@ -579,7 +634,7 @@ function DimensionalQAAnalyst(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {productProps.woodenSheetRows.map((row, index) => {
+                      {productProperties.woodenSheetRows.map((row, index) => {
                         return (
                           <WoodenSheetTableRow
                             key={index}
@@ -625,7 +680,7 @@ function DimensionalQAAnalyst(props) {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {productProps.woodTapeRows.map((row, index) => {
+                        {productProperties.woodTapeRows.map((row, index) => {
                           return (
                             <WoodTapeTableRow
                               key={index}
@@ -670,7 +725,7 @@ function DimensionalQAAnalyst(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {productProps.miscTableRows.map((row, index) => {
+                      {productProperties.miscTableRows.map((row, index) => {
                         return (
                           <MiscTableRow
                             key={index}
@@ -693,7 +748,7 @@ function DimensionalQAAnalyst(props) {
                   size="small"
                   value={filters.qaScorecard}
                   onChange={(e) => {
-                    SetFilters((pre) => ({
+                    setFilters((pre) => ({
                       ...pre,
                       qaScorecard: e.target.value,
                     }));
@@ -708,9 +763,7 @@ function DimensionalQAAnalyst(props) {
                 <Button
                   variant="contained"
                   disabled={filters.qaScorecard === "QA Scorecard"}
-                  onClick={() => {
-                    exportData();
-                  }}
+                  onClick={executePythonScriptSubmit}
                 >
                   submit
                 </Button>

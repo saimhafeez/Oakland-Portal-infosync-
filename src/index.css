@@ -127,6 +127,28 @@ header.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation4.MuiAppBar-root.MuiAp
   width: 80%;
   height: 80%;
 }
+.btn-width-auto {
+  width: auto;
+  height: 28px;
+}
+.video-bg {
+  background-color: bisque;
+}
+.set-f4 {
+  font-size: 20px;
+  display: inline-block !important;
+  border-bottom: 2px solid #000;
+}
+.set-btn-red {
+  background-color: red;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 1px 5px #000;
+  outline: none;
+  padding: 8px 16px;
+  border: none;
+  font-size: 17px;
+}
 
 @keyframes spin {
   to {
