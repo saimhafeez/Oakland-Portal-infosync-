@@ -1,6 +1,6 @@
 import React from "react";
 
-const ExtractorQATable = () => {
+const DimensionAnalystTable = () => {
   return (
     <>
       <div className="">
@@ -37,10 +37,11 @@ const ExtractorQATable = () => {
             <th>#ITN</th>
             <th>#PID</th>
             <th>Thumbnail</th>
+            <th>QA By</th>
             <th>Final Status</th>
             <th>Penalty</th>
             <th>Comments</th>
-            <th>Extracted Date</th>
+            <th>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -54,10 +55,11 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Pass</td>
             <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
+            <td>10/17/2023</td>
           </tr>
           <tr>
             <td>0000124</td>
@@ -69,6 +71,7 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Reject</td>
             <td>1,000</td>
             <td>Again dummy comment for testing purpose.</td>
@@ -84,10 +87,11 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Pass</td>
             <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
+            <td>10/17/2023</td>
           </tr>
           <tr>
             <td>0000124</td>
@@ -99,6 +103,7 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Reject</td>
             <td>1,000</td>
             <td>Again dummy comment for testing purpose.</td>
@@ -114,10 +119,11 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Pass</td>
             <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
+            <td>10/17/2023</td>
           </tr>
           <tr>
             <td>0000124</td>
@@ -129,6 +135,7 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Reject</td>
             <td>1,000</td>
             <td>Again dummy comment for testing purpose.</td>
@@ -144,10 +151,11 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Pass</td>
             <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
+            <td>10/17/2023</td>
           </tr>
           <tr>
             <td>0000124</td>
@@ -159,6 +167,7 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Reject</td>
             <td>1,000</td>
             <td>Again dummy comment for testing purpose.</td>
@@ -174,10 +183,11 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Pass</td>
             <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
+            <td>10/17/2023</td>
           </tr>
           <tr>
             <td>0000124</td>
@@ -189,6 +199,7 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User Four</td>
             <td>Reject</td>
             <td>1,000</td>
             <td>Again dummy comment for testing purpose.</td>
@@ -200,4 +211,4 @@ const ExtractorQATable = () => {
   );
 };
 
-export default ExtractorQATable;
+export default DimensionAnalystTable;

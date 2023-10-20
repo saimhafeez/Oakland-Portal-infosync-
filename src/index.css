@@ -52,6 +52,7 @@ header.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation4.MuiAppBar-root.MuiAp
 .set-right-container {
   width: calc(100% - 0px);
   margin-left: auto;
+  min-height: 90vh;
 }
 .set-right-container-252 {
   width: calc(100% - 252px);
@@ -148,6 +149,42 @@ header.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation4.MuiAppBar-root.MuiAp
   padding: 8px 16px;
   border: none;
   font-size: 17px;
+}
+
+.set-fixed-bar {
+  position: fixed;
+  right: 0px;
+  width: 152px;
+  background-color: #ececec;
+  padding: 12px 12px 20px;
+  border-radius: 12px 0px 0px 12px;
+  z-index: 1000;
+}
+.set-fixed-bar .select-btn.btn {
+  display: block;
+  margin-top: 12px;
+  width: 126px;
+}
+.button-disable {
+  position: relative;
+}
+
+.button-disable::before {
+  content: "\2713";
+  position: absolute;
+  top: -17px;
+  left: -7px;
+  color: #006c33;
+  font-size: 30px;
+  transition: all 0.3s linear;
+  z-index: 1000;
+  font-weight: 900;
+}
+
+.set-select-all select {
+  display: inline-block;
+  height: 45px;
+  border-radius: 12px;
 }
 
 @keyframes spin {

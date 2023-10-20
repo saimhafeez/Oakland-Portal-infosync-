@@ -7,8 +7,12 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase";
 import ExtractorTable from "../tables/ExtractorTable";
 import ExtractorQATable from "../tables/ExtractorQATable";
+import AdminTable from "../tables/AdminTable";
+import ManagerTable from "../tables/ManagerTable";
+import DimensionAnalystTable from "../tables/DimensionAnalystTable";
+import DimensionQATable from "../tables/DimensionQATable";
 
-const WorkerDashboard = (props) => {
+const DashboardPage = (props) => {
   const navigate = useNavigate();
   const handleWork = () => {
     if (props.userJdesc === "Extractor") {
@@ -39,18 +43,26 @@ const WorkerDashboard = (props) => {
           </div>
           <div className="col-lg-6">
             <div className="text-center text-lg-end">
-              <button className="start-btn" onClick={handleWork}>
-                Start Work
-              </button>
+              {props.userRole === "worker" && (
+                <button className="start-btn" onClick={handleWork}>
+                  Start Work
+                </button>
+              )}
             </div>
           </div>
         </div>
         {/* TABLES */}
-        {props.userJdesc === "Extractor" && <ExtractorTable />}
+        {props.userJdesc === "Extractor" && (
+          <ExtractorTable user={props.user} />
+        )}
         {props.userJdesc === "QA-Extractor" && <ExtractorQATable />}
+        {props.userJdesc === "DimAna" && <DimensionAnalystTable />}
+        {props.userJdesc === "QA-DimAna" && <DimensionQATable />}
+        {props.userRole === "admin" && <AdminTable />}
+        {props.userRole === "manager" && <ManagerTable />}
       </div>
     </>
   );
 };
 
-export default WorkerDashboard;
+export default DashboardPage;

@@ -23,6 +23,7 @@ function MiscTableRow({ handleEdit, data, _key, editable = true }) {
           variant="outlined"
           className="cell-disabled"
           disabled
+          fullWidth
           value={data.item}
         />
       </TableCell>
@@ -51,6 +52,7 @@ function MiscTableRow({ handleEdit, data, _key, editable = true }) {
           size="small"
           variant="outlined"
           name="qty"
+          fullWidth
           disabled={!editable}
           onChange={(e) => {
             handleEdit(e, _key, propType);

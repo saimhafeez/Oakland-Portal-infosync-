@@ -38,7 +38,7 @@ const Login = (props) => {
         } else if (props.userRole === "manager") {
           navigate("/dimensions-analyst");
         } else if (props.userRole === "worker") {
-          navigate("/worker-dashboard");
+          navigate("/dashboard");
         } else {
           return null;
         }

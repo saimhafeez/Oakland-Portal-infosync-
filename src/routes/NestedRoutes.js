@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router";
 
 const NestedRoutes = ({ isAllowedNested, children }) => {
   if (!isAllowedNested) {
-    return <Navigate to="/worker-dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children ? children : <Outlet />;

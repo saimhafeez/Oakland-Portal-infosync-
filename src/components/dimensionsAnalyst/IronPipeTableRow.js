@@ -38,7 +38,7 @@ function IronPipeTableRow({
           size="small"
           value={data.pipeTypeNSize}
           onChange={(e) => handleEdit(e, _key, propType)}
-          style={{ width: "170px" }}
+          fullWidth
           name="pipeTypeNSize"
           disabled={!editable}
         >
@@ -59,6 +59,7 @@ function IronPipeTableRow({
           value={data.pipeTypeNSize.split("  ")[0]}
           className="cell-disabled"
           disabled
+          fullWidth
         />
       </TableCell>
 
@@ -69,6 +70,7 @@ function IronPipeTableRow({
           value={data.pipeTypeNSize.split("  ")[1]}
           className="cell-disabled"
           disabled
+          fullWidth
         />
       </TableCell>
 
@@ -79,6 +81,7 @@ function IronPipeTableRow({
           value={data.length}
           name="length"
           disabled={!editable}
+          fullWidth
           onChange={(e) => handleEdit(e, _key, propType)}
         />
       </TableCell>
@@ -90,6 +93,7 @@ function IronPipeTableRow({
           value={data.qty}
           name="qty"
           disabled={!editable}
+          fullWidth
           onChange={(e) => handleEdit(e, _key, propType)}
         />
       </TableCell>
@@ -101,6 +105,7 @@ function IronPipeTableRow({
           value={getTotal()}
           className="cell-disabled"
           disabled
+          fullWidth
         />
       </TableCell>
     </TableRow>

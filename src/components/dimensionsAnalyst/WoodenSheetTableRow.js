@@ -38,7 +38,8 @@ function WoodenSheetTableRow({
           size="small"
           value={data.type}
           onChange={(e) => handleEdit(e, _key, propType)}
-          style={{ width: "130px" }}
+          // style={{ width: "130px" }}
+          fullWidth
           name="type"
           disabled={!editable}
         >
@@ -60,6 +61,7 @@ function WoodenSheetTableRow({
           name="length"
           disabled={!editable}
           onChange={(e) => handleEdit(e, _key, propType)}
+          fullWidth
         />
       </TableCell>
 
@@ -71,6 +73,7 @@ function WoodenSheetTableRow({
           name="width"
           disabled={!editable}
           onChange={(e) => handleEdit(e, _key, propType)}
+          fullWidth
         />
       </TableCell>
 
@@ -82,6 +85,7 @@ function WoodenSheetTableRow({
           name="qty"
           disabled={!editable}
           onChange={(e) => handleEdit(e, _key, propType)}
+          fullWidth
         />
       </TableCell>
 
@@ -92,6 +96,7 @@ function WoodenSheetTableRow({
           value={getValue(data.length)}
           className="cell-disabled"
           disabled
+          fullWidth
         />
       </TableCell>
 
@@ -102,6 +107,7 @@ function WoodenSheetTableRow({
           value={getValue(data.width)}
           className="cell-disabled"
           disabled
+          fullWidth
         />
       </TableCell>
 
@@ -112,6 +118,7 @@ function WoodenSheetTableRow({
           value={(getValue(data.length) * getValue(data.width)).toFixed(1)}
           className="cell-disabled"
           disabled
+          fullWidth
         />
       </TableCell>
 
@@ -126,6 +133,7 @@ function WoodenSheetTableRow({
           ).toFixed(1)}
           className="cell-disabled"
           disabled
+          fullWidth
         />
       </TableCell>
     </TableRow>

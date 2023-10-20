@@ -35,7 +35,7 @@ import SharedLayout from "./pages/SharedLayout";
 import Dashboard from "./pages/Dashboard";
 import FileManagement from "./pages/FileManagement";
 import DimensionsAnalyst from "./pages/DimensionsAnalyst";
-import WorkerDashboard from "./components/workerDashboard/WorkerDashboard";
+import DashboardPage from "./components/Dashboard/DashboardPage";
 import Extraction from "./pages/Extraction";
 import Login from "./components/Login/Login";
 import Signup from "./components/Signup/Signup";
@@ -159,9 +159,9 @@ function App() {
               }
             >
               <Route
-                path="/worker-dashboard"
+                path="/dashboard"
                 element={
-                  <WorkerDashboard
+                  <DashboardPage
                     user={user}
                     userEmail={userEmail}
                     userRole={userRole}

@@ -1,6 +1,6 @@
 import React from "react";
 
-const ExtractorQATable = () => {
+const AdminTable = () => {
   return (
     <>
       <div className="">
@@ -10,23 +10,39 @@ const ExtractorQATable = () => {
               <strong>Total Product Extracted: </strong>&nbsp;
             </td>
             <td className="ps-3 pt-2">
-              <u>220</u>
+              <u>1,220</u>
             </td>
           </tr>
           <tr>
             <td className="ps-3 pt-2">
-              <strong>Extracted Products this month: </strong>&nbsp;
+              <strong>Total Varient Extracted: </strong>&nbsp;
             </td>
             <td className="ps-3 pt-2">
-              <u>102</u>
+              <u>156</u>
             </td>
           </tr>
           <tr>
             <td className="ps-3 pt-2">
-              <strong>Total Payment Dues: </strong>&nbsp;
+              <strong>Total Product Extracted this Month: </strong>&nbsp;
             </td>
             <td className="ps-3 pt-2">
-              <u>1,220 (Rs)</u>
+              <u>456</u>
+            </td>
+          </tr>
+          <tr>
+            <td className="ps-3 pt-2">
+              <strong>Total Product Extracted Today: </strong>&nbsp;
+            </td>
+            <td className="ps-3 pt-2">
+              <u>42 (Rs)</u>
+            </td>
+          </tr>
+          <tr>
+            <td className="ps-3 pt-2">
+              <strong>Total Expenditures: </strong>&nbsp;
+            </td>
+            <td className="ps-3 pt-2">
+              <u>12,220 (Rs)</u>
             </td>
           </tr>
         </table>
@@ -37,10 +53,13 @@ const ExtractorQATable = () => {
             <th>#ITN</th>
             <th>#PID</th>
             <th>Thumbnail</th>
+            <th>Sorted By</th>
+            <th>Sorter QA</th>
+            <th>Dim. Ana. By</th>
+            <th>Dim. Ana. QA By</th>
             <th>Final Status</th>
-            <th>Penalty</th>
             <th>Comments</th>
-            <th>Extracted Date</th>
+            <th>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -54,25 +73,13 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
             <td>Pass</td>
-            <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
             <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
           </tr>
           <tr>
             <td>0000123</td>
@@ -84,25 +91,13 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
             <td>Pass</td>
-            <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
             <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
           </tr>
           <tr>
             <td>0000123</td>
@@ -114,25 +109,13 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
             <td>Pass</td>
-            <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
             <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
           </tr>
           <tr>
             <td>0000123</td>
@@ -144,25 +127,13 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
             <td>Pass</td>
-            <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
             <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
           </tr>
           <tr>
             <td>0000123</td>
@@ -174,14 +145,17 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
             <td>Pass</td>
-            <td>2,000</td>
             <td>Dummy comment for testing purpose.</td>
             <td>10/13/2023</td>
           </tr>
           <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
+            <td>0000123</td>
+            <td>W004489514</td>
             <td>
               <img
                 src={process.env.PUBLIC_URL + "/logo192.png"}
@@ -189,10 +163,49 @@ const ExtractorQATable = () => {
                 height={"52px"}
               />
             </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
+            <td>Pass</td>
+            <td>Dummy comment for testing purpose.</td>
+            <td>10/13/2023</td>
+          </tr>
+          <tr>
+            <td>0000123</td>
+            <td>W004489514</td>
+            <td>
+              <img
+                src={process.env.PUBLIC_URL + "/logo192.png"}
+                alt=""
+                height={"52px"}
+              />
+            </td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
+            <td>Pass</td>
+            <td>Dummy comment for testing purpose.</td>
+            <td>10/13/2023</td>
+          </tr>
+          <tr>
+            <td>0000123</td>
+            <td>W004489514</td>
+            <td>
+              <img
+                src={process.env.PUBLIC_URL + "/logo192.png"}
+                alt=""
+                height={"52px"}
+              />
+            </td>
+            <td>User One</td>
+            <td>User Two</td>
+            <td>User Three</td>
+            <td>User Four</td>
+            <td>Pass</td>
+            <td>Dummy comment for testing purpose.</td>
+            <td>10/13/2023</td>
           </tr>
         </tbody>
       </table>
@@ -200,4 +213,4 @@ const ExtractorQATable = () => {
   );
 };
 
-export default ExtractorQATable;
+export default AdminTable;

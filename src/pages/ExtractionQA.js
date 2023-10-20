@@ -94,6 +94,7 @@ const ExtractionQA = (props) => {
   const [hasOrdinaryImagesMapped, setHasOrdinaryImagesMapped] = useState(false);
   const [hasDiscardImagesMapped, setHasDiscardImagesMapped] = useState(false);
 
+  const [isFetchButtonDisabled, setIsFetchButtonDisabled] = useState(false);
   // for show button
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -106,6 +107,13 @@ const ExtractionQA = (props) => {
 
   const [url, setUrl] = useState("");
   const [jsonResult, setJsonResult] = useState(""); // Initialize as an empty string
+
+  // SET SELECT OPTION
+  const [selectedOption, setSelectedOption] = useState("QA passed"); // Default value
+
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
 
   // http://139.144.30.86:3001/api/fetch-data
   // 161.97.167.225/scrape
@@ -132,6 +140,7 @@ const ExtractionQA = (props) => {
             .then((response) => response.json()) // Assuming server responds with json
             .then((data) => {
               console.log("API Response:", data);
+              setIsFetchButtonDisabled(true);
               // setAllImages(data.unsorted);
               setDefaultThumbnail(data.thumbnails);
               setDefaultDimension(data.dimensional);
@@ -140,7 +149,7 @@ const ExtractionQA = (props) => {
               setDefaultDiscard(data.discard);
               setSku(data.id);
               setVideos(data.videos);
-              // setShowId(data.sku);
+              setShowId(data.sku);
             })
             .catch((error) => {
               console.error("Error:", error);
@@ -533,6 +542,7 @@ const ExtractionQA = (props) => {
       ordinary: [],
       discard: [],
       videos: [],
+      change: "",
     };
     structuredData.id = sku;
     // if (mergeSelectedDefaultThumbnail.length > 0) {
@@ -553,6 +563,7 @@ const ExtractionQA = (props) => {
     // if (videos.length > 0) {
     structuredData.videos = videos;
     // }
+    structuredData.change = selectedOption;
 
     // Log the structured data as a JSON object.
     // console.log(JSON.stringify(structuredData, null, 2));
@@ -596,6 +607,10 @@ const ExtractionQA = (props) => {
         setIsWhiteBgButtonDisabled(false);
         setIsOrdinaryButtonDisabled(false);
         setIsDiscardButtonDisabled(false);
+
+        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
+        setIsFetchButtonDisabled(false);
+
         toast.success("Data submited Successfully!", {
           position: toast.POSITION.BOTTOM_RIGHT,
         });
@@ -624,7 +639,7 @@ const ExtractionQA = (props) => {
               </div>
               <div className="col-lg-4 col-md-4 text-center">
                 <h6>
-                  Product ID: <strong>W234325345</strong>
+                  Product ID: <strong>{showId}</strong>
                 </h6>
               </div>
               <div className="col-lg-3 col-md-4 text-end">
@@ -639,6 +654,7 @@ const ExtractionQA = (props) => {
                 <button
                   className="btn d-block w-100"
                   onClick={executePythonScript}
+                  disabled={isFetchButtonDisabled}
                 >
                   Fetch Data
                 </button>
@@ -651,7 +667,7 @@ const ExtractionQA = (props) => {
         </div>
 
         {/* radio selector  */}
-        <div className="container mt-5">
+        <div className="container mt-5 set-fixed-bar">
           {/* <div>
             <h2>JSON Result:</h2>
             <pre>{jsonResult}</pre>
@@ -660,7 +676,7 @@ const ExtractionQA = (props) => {
             onClick={() => handleButtonClick("Thumbnail")}
             className={`select-btn btn ${
               selectedButton === "Thumbnail" ? "active-button" : ""
-            }`}
+            }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
             disabled={isThumbnailButtonDisabled}
           >
             Thumbnail
@@ -670,7 +686,7 @@ const ExtractionQA = (props) => {
             onClick={() => handleButtonClick("Dimensional")}
             className={`select-btn btn ${
               selectedButton === "Dimensional" ? "active-button" : ""
-            }`}
+            }${isDimensionalButtonDisabled ? " button-disable" : ""}`}
             disabled={isDimensionalButtonDisabled}
           >
             Dimensional
@@ -679,7 +695,7 @@ const ExtractionQA = (props) => {
             onClick={() => handleButtonClick("WhiteBg")}
             className={`select-btn btn ${
               selectedButton === "WhiteBg" ? "active-button" : ""
-            }`}
+            }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
             disabled={isWhiteBgButtonDisabled}
           >
             WhiteBg
@@ -688,7 +704,7 @@ const ExtractionQA = (props) => {
             onClick={() => handleButtonClick("Ordinary")}
             className={`select-btn btn btn-equ ${
               selectedButton === "Ordinary" ? "active-button" : ""
-            }`}
+            }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
             disabled={isOrdinaryButtonDisabled}
           >
             Ordinary
@@ -698,19 +714,26 @@ const ExtractionQA = (props) => {
             onClick={() => handleButtonClick("Discard")}
             className={`select-btn btn btn-equ ${
               selectedButton === "Discard" ? "active-button" : ""
-            }`}
+            }${isDiscardButtonDisabled ? " button-disable" : ""}`}
             disabled={isDiscardButtonDisabled}
           >
             Discard
+          </button>
+          <button
+            onClick={submitData}
+            className="submit mt-3"
+            id="set-btn-submit"
+          >
+            Submit
           </button>
         </div>
 
         {/* all images map in ui  */}
 
-        <div className="container mt-4 ">
+        <div className="container">
           <div className="row">
             {allImages.map((item) => (
-              <div className="col-md-3 mb-4 " key={item.id}>
+              <div className="col-md-3 mt-4" key={item.id}>
                 <div
                   className={`card img-fluid ${
                     imageSelectedIds.includes(item) ? "selected-image" : ""
@@ -725,15 +748,15 @@ const ExtractionQA = (props) => {
         </div>
 
         {/* submit button  */}
-        <div className="col-lg-10 col-md-4 text-end">
+        {/* <div className="col-lg-10 col-md-4 text-end">
           <button onClick={submitData} className="btn btn-primary submit">
             Submit
           </button>
-        </div>
+        </div> */}
 
-        <h2 className="text-center mb-5">Sorted Data</h2>
+        {/* <h2 className="text-center mb-5">Sorted Data</h2> */}
         {/* THUMBNAIL UPDATED CODE  */}
-        <div className="container-fluid py-3 thumbnail-bg">
+        <div className="container-fluid py-3 thumbnail-bg mt-4">
           <div className="container">
             <div className="main-div">
               <div className="row">
@@ -1166,7 +1189,7 @@ const ExtractionQA = (props) => {
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3 ">Ordinary</h2>
+                  <h2 className="mb-3 ">Supportive</h2>
                 </div>
                 <div className="col-lg-12 all-btns">
                   {selectedOrdinary.length > 0 && selectedImage && (
@@ -1438,7 +1461,7 @@ const ExtractionQA = (props) => {
         </div>
         {/* sorted data into json form  */}
         {/* VIDEO CONTAINER */}
-        <div className="container-fluid py-3 video-bg">
+        {/* <div className="container-fluid py-3 video-bg">
           <div className="container">
             <div className="main-div">
               <div className="row">
@@ -1478,9 +1501,16 @@ const ExtractionQA = (props) => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        <div className="col-lg-10 col-md-4 text-end mt-4 mb-5">
+        <div className="d-flex justify-content-center align-items-center text-end mt-4 mb-5">
+          <div className="set-select-all me-3">
+            <select value={selectedOption} onChange={handleSelectChange}>
+              <option value="QA passed">QA passed</option>
+              <option value="Minor changes">Minor changes</option>
+              <option value="Major changes">Major changes</option>
+            </select>
+          </div>
           {mergeSelectedDefaultThumbnail.length > 0 ||
           mergeSelectedDefaultDimension.length > 0 ||
           selectedWhiteBg.length > 0 ||

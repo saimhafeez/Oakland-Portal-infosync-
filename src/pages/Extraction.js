@@ -62,6 +62,7 @@ const Extraction = (props) => {
   const [hasOrdinaryImagesMapped, setHasOrdinaryImagesMapped] = useState(false);
   const [hasDiscardImagesMapped, setHasDiscardImagesMapped] = useState(false);
 
+  const [isFetchButtonDisabled, setIsFetchButtonDisabled] = useState(false);
   // for show button
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -105,6 +106,7 @@ const Extraction = (props) => {
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
+              setIsFetchButtonDisabled(true);
               // Extract the first index image and add it to selectedThumbnail
               // if (data.thumbnails.length > 0) {
               //   setSelectedThumbnail([data.thumbnails[0]]);
@@ -540,6 +542,9 @@ const Extraction = (props) => {
         setIsOrdinaryButtonDisabled(false);
         setIsDiscardButtonDisabled(false);
 
+        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
+        setIsFetchButtonDisabled(false);
+
         toast.success("Sorted Data Submit Successfully!", {
           position: toast.POSITION.BOTTOM_RIGHT,
         });
@@ -594,6 +599,7 @@ const Extraction = (props) => {
                 <button
                   className="btn d-block w-100"
                   onClick={executePythonScript}
+                  disabled={isFetchButtonDisabled}
                 >
                   Fetch Data
                 </button>
@@ -606,7 +612,7 @@ const Extraction = (props) => {
         </div>
 
         {/* radio selector  */}
-        <div className="container mt-5">
+        <div className="container mt-5 set-fixed-bar">
           {/* <div>
             <h2>JSON Result:</h2>
             <pre>{jsonResult}</pre>
@@ -615,7 +621,7 @@ const Extraction = (props) => {
             onClick={() => handleButtonClick("Thumbnail")}
             className={`select-btn btn ${
               selectedButton === "Thumbnail" ? "active-button" : ""
-            }`}
+            }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
             disabled={isThumbnailButtonDisabled}
           >
             Thumbnail
@@ -625,7 +631,8 @@ const Extraction = (props) => {
             onClick={() => handleButtonClick("Dimensional")}
             className={`select-btn btn ${
               selectedButton === "Dimensional" ? "active-button" : ""
-            }`}
+            }
+              ${isDimensionalButtonDisabled ? " button-disable" : ""}`}
             disabled={isDimensionalButtonDisabled}
           >
             Dimensional
@@ -634,7 +641,7 @@ const Extraction = (props) => {
             onClick={() => handleButtonClick("WhiteBg")}
             className={`select-btn btn ${
               selectedButton === "WhiteBg" ? "active-button" : ""
-            }`}
+            }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
             disabled={isWhiteBgButtonDisabled}
           >
             WhiteBg
@@ -643,7 +650,7 @@ const Extraction = (props) => {
             onClick={() => handleButtonClick("Ordinary")}
             className={`select-btn btn btn-equ ${
               selectedButton === "Ordinary" ? "active-button" : ""
-            }`}
+            }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
             disabled={isOrdinaryButtonDisabled}
           >
             Ordinary
@@ -653,19 +660,26 @@ const Extraction = (props) => {
             onClick={() => handleButtonClick("Discard")}
             className={`select-btn btn btn-equ ${
               selectedButton === "Discard" ? "active-button" : ""
-            }`}
+            }${isDiscardButtonDisabled ? " button-disable" : ""}`}
             disabled={isDiscardButtonDisabled}
           >
             Discard
+          </button>
+          <button
+            onClick={submitData}
+            className="submit mt-3"
+            id="set-btn-submit"
+          >
+            Submit
           </button>
         </div>
 
         {/* all images map in ui  */}
 
-        <div className="container mt-4 ">
+        <div className="container">
           <div className="row">
             {allImages.map((item) => (
-              <div className="col-md-3 mb-4 " key={item.id}>
+              <div className="col-md-3 mt-4" key={item.id}>
                 <div
                   className={`card img-fluid ${
                     imageSelectedIds.includes(item) ? "selected-image" : ""
@@ -680,15 +694,15 @@ const Extraction = (props) => {
         </div>
 
         {/* submit button  */}
-        <div className="col-lg-10 col-md-4 text-end">
+        {/* <div className="col-lg-10 col-md-4 text-end">
           <button onClick={submitData} className="btn btn-primary submit">
             Submit
           </button>
-        </div>
+        </div> */}
 
-        <h2 className="text-center mb-5">Sorted Data</h2>
+        {/* <h2 className="text-center mb-5">Sorted Data</h2> */}
         {/* thumbnai section images  */}
-        <div className="container-fluid py-3 thumbnail-bg">
+        <div className="container-fluid py-3 thumbnail-bg mt-4">
           <div className="container">
             <div className="main-div">
               <div className=" row">
@@ -965,7 +979,7 @@ const Extraction = (props) => {
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3 ">White Background</h2>
+                  <h2 className="mb-3 ">White BG</h2>
                 </div>
                 <div className="col-lg-12 all-btns">
                   {selectedWhiteBg.length > 0 && selectedImage && (
@@ -1038,7 +1052,7 @@ const Extraction = (props) => {
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3">Ordinary</h2>
+                  <h2 className="mb-3">Supportive</h2>
                 </div>
                 <div className="col-lg-12 all-btns">
                   {selectedOrdinary.length > 0 && selectedImage && (
@@ -1179,7 +1193,7 @@ const Extraction = (props) => {
           </div>
         </div>
         {/* VIDEO CONTAINER */}
-        <div className="container-fluid py-3 video-bg">
+        {/* <div className="container-fluid py-3 video-bg">
           <div className="container">
             <div className="main-div">
               <div className="row">
@@ -1226,7 +1240,7 @@ const Extraction = (props) => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         {/* sorted data into json form  */}
 
         <div className="col-lg-10 col-md-4 text-end mt-4 mb-5">
@@ -1249,15 +1263,14 @@ const Extraction = (props) => {
             </button>
           )}
         </div>
-
-        <footer>
-          <div className="col-lg-12">
-            <div className="footer-left">
-              <p className="mb-0">@InfoSync LTD 2015 All Rights Reserved.</p>
-            </div>
-          </div>
-        </footer>
       </div>
+      <footer>
+        <div className="col-lg-12">
+          <div className="footer-left">
+            <p className="mb-0">@InfoSync LTD 2015 All Rights Reserved.</p>
+          </div>
+        </div>
+      </footer>
     </>
   );
 };

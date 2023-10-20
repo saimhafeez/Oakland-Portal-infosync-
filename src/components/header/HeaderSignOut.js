@@ -47,7 +47,7 @@ const HeaderSignOut = (props) => {
           <li>
             <button
               onClick={() => {
-                navigate("/worker-dashboard");
+                navigate("/dashboard");
               }}
               className="btn-white"
             >

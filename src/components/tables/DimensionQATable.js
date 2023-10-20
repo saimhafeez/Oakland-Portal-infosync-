@@ -1,6 +1,6 @@
 import React from "react";
 
-const ExtractorQATable = () => {
+const DimensionQATable = () => {
   return (
     <>
       <div className="">
@@ -200,4 +200,4 @@ const ExtractorQATable = () => {
   );
 };
 
-export default ExtractorQATable;
+export default DimensionQATable;

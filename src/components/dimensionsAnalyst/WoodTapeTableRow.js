@@ -58,6 +58,7 @@ function WoodTapeTableRow({
           variant="outlined"
           value={data.length}
           name="length"
+          fullWidth
           disabled={!editable}
           onChange={(e) => {
             handleEdit(e, _key, propType);
@@ -72,6 +73,7 @@ function WoodTapeTableRow({
           value={data.qty}
           name="qty"
           disabled={!editable}
+          fullWidth
           onChange={(e) => {
             handleEdit(e, _key, propType);
           }}
@@ -83,6 +85,7 @@ function WoodTapeTableRow({
           size="small"
           variant="outlined"
           className="cell-disabled"
+          fullWidth
           disabled
           value={getTotal()}
         />
