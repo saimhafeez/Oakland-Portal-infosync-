@@ -18,6 +18,7 @@ function WoodenSheetTableRow({
   _key,
   unitSelector,
   editable = true,
+  hideDetails = false
 }) {
   const propType = "woodenSheetRows";
 
@@ -89,38 +90,44 @@ function WoodenSheetTableRow({
         />
       </TableCell>
 
-      <TableCell>
-        <TextField
-          size="small"
-          variant="outlined"
-          value={getValue(data.length)}
-          className="cell-disabled"
-          disabled
-          fullWidth
-        />
-      </TableCell>
+      {
+        !hideDetails && (
+          <>
+            <TableCell>
+              <TextField
+                size="small"
+                variant="outlined"
+                value={getValue(data.length)}
+                className="cell-disabled"
+                disabled
+                fullWidth
+              />
+            </TableCell>
 
-      <TableCell>
-        <TextField
-          size="small"
-          variant="outlined"
-          value={getValue(data.width)}
-          className="cell-disabled"
-          disabled
-          fullWidth
-        />
-      </TableCell>
+            <TableCell>
+              <TextField
+                size="small"
+                variant="outlined"
+                value={getValue(data.width)}
+                className="cell-disabled"
+                disabled
+                fullWidth
+              />
+            </TableCell>
 
-      <TableCell>
-        <TextField
-          size="small"
-          variant="outlined"
-          value={(getValue(data.length) * getValue(data.width)).toFixed(1)}
-          className="cell-disabled"
-          disabled
-          fullWidth
-        />
-      </TableCell>
+            <TableCell>
+              <TextField
+                size="small"
+                variant="outlined"
+                value={(getValue(data.length) * getValue(data.width)).toFixed(1)}
+                className="cell-disabled"
+                disabled
+                fullWidth
+              />
+            </TableCell>
+          </>
+        )
+      }
 
       <TableCell>
         <TextField

@@ -12,7 +12,9 @@ import Paper from "@mui/material/Paper";
 import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
 import HeaderSignOut from "../components/header/HeaderSignOut";
 import {
+  Box,
   Button,
+  ButtonGroup,
   CircularProgress,
   Grid,
   MenuItem,
@@ -24,6 +26,8 @@ import {
   colors,
 } from "@mui/material";
 
+import CloseIcon from "@mui/icons-material/Close";
+import MenuIcon from "@mui/icons-material/Menu";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import PropsModel from "../res/PropsModel";
 import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTableRow";
@@ -32,6 +36,11 @@ import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
 
 function DimensionalQAAnalyst(props) {
   const [pageLoading, setPageLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [dataSubmitting, setDataSubmitting] = useState(false);
+  const [displayProductDataType, setDisplayProductDataType] =
+    useState("images");
 
   const [productID, setProductID] = useState("");
   const [productPropertiesOld, setProductPropertiesOld] = useState({
@@ -44,6 +53,7 @@ function DimensionalQAAnalyst(props) {
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
   const executePythonScript = async () => {
+    setDataLoading(true);
     console.log("props.user", props.user);
     if (props.user) {
       // Get the authentication token
@@ -51,13 +61,20 @@ function DimensionalQAAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://161.97.167.225:5001/api/get_job";
+          const apiUrl = "http://139.144.30.86:8000/api/get_job";
           console.log(token);
           // Make an authenticated API request
+
+          // fetch(apiUrl, {
+          //   method: "GET",
+          //   headers: {
+          //     Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+          //   },
+          // })
           fetch(apiUrl, {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+              Authorization: `Bearer ${token}`,
             },
           })
             .then((response) => {
@@ -71,17 +88,32 @@ function DimensionalQAAnalyst(props) {
               // Handle the API response data
               console.log("API Response:", data);
 
+              const mergedArray = PropsModel["miscTableRows"].map(
+                (existingItem) => {
+                  const newDataItem = data.productProperties.miscTableRows.find(
+                    (newItem) => newItem.item === existingItem.item
+                  );
+
+                  return newDataItem ? newDataItem : existingItem;
+                }
+              );
+
               setImages(data.images);
               setWeightAndDimentions(data["weight and dimensions"]);
               setPageLoading(false);
               setPreviewImage(data.images[0]);
-              setProductProperties(data.productProperties);
+              setProductProperties({
+                ...data.productProperties,
+                miscTableRows: mergedArray,
+              });
               setProductPropertiesOld(data.productProperties);
               setProductID(data.id);
               setFilters((pre) => ({
                 ...pre,
                 buildMaterial: data.buildMaterial,
               }));
+              setDataLoaded(true);
+              setDataLoading(false);
             })
             .catch((error) => {
               // Handle any errors
@@ -107,7 +139,7 @@ function DimensionalQAAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://161.97.167.225:5001/api/submit";
+          const apiUrl = "http://139.144.30.86:8000/api/submit";
           console.log(token);
           // Make an authenticated API request
           fetch(apiUrl, {
@@ -128,10 +160,54 @@ function DimensionalQAAnalyst(props) {
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
-              setImages(data.images);
-              setWeightAndDimentions(data["weight and dimensions"]);
-              setPageLoading(false);
-              setPreviewImage(data.images[0]);
+              setImages([]);
+              setWeightAndDimentions({});
+              setProductID("");
+              setPreviewImage("");
+              setDataLoading(false);
+              setDataLoaded(false);
+              setFilters((pre) => ({
+                ...pre,
+                buildMaterial: "IRON PIPE / MDF",
+              }));
+              setProductProperties({
+                ironPipeRows: [
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                ],
+                woodenSheetRows: [
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                ],
+                woodTapeRows: [
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                ],
+                miscTableRows: PropsModel["miscTableRows"],
+              });
+
+              setDataSubmitting(false);
             })
             .catch((error) => {
               // Handle any errors
@@ -145,12 +221,7 @@ function DimensionalQAAnalyst(props) {
     }
   };
 
-  useEffect(() => {
-    executePythonScript();
-  }, []);
-
   const [suggestEdit, setSuggestEdit] = useState(false);
-  const [hideStaticTable, setHideStaticTable] = useState(false);
   const [previewImage, setPreviewImage] = useState(images[0]);
 
   const [filters, setFilters] = useState({
@@ -205,6 +276,7 @@ function DimensionalQAAnalyst(props) {
         return;
       }
     }
+
     setProductProperties((pre) => {
       const updatedRows = [...pre[propType]];
       updatedRows[key] = {
@@ -253,524 +325,431 @@ function DimensionalQAAnalyst(props) {
     };
   };
 
+  const [displayHeader, setDisplayHeader] = useState(false);
+
   return (
     <>
-      <HeaderSignOut
-        userEmail={props.userEmail}
-        userRole={props.userRole}
-        userJdesc={props.userJdesc}
-      />
+      {displayHeader && (
+        <HeaderSignOut
+          userEmail={props.userEmail}
+          userRole={props.userRole}
+          userJdesc={props.userJdesc}
+        />
+      )}
 
       <Wrapper>
-        {pageLoading ? (
-          <Stack alignItems="center">
-            <CircularProgress />
-          </Stack>
-        ) : (
-          <Stack spacing={2}>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small" sx={{ minWidth: 650 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell width={"55%"} className="table-head">
-                      Images
-                    </TableCell>
-                    <TableCell width={"1%"}></TableCell>
-                    <TableCell width={"44%"} className="table-head">
-                      Specifications
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <img width="100%" src={previewImage} />
-                      <Stack justifyContent="center" direction="row">
-                        {images.map((source, index) => {
-                          return (
-                            <img
-                              onClick={() => setPreviewImage(source)}
-                              width="120px"
-                              src={source}
-                              key={index}
-                            />
-                          );
-                        })}
-                      </Stack>
-                    </TableCell>
-                    <TableCell></TableCell>
-                    <TableCell style={{ background: "#cbdcf7", padding: 10 }}>
-                      {Object.keys(weightAndDimentions).map(
-                        (category, index) => {
-                          return (
-                            <Stack direction="column">
-                              <Typography fontWeight="bold">
-                                {category}
-                              </Typography>
-
-                              <Paper
-                                variant="outlined"
-                                direction="column"
-                                style={{ padding: 5 }}
-                              >
-                                {Object.keys(weightAndDimentions[category]).map(
-                                  (item, _index) => {
-                                    return (
-                                      <Stack
-                                        direction="row"
-                                        gap={1}
-                                        style={{
-                                          backgroundColor:
-                                            _index % 2 == 0
-                                              ? "transparent"
-                                              : colors.grey[200],
-                                        }}
-                                      >
-                                        <Typography>{item}: </Typography>
-                                        <Typography>
-                                          {weightAndDimentions[category][item]}
-                                        </Typography>
-                                      </Stack>
-                                    );
-                                  }
-                                )}
-                              </Paper>
-                            </Stack>
-                          );
-                        }
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            <Paper variant="outlined" style={{ padding: "1rem" }}>
-              <Stack
-                direction="row"
-                gap={4}
-                justifyContent="center"
-                alignItems="center"
-              >
+        <Stack
+          marginTop={"4px"}
+          marginBottom={"4px"}
+          direction="row"
+          height="calc(100vh - 8px)"
+        >
+          <Stack
+            width="35%"
+            height="100%"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Stack direction="row" spacing={0.5} p={1} overflow="auto">
+              {!dataLoaded ? (
+                <Stack justifyContent="center" textAlign="center" width="100%">
+                  <Typography
+                    fontWeight="bold"
+                    textTransform="uppercase"
+                    color="#ff0000"
+                  >
+                    Press Fetch to Start Work
+                  </Typography>
+                </Stack>
+              ) : displayProductDataType === "images" ? (
+                <Stack direction="column" spacing={1}>
+                  {images.map((source, index) => {
+                    return (
+                      <img
+                        onClick={() => setPreviewImage(source)}
+                        width="90px"
+                        src={source}
+                        key={index}
+                        style={{
+                          border: `2px solid ${
+                            source === previewImage ? "red" : "black"
+                          }`,
+                        }}
+                      />
+                    );
+                  })}
+                </Stack>
+              ) : (
                 <Stack>
-                  <Typography>Hide Table</Typography>
-                  <Switch
-                    onChange={(e) => setHideStaticTable(!hideStaticTable)}
-                  />
-                </Stack>
-                <Stack direction="column">
-                  <Typography>Build Material</Typography>
-                  <Select
-                    size="small"
-                    value={filters.buildMaterial}
-                    onChange={(e) => {
-                      setFilters((pre) => ({
-                        ...pre,
-                        buildMaterial: e.target.value,
-                      }));
-                    }}
-                    name="buildMaterial"
-                    disabled={!suggestEdit}
-                  >
-                    <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
-                    <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
-                  </Select>
-                </Stack>
+                  {Object.keys(weightAndDimentions).map((category, index) => {
+                    return (
+                      <Stack direction="column">
+                        <Typography fontWeight="bold">{category}</Typography>
 
-                <Stack direction="column">
-                  <Typography>Unit Selector</Typography>
-                  <Select
-                    size="small"
-                    value={filters.unitSelector}
-                    onChange={(e) => {
-                      setFilters((pre) => ({
-                        ...pre,
-                        unitSelector: e.target.value,
-                      }));
-                    }}
-                    name="unitSelector"
-                  >
-                    <MenuItem value="Inch">Inch</MenuItem>
-                    <MenuItem value="Centimeter">Centimeter</MenuItem>
-                    <MenuItem value="Meter">Meter</MenuItem>
-                  </Select>
-                </Stack>
-
-                <Stack direction="column" alignItems="center">
-                  <Typography>Suggest Edit</Typography>
-                  <Switch
-                    onChange={(e) => {
-                      if (suggestEdit) {
-                        setProductProperties(productPropertiesOld);
-                      }
-                      setSuggestEdit(!suggestEdit);
-                    }}
-                  />
-                </Stack>
-              </Stack>
-            </Paper>
-
-            {/* Static Tabel -- non-changeable */}
-            {!hideStaticTable && (
-              <Grid container spacing={1} direction="row">
-                <Grid item xs={12} md={3.5}>
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell className="table-head" colSpan={6}>
-                            Iron Pipe
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="cell-head">
-                          <TableCell>Pipe Type & Size</TableCell>
-                          <TableCell>Type</TableCell>
-                          <TableCell>Size</TableCell>
-                          <TableCell>L&nbsp;&nbsp;</TableCell>
-                          <TableCell>Qty</TableCell>
-                          <TableCell>Total (ft)</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {productPropertiesOld.ironPipeRows.map((row, index) => {
-                          return (
-                            <IronPipeTableRow
-                              key={index}
-                              _key={index}
-                              data={row}
-                              handleEdit={handleEdit}
-                              unitSelector={filters.unitSelector}
-                              editable={false}
-                            />
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Grid>
-
-                <Grid item xs={12} md={4.5}>
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell className="table-head" colSpan={8}>
-                            Wooden Sheet
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="cell-head">
-                          <TableCell>Type</TableCell>
-                          <TableCell>L&nbsp;&nbsp;</TableCell>
-                          <TableCell>W&nbsp;&nbsp;</TableCell>
-                          <TableCell>Qty</TableCell>
-                          <TableCell>L (ft.)</TableCell>
-                          <TableCell>W (ft.)</TableCell>
-                          <TableCell>L*W (Sq ft.)</TableCell>
-                          <TableCell>Total S.ft</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {productPropertiesOld.woodenSheetRows.map(
-                          (row, index) => {
-                            return (
-                              <WoodenSheetTableRow
-                                key={index}
-                                _key={index}
-                                data={row}
-                                handleEdit={handleEdit}
-                                unitSelector={filters.unitSelector}
-                                editable={false}
-                              />
-                            );
-                          }
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Grid>
-
-                {filters.buildMaterial !== "SOLID WOOD" && (
-                  <Grid item xs={12} md={2}>
-                    <TableContainer component={Paper} variant="outlined">
-                      <Table padding={0} size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell className="table-head" colSpan={8}>
-                              Wood Tape
-                            </TableCell>
-                          </TableRow>
-                          <TableRow className="cell-head">
-                            <TableCell>Size</TableCell>
-                            <TableCell>L&nbsp;&nbsp;</TableCell>
-                            <TableCell>Qty</TableCell>
-                            <TableCell>Total</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {productPropertiesOld.woodTapeRows.map(
-                            (row, index) => {
+                        <Paper
+                          variant="outlined"
+                          direction="column"
+                          style={{ padding: 5 }}
+                        >
+                          {Object.keys(weightAndDimentions[category]).map(
+                            (item, _index) => {
                               return (
-                                <WoodTapeTableRow
-                                  key={index}
-                                  _key={index}
-                                  data={row}
-                                  handleEdit={handleEdit}
-                                  unitSelector={filters.unitSelector}
-                                  editable={false}
-                                />
+                                <Stack
+                                  direction="row"
+                                  justifyContent="space-between"
+                                  p={1}
+                                  gap={1}
+                                  style={{
+                                    backgroundColor:
+                                      _index % 2 == 0
+                                        ? "transparent"
+                                        : colors.grey[200],
+                                  }}
+                                >
+                                  <Typography>{item}: </Typography>
+                                  <Typography>
+                                    {weightAndDimentions[category][item]}
+                                  </Typography>
+                                </Stack>
                               );
                             }
                           )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Grid>
-                )}
-
-                <Grid item xs={12} md={2}>
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table padding={0} size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell className="table-head" colSpan={8}>
-                            Misc
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="cell-head">
-                          <TableCell>Item</TableCell>
-                          <TableCell>Size</TableCell>
-                          <TableCell>Qty</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {productPropertiesOld.miscTableRows.map(
-                          (row, index) => {
-                            return (
-                              <MiscTableRow
-                                key={index}
-                                _key={index}
-                                data={row}
-                                handleEdit={handleEdit}
-                                editable={false}
-                              />
-                            );
-                          }
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Grid>
-              </Grid>
-            )}
-
-            {/* Update (changeable) Table */}
-            <Grid container spacing={1} direction="row">
-              <Grid item xs={12} md={3.5}>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell className="table-head" colSpan={6}>
-                          Iron Pipe
-                        </TableCell>
-                      </TableRow>
-                      <TableRow className="cell-head">
-                        <TableCell>Pipe Type & Size</TableCell>
-                        <TableCell>Type</TableCell>
-                        <TableCell>Size</TableCell>
-                        <TableCell>L&nbsp;&nbsp;</TableCell>
-                        <TableCell>Qty</TableCell>
-                        <TableCell>Total (ft)</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {productProperties.ironPipeRows.map((row, index) => {
-                        return (
-                          <IronPipeTableRow
-                            key={index}
-                            _key={index}
-                            data={row}
-                            handleEdit={handleEdit}
-                            unitSelector={filters.unitSelector}
-                            editable={suggestEdit}
-                          />
-                        );
-                      })}
-                    </TableBody>
-                    {suggestEdit && (
-                      <TableFooter>
-                        <Button
-                          onClick={() => {
-                            addNewRow("ironPipeRows");
-                          }}
-                        >
-                          <AddCircleIcon htmlColor="#1976d2" />
-                        </Button>
-                      </TableFooter>
-                    )}
-                  </Table>
-                </TableContainer>
-              </Grid>
-
-              <Grid item xs={12} md={4.5}>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell className="table-head" colSpan={8}>
-                          Wooden Sheet
-                        </TableCell>
-                      </TableRow>
-                      <TableRow className="cell-head">
-                        <TableCell>Type</TableCell>
-                        <TableCell>L&nbsp;&nbsp;</TableCell>
-                        <TableCell>W&nbsp;&nbsp;</TableCell>
-                        <TableCell>Qty</TableCell>
-                        <TableCell>L (ft.)</TableCell>
-                        <TableCell>W (ft.)</TableCell>
-                        <TableCell>L*W (Sq ft.)</TableCell>
-                        <TableCell>Total S.ft</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {productProperties.woodenSheetRows.map((row, index) => {
-                        return (
-                          <WoodenSheetTableRow
-                            key={index}
-                            _key={index}
-                            data={row}
-                            handleEdit={handleEdit}
-                            unitSelector={filters.unitSelector}
-                            editable={suggestEdit}
-                          />
-                        );
-                      })}
-                    </TableBody>
-                    {suggestEdit && (
-                      <TableFooter>
-                        <Button
-                          onClick={() => {
-                            addNewRow("woodenSheetRows");
-                          }}
-                        >
-                          <AddCircleIcon htmlColor="#1976d2" />
-                        </Button>
-                      </TableFooter>
-                    )}
-                  </Table>
-                </TableContainer>
-              </Grid>
-
-              {filters.buildMaterial !== "SOLID WOOD" && (
-                <Grid item xs={12} md={2}>
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table padding={0} size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell className="table-head" colSpan={8}>
-                            Wood Tape
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="cell-head">
-                          <TableCell>Size</TableCell>
-                          <TableCell>L&nbsp;&nbsp;</TableCell>
-                          <TableCell>Qty</TableCell>
-                          <TableCell>Total</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {productProperties.woodTapeRows.map((row, index) => {
-                          return (
-                            <WoodTapeTableRow
-                              key={index}
-                              _key={index}
-                              data={row}
-                              handleEdit={handleEdit}
-                              unitSelector={filters.unitSelector}
-                              editable={suggestEdit}
-                            />
-                          );
-                        })}
-                      </TableBody>
-                      {suggestEdit && (
-                        <TableFooter>
-                          <Button
-                            onClick={() => {
-                              addNewRow("woodTapeRows");
-                            }}
-                          >
-                            <AddCircleIcon htmlColor="#1976d2" />
-                          </Button>
-                        </TableFooter>
-                      )}
-                    </Table>
-                  </TableContainer>
-                </Grid>
+                        </Paper>
+                      </Stack>
+                    );
+                  })}
+                </Stack>
               )}
 
-              <Grid item xs={12} md={2}>
+              {displayProductDataType === "images" && (
+                <Stack>
+                  <img src={previewImage} width="100%" height="auto" />
+                </Stack>
+              )}
+            </Stack>
+
+            <Stack>
+              <ButtonGroup
+                variant="contained"
+                aria-label="outlined primary button group"
+              >
+                <Button
+                  variant={
+                    displayProductDataType === "images"
+                      ? "contained"
+                      : "outlined"
+                  }
+                  onClick={() => setDisplayProductDataType("images")}
+                >
+                  Images
+                </Button>
+                <Button
+                  variant={
+                    displayProductDataType === "specification"
+                      ? "contained"
+                      : "outlined"
+                  }
+                  onClick={() => setDisplayProductDataType("specification")}
+                >
+                  Specification
+                </Button>
+              </ButtonGroup>
+            </Stack>
+          </Stack>
+
+          <Stack direction="column" gap={3} width="50%" overflow="auto">
+            <Stack>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-head" colSpan={6}>
+                        Iron Pipe
+                      </TableCell>
+                    </TableRow>
+                    <TableRow className="cell-head">
+                      <TableCell>Pipe Type & Size</TableCell>
+                      {/* <TableCell>Type</TableCell>
+                      <TableCell>Size</TableCell> */}
+                      <TableCell>L&nbsp;&nbsp;</TableCell>
+                      <TableCell>Qty</TableCell>
+                      <TableCell>Total (ft)</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {productProperties.ironPipeRows.map((row, index) => {
+                      return (
+                        <IronPipeTableRow
+                          key={index}
+                          _key={index}
+                          data={row}
+                          handleEdit={handleEdit}
+                          unitSelector={filters.unitSelector}
+                          editable={suggestEdit}
+                          hideDetails={true}
+                        />
+                      );
+                    })}
+                  </TableBody>
+                  {suggestEdit && (
+                    <TableFooter>
+                      <Button
+                        onClick={() => {
+                          addNewRow("ironPipeRows");
+                        }}
+                      >
+                        <AddCircleIcon htmlColor="#1976d2" />
+                      </Button>
+                    </TableFooter>
+                  )}
+                </Table>
+              </TableContainer>
+            </Stack>
+
+            <Stack>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-head" colSpan={8}>
+                        Wooden Sheet
+                      </TableCell>
+                    </TableRow>
+                    <TableRow className="cell-head">
+                      <TableCell>Type</TableCell>
+                      <TableCell>L&nbsp;&nbsp;</TableCell>
+                      <TableCell>W&nbsp;&nbsp;</TableCell>
+                      <TableCell>Qty</TableCell>
+                      {/* <TableCell>L (ft.)</TableCell>
+                      <TableCell>W (ft.)</TableCell>
+                      <TableCell>L*W (Sq ft.)</TableCell> */}
+                      <TableCell>Total S.ft</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {productProperties.woodenSheetRows.map((row, index) => {
+                      return (
+                        <WoodenSheetTableRow
+                          key={index}
+                          _key={index}
+                          data={row}
+                          handleEdit={handleEdit}
+                          unitSelector={filters.unitSelector}
+                          editable={suggestEdit}
+                          hideDetails={true}
+                        />
+                      );
+                    })}
+                  </TableBody>
+                  {suggestEdit && (
+                    <TableFooter>
+                      <Button
+                        onClick={() => {
+                          addNewRow("woodenSheetRows");
+                        }}
+                      >
+                        <AddCircleIcon htmlColor="#1976d2" />
+                      </Button>
+                    </TableFooter>
+                  )}
+                </Table>
+              </TableContainer>
+            </Stack>
+
+            {filters.buildMaterial !== "SOLID WOOD" && (
+              <Stack>
                 <TableContainer component={Paper} variant="outlined">
                   <Table padding={0} size="small">
                     <TableHead>
                       <TableRow>
                         <TableCell className="table-head" colSpan={8}>
-                          Misc
+                          Wood Tape
                         </TableCell>
                       </TableRow>
                       <TableRow className="cell-head">
-                        <TableCell>Item</TableCell>
                         <TableCell>Size</TableCell>
+                        <TableCell>L&nbsp;&nbsp;</TableCell>
                         <TableCell>Qty</TableCell>
+                        <TableCell>Total</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {productProperties.miscTableRows.map((row, index) => {
+                      {productProperties.woodTapeRows.map((row, index) => {
                         return (
-                          <MiscTableRow
+                          <WoodTapeTableRow
                             key={index}
                             _key={index}
                             data={row}
                             handleEdit={handleEdit}
+                            unitSelector={filters.unitSelector}
                             editable={suggestEdit}
                           />
                         );
                       })}
                     </TableBody>
+                    {suggestEdit && (
+                      <TableFooter>
+                        <Button
+                          onClick={() => {
+                            addNewRow("woodTapeRows");
+                          }}
+                        >
+                          <AddCircleIcon htmlColor="#1976d2" />
+                        </Button>
+                      </TableFooter>
+                    )}
                   </Table>
                 </TableContainer>
-              </Grid>
-            </Grid>
+              </Stack>
+            )}
 
-            <Stack direction="column" alignSelf="end">
-              <Stack direction="row" gap={1}>
+            <Stack>
+              <TableContainer component={Paper} variant="outlined">
+                <Table padding={0} size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-head" colSpan={8}>
+                        Misc
+                      </TableCell>
+                    </TableRow>
+                    <TableRow className="cell-head">
+                      <TableCell>Item</TableCell>
+                      <TableCell>Size</TableCell>
+                      <TableCell>Qty</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {productProperties.miscTableRows.map((row, index) => {
+                      return (
+                        <MiscTableRow
+                          key={index}
+                          _key={index}
+                          data={row}
+                          handleEdit={handleEdit}
+                          editable={suggestEdit}
+                        />
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+          </Stack>
+
+          <Stack
+            direction="column"
+            width="15%"
+            gap={4}
+            p={1}
+            justifyContent="space-between"
+          >
+            <Stack direction="column" gap={1}>
+              <Button
+                variant="contained"
+                onClick={() => setDisplayHeader(!displayHeader)}
+                style={{
+                  backgroundColor: "#ffeb9c",
+                  color: "black",
+                  width: "fit-content",
+                  alignSelf: "end",
+                }}
+              >
+                {displayHeader ? <CloseIcon /> : <MenuIcon />}
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={executePythonScript}
+                style={{ backgroundColor: "#ffeb9c", color: "black" }}
+              >
+                <Stack direction="row" gap={2} alignItems="center">
+                  <Typography fontWeight="bold">Fetch</Typography>
+                  {dataLoading && (
+                    <CircularProgress size={26} color="warning" />
+                  )}
+                </Stack>
+              </Button>
+
+              <Stack direction="column">
+                <Typography>Build Material</Typography>
                 <Select
                   size="small"
-                  value={filters.qaScorecard}
+                  value={filters.buildMaterial}
                   onChange={(e) => {
                     setFilters((pre) => ({
                       ...pre,
-                      qaScorecard: e.target.value,
+                      buildMaterial: e.target.value,
                     }));
                   }}
                   name="buildMaterial"
+                  disabled={!suggestEdit}
                 >
-                  <MenuItem value="QA Scorecard">QA Scorecard</MenuItem>
-                  <MenuItem value="Minor Changes">Minor Changes</MenuItem>
-                  <MenuItem value="Major Changes">Major Changes</MenuItem>
-                  <MenuItem value="QA Passed">QA Passed</MenuItem>
+                  <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
+                  <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
                 </Select>
-                <Button
-                  variant="contained"
-                  disabled={filters.qaScorecard === "QA Scorecard"}
-                  onClick={executePythonScriptSubmit}
+              </Stack>
+
+              <Stack direction="column">
+                <Typography>Unit Selector</Typography>
+                <Select
+                  size="small"
+                  value={filters.unitSelector}
+                  onChange={(e) => {
+                    setFilters((pre) => ({
+                      ...pre,
+                      unitSelector: e.target.value,
+                    }));
+                  }}
+                  name="unitSelector"
                 >
-                  submit
-                </Button>
+                  <MenuItem value="Inch">Inch</MenuItem>
+                  <MenuItem value="Centimeter">Centimeter</MenuItem>
+                  <MenuItem value="Meter">Meter</MenuItem>
+                </Select>
+              </Stack>
+
+              <Stack direction="column" alignItems="center">
+                <Typography>Suggest Edit</Typography>
+                <Switch
+                  disabled={!dataLoaded}
+                  onChange={(e) => {
+                    // if (suggestEdit) {
+                    //   setProductProperties(productPropertiesOld);
+                    // }
+                    setSuggestEdit(!suggestEdit);
+                  }}
+                />
               </Stack>
             </Stack>
+
+            <Stack direction="column" alignSelf="end" width="100%" gap={1}>
+              <Select
+                size="small"
+                disabled={!dataLoaded}
+                value={filters.qaScorecard}
+                onChange={(e) => {
+                  setFilters((pre) => ({
+                    ...pre,
+                    qaScorecard: e.target.value,
+                  }));
+                }}
+                name="buildMaterial"
+              >
+                <MenuItem value="QA Scorecard">QA Scorecard</MenuItem>
+                <MenuItem value="Minor Changes">Minor Changes</MenuItem>
+                <MenuItem value="Major Changes">Major Changes</MenuItem>
+                <MenuItem value="QA Passed">QA Passed</MenuItem>
+              </Select>
+              <Button
+                variant="outlined"
+                disabled={filters.qaScorecard === "QA Scorecard" || !dataLoaded}
+                onClick={executePythonScriptSubmit}
+              >
+                submit
+              </Button>
+            </Stack>
           </Stack>
-        )}
+        </Stack>
       </Wrapper>
     </>
   );

@@ -10,7 +10,6 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
 import HeaderSignOut from "../components/header/HeaderSignOut";
-import { toast, ToastContainer } from "react-toastify";
 import {
   Button,
   ButtonGroup,
@@ -24,6 +23,8 @@ import {
   colors,
 } from "@mui/material";
 
+import CloseIcon from "@mui/icons-material/Close";
+import MenuIcon from "@mui/icons-material/Menu";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import PropsModel from "../res/PropsModel";
 import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTableRow";
@@ -41,6 +42,8 @@ function DimensionsAnalyst(props) {
   const [images, setImages] = useState([]);
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
+  const [displayHeader, setDisplayHeader] = useState(false);
+
   const executePythonScript = async () => {
     setDataLoading(true);
     console.log("props.user", props.user);
@@ -50,7 +53,7 @@ function DimensionsAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://161.97.167.225:5001/api/get_job";
+          const apiUrl = "http://139.144.30.86:8000/api/get_job";
           console.log(token);
           // Make an authenticated API request
 
@@ -108,7 +111,7 @@ function DimensionsAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://161.97.167.225:5001/api/submit";
+          const apiUrl = "http://139.144.30.86:8000/api/submit";
           console.log(token);
           // Make an authenticated API request
           fetch(apiUrl, {
@@ -129,9 +132,6 @@ function DimensionsAnalyst(props) {
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
-              toast.success("Data submited Successfully!", {
-                position: toast.POSITION.BOTTOM_RIGHT,
-              });
 
               setImages([]);
               setWeightAndDimentions({});
@@ -193,10 +193,6 @@ function DimensionsAnalyst(props) {
         });
     }
   };
-
-  useEffect(() => {
-    // executePythonScript();
-  }, []);
 
   const [previewImage, setPreviewImage] = useState(images[0]);
   const [filters, SetFilters] = useState({
@@ -298,18 +294,20 @@ function DimensionsAnalyst(props) {
 
   return (
     <>
-      <HeaderSignOut
-        userEmail={props.userEmail}
-        userRole={props.userRole}
-        userJdesc={props.userJdesc}
-      />
+      {displayHeader && (
+        <HeaderSignOut
+          userEmail={props.userEmail}
+          userRole={props.userRole}
+          userJdesc={props.userJdesc}
+        />
+      )}
 
       <Wrapper>
         <Stack
           marginTop={"4px"}
           marginBottom={"4px"}
           direction="row"
-          height="calc(100vh - 64px)"
+          height="calc(100vh - 8px)"
         >
           <Stack
             width="35%"
@@ -436,8 +434,8 @@ function DimensionsAnalyst(props) {
                     </TableRow>
                     <TableRow className="cell-head">
                       <TableCell>Pipe Type & Size</TableCell>
-                      <TableCell>Type</TableCell>
-                      <TableCell>Size</TableCell>
+                      {/* <TableCell>Type</TableCell>
+                      <TableCell>Size</TableCell> */}
                       <TableCell>L&nbsp;&nbsp;</TableCell>
                       <TableCell>Qty</TableCell>
                       <TableCell>Total (ft)</TableCell>
@@ -453,6 +451,7 @@ function DimensionsAnalyst(props) {
                           handleEdit={handleEdit}
                           unitSelector={filters.unitSelector}
                           editable={dataLoaded}
+                          hideDetails={true}
                         />
                       );
                     })}
@@ -484,9 +483,9 @@ function DimensionsAnalyst(props) {
                       <TableCell>L&nbsp;&nbsp;</TableCell>
                       <TableCell>W&nbsp;&nbsp;</TableCell>
                       <TableCell>Qty</TableCell>
-                      <TableCell>L (ft.)</TableCell>
+                      {/* <TableCell>L (ft.)</TableCell>
                       <TableCell>W (ft.)</TableCell>
-                      <TableCell>L*W (Sq ft.)</TableCell>
+                      <TableCell>L*W (Sq ft.)</TableCell> */}
                       <TableCell>Total S.ft</TableCell>
                     </TableRow>
                   </TableHead>
@@ -500,6 +499,7 @@ function DimensionsAnalyst(props) {
                           handleEdit={handleEdit}
                           unitSelector={filters.unitSelector}
                           editable={dataLoaded}
+                          hideDetails={true}
                         />
                       );
                     })}
@@ -614,7 +614,20 @@ function DimensionsAnalyst(props) {
             p={1}
             justifyContent="space-between"
           >
-            <Stack direction="column">
+            <Stack direction="column" gap={1}>
+              <Button
+                variant="contained"
+                onClick={() => setDisplayHeader(!displayHeader)}
+                style={{
+                  backgroundColor: "#ffeb9c",
+                  color: "black",
+                  width: "fit-content",
+                  alignSelf: "end",
+                }}
+              >
+                {displayHeader ? <CloseIcon /> : <MenuIcon />}
+              </Button>
+
               <Button
                 variant="contained"
                 onClick={executePythonScript}
@@ -627,9 +640,7 @@ function DimensionsAnalyst(props) {
                   )}
                 </Stack>
               </Button>
-            </Stack>
 
-            <Stack>
               <Stack direction="column">
                 <Typography>Report Issue</Typography>
                 <Select
@@ -648,9 +659,7 @@ function DimensionsAnalyst(props) {
                   <MenuItem value="Not Understandable">
                     Not Understandable
                   </MenuItem>
-                  <MenuItem value="Product / URL Missing">
-                    Product / URL Missing
-                  </MenuItem>
+                  <MenuItem value="Not a Doable">Not a Doable</MenuItem>
                 </Select>
               </Stack>
 

@@ -18,6 +18,7 @@ function IronPipeTableRow({
   _key,
   unitSelector,
   editable = true,
+  hideDetails = false
 }) {
   const propType = "ironPipeRows";
 
@@ -52,27 +53,33 @@ function IronPipeTableRow({
         </Select>
       </TableCell>
 
-      <TableCell>
-        <TextField
-          size="small"
-          variant="outlined"
-          value={data.pipeTypeNSize.split("  ")[0]}
-          className="cell-disabled"
-          disabled
-          fullWidth
-        />
-      </TableCell>
+      {
+        !hideDetails && (
+          <>
+            <TableCell>
+              <TextField
+                size="small"
+                variant="outlined"
+                value={data.pipeTypeNSize.split("  ")[0]}
+                className="cell-disabled"
+                disabled
+                fullWidth
+              />
+            </TableCell>
 
-      <TableCell>
-        <TextField
-          size="small"
-          variant="outlined"
-          value={data.pipeTypeNSize.split("  ")[1]}
-          className="cell-disabled"
-          disabled
-          fullWidth
-        />
-      </TableCell>
+            <TableCell>
+              <TextField
+                size="small"
+                variant="outlined"
+                value={data.pipeTypeNSize.split("  ")[1]}
+                className="cell-disabled"
+                disabled
+                fullWidth
+              />
+            </TableCell>
+          </>
+        )
+      }
 
       <TableCell>
         <TextField

@@ -1,6 +1,57 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-const ExtractorQATable = () => {
+const ExtractorQATable = (props) => {
+  const [tableData, setTableData] = useState([]);
+  const [status, setStatus] = useState("");
+  const [thumbnail, setThumbnail] = useState("");
+  const [extractedDate, setExtractedDate] = "";
+  const [comment, setComment] = useState("Dummy comment for testing purpose.");
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    if (props.user) {
+      // Get the authentication token
+      props.user
+        .getIdToken()
+        .then((token) => {
+          // Define the API endpoint URL
+          const apiUrl = "http://139.144.30.86:8000/api/table";
+          console.log(token);
+          setToken(token);
+          // Make an authenticated API request
+          fetch(apiUrl, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              // Handle the API response data
+              console.log("API Response:", data);
+              setTableData(data);
+              setStatus(data.status);
+              setThumbnail(data.thumbnail);
+              // setExtractedDate(data.lastModified);
+            })
+            .catch((error) => {
+              // Handle any errors
+              console.error("Error:", error);
+            });
+        })
+        .catch((error) => {
+          // Handle any errors while getting the token
+          console.error("Token Error:", error);
+        });
+    }
+  }, []);
+
   return (
     <>
       <div className="">
@@ -37,6 +88,7 @@ const ExtractorQATable = () => {
             <th>#ITN</th>
             <th>#PID</th>
             <th>Thumbnail</th>
+            <th>Extractor</th>
             <th>Final Status</th>
             <th>Penalty</th>
             <th>Comments</th>
@@ -44,156 +96,22 @@ const ExtractorQATable = () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>0000123</td>
-            <td>W004489514</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Pass</td>
-            <td>2,000</td>
-            <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
-          </tr>
-          <tr>
-            <td>0000123</td>
-            <td>W004489514</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Pass</td>
-            <td>2,000</td>
-            <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
-          </tr>
-          <tr>
-            <td>0000123</td>
-            <td>W004489514</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Pass</td>
-            <td>2,000</td>
-            <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
-          </tr>
-          <tr>
-            <td>0000123</td>
-            <td>W004489514</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Pass</td>
-            <td>2,000</td>
-            <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
-          </tr>
-          <tr>
-            <td>0000123</td>
-            <td>W004489514</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Pass</td>
-            <td>2,000</td>
-            <td>Dummy comment for testing purpose.</td>
-            <td>10/13/2023</td>
-          </tr>
-          <tr>
-            <td>0000124</td>
-            <td>W004489515</td>
-            <td>
-              <img
-                src={process.env.PUBLIC_URL + "/logo192.png"}
-                alt=""
-                height={"52px"}
-              />
-            </td>
-            <td>Reject</td>
-            <td>1,000</td>
-            <td>Again dummy comment for testing purpose.</td>
-            <td>10/12/2023</td>
-          </tr>
+          {tableData.map((item, index) => (
+            <tr key={index}>
+              <td>{item.itn}</td>
+              <td>{item.pid}</td>
+              <td>
+                <img src={item.thumbnail} alt="" height="52px" />
+              </td>
+              <td>{item.Extractor}</td>
+              <td>{item.status}</td>
+              {/* <td>{item["QA-Extractor"]}</td> */}
+
+              <td>{item.penalty}</td>
+              <td>{comment}</td>
+              <td>{item.lastModified}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </>

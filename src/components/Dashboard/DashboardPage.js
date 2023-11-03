@@ -55,7 +55,9 @@ const DashboardPage = (props) => {
         {props.userJdesc === "Extractor" && (
           <ExtractorTable user={props.user} />
         )}
-        {props.userJdesc === "QA-Extractor" && <ExtractorQATable />}
+        {props.userJdesc === "QA-Extractor" && (
+          <ExtractorQATable user={props.user} />
+        )}
         {props.userJdesc === "DimAna" && <DimensionAnalystTable />}
         {props.userJdesc === "QA-DimAna" && <DimensionQATable />}
         {props.userRole === "admin" && <AdminTable />}

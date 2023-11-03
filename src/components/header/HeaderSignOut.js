@@ -9,7 +9,7 @@ const HeaderSignOut = (props) => {
     const auth = getAuth();
     signOut(auth)
       .then(() => {
-        navigate("/login");
+        navigate("/");
       })
       .catch((error) => {
         // An error happened.

@@ -186,7 +186,6 @@ header.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation4.MuiAppBar-root.MuiAp
   height: 45px;
   border-radius: 12px;
 }
-
 @keyframes spin {
   to {
     transform: rotate(1turn);

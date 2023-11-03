@@ -19,7 +19,7 @@ import { Navigate, Outlet } from "react-router";
 
 const PrivateRoutes = ({ isAllowed, children }) => {
   if (!isAllowed) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children ? children : <Outlet />;

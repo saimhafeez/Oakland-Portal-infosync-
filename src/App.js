@@ -284,7 +284,7 @@ function App() {
             </Route>
             {/* END SECURE LOGIN ROUTE */}
             <Route
-              path="/login"
+              path="/"
               element={
                 <Login
                   name={userName}

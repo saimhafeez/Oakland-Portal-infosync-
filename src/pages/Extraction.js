@@ -73,6 +73,8 @@ const Extraction = (props) => {
   const [isOrdinarylEditMode, setIsOrdinarylEditMode] = useState(false);
   const [isDiscardlEditMode, setIsDiscardlEditMode] = useState(false);
 
+  const [visibilityNotDoable, setVisibilityNotDoable] = useState(false);
+
   const [url, setUrl] = useState("");
   const [jsonResult, setJsonResult] = useState(""); // Initialize as an empty string
 
@@ -87,7 +89,7 @@ const Extraction = (props) => {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://161.97.167.225:5001/api/get_job";
+          const apiUrl = "http://139.144.30.86:8000/api/get_job";
           console.log(token);
           setToken(token);
           // Make an authenticated API request
@@ -119,6 +121,7 @@ const Extraction = (props) => {
               setSku(data.id);
               setVideos(data.videos);
               setShowId(data.sku);
+              setVisibilityNotDoable(true);
             })
             .catch((error) => {
               // Handle any errors
@@ -475,7 +478,7 @@ const Extraction = (props) => {
       whitebg: [],
       ordinary: [],
       discard: [],
-      videos: [],
+      not_doable: false,
     };
     structuredData.id = sku;
     if (mergeSelectedDefaultThumbnail.length > 0) {
@@ -493,15 +496,15 @@ const Extraction = (props) => {
     if (selectedDiscard.length > 0) {
       structuredData.discard = selectedDiscard;
     }
-    if (videos.length > 0) {
-      structuredData.videos = videos;
-    }
+    // if (videos.length > 0) {
+    //   structuredData.videos = videos;
+    // }
 
     // Log the structured data as a JSON object.
     // console.log(JSON.stringify(structuredData, null, 2));
 
     // Define the API endpoint and data payload
-    const apiUrl = "http://161.97.167.225:5001/api/submit";
+    const apiUrl = "http://139.144.30.86:8000/api/submit";
     // const data = {
     //     key1: 'value1',
     //     key2: 'value2'
@@ -545,7 +548,78 @@ const Extraction = (props) => {
         // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
         setIsFetchButtonDisabled(false);
 
+        setVisibilityNotDoable(false);
+
         toast.success("Sorted Data Submit Successfully!", {
+          position: toast.POSITION.BOTTOM_RIGHT,
+        });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+  const executeNoDoAbleScript = () => {
+    console.log("click");
+    // initialize an empty object to hold the structured data
+    const structuredData = {
+      id: {},
+      sku: "",
+      dimensional: [],
+      thumbnails: [],
+      unsorted: [],
+      not_doable: true,
+    };
+    structuredData.id = sku;
+    structuredData.sku = showId;
+    structuredData.thumbnails = defaultThumbnail;
+    structuredData.dimensional = defaultDimension;
+    structuredData.unsorted = allImages;
+
+    // Define the API endpoint and data payload
+    const apiUrl = "http://139.144.30.86:8000/api/submit";
+
+    // Send the POST request
+    fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(structuredData),
+    })
+      .then((response) => response.json()) // Assuming server responds with json
+      .then((structuredData) => {
+        console.log("Success:", structuredData);
+        setDefaultThumbnail([]);
+        setSelectedThumbnail([]);
+        setDefaultDimension([]);
+        setSelectedDimentional([]);
+        setSelectedWhiteBg([]);
+        setSelectedOrdinary([]);
+        setSelectedDiscard([]);
+        setVideos([]);
+        setAllImages([]);
+
+        setHasThumbnailImagesMapped(false);
+        setHasDimensionalImagesMapped(false);
+        setHasWhiteBgImagesMapped(false);
+        setHasOrdinaryImagesMapped(false);
+        setHasDiscardImagesMapped(false);
+
+        // Enable the other buttons
+        setIsThumbnailButtonDisabled(false);
+        setIsDimensionalButtonDisabled(false);
+        setIsWhiteBgButtonDisabled(false);
+        setIsOrdinaryButtonDisabled(false);
+        setIsDiscardButtonDisabled(false);
+
+        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
+        setIsFetchButtonDisabled(false);
+
+        setVisibilityNotDoable(false);
+
+        toast.success("Not Doable Product Submited Successfully!", {
           position: toast.POSITION.BOTTOM_RIGHT,
         });
       })
@@ -588,12 +662,16 @@ const Extraction = (props) => {
                 </h6>
               </div>
               <div className="col-lg-3 col-md-4 text-end">
-                <button
-                  className="set-btn-red d-block w-100"
-                  // onClick={executePythonScript}
-                >
-                  Not Do Able
-                </button>
+                {visibilityNotDoable === true ? (
+                  <button
+                    className="set-btn-red d-block w-100"
+                    onClick={executeNoDoAbleScript}
+                  >
+                    Not Doable
+                  </button>
+                ) : (
+                  ""
+                )}
               </div>
               <div className="col-lg-3 col-md-4 text-end">
                 <button
@@ -1248,8 +1326,7 @@ const Extraction = (props) => {
           mergeSelectedDefaultDimension.length > 0 ||
           selectedWhiteBg.length > 0 ||
           selectedOrdinary.length > 0 ||
-          selectedDiscard.length > 0 ||
-          videos.length > 0 ? (
+          selectedDiscard.length > 0 ? (
             <button
               onClick={jsonData}
               className={`btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}

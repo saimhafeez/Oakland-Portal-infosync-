@@ -16,7 +16,7 @@ const ExtractorTable = (props) => {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://161.97.167.225:5001/api/table";
+          const apiUrl = "http://139.144.30.86:8000/api/table";
           console.log(token);
           setToken(token);
           // Make an authenticated API request

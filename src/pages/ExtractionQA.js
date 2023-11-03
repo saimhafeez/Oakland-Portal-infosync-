@@ -63,18 +63,36 @@ const ExtractionQA = (props) => {
   // ****************************************************
   // merge arrays
   //*****************************************************
+  // SET DO ABLE TRUE OR FALSE
+  const [notDoable, setNotDoable] = useState();
+
   // MERGE SELECTED DIMENSION AND DEFAULT DIMENSION
   const mergeSelectedDefaultThumbnail = [
-    ...selectedThumbnail,
-    ...defaultThumbnail,
+    ...(selectedThumbnail || []),
+    ...(defaultThumbnail || []),
   ];
   const mergeSelectedDefaultDimension = [
-    ...selectedDimentional,
-    ...defaultDimension,
+    ...(selectedDimentional || []),
+    ...(defaultDimension || []),
   ];
-  const mergeSelectedDefaultWhitebg = [...selectedWhiteBg, ...defaultWhiteBg];
-  const mergeSelectedDefaultOrdinary = [...selectedOrdinary, ...defaulOrdinary];
-  const mergeSelectedDefaultDiscard = [...selectedDiscard, ...defaultDiscard];
+  const mergeSelectedDefaultWhitebg = [
+    ...(selectedWhiteBg || []), // Add selectedWhiteBg (if defined), or an empty array if it's not
+    ...(defaultWhiteBg || []), // Add defaultWhiteBg (if defined), or an empty array if it's not
+  ];
+
+  // [...selectedWhiteBg, ...defaultWhiteBg];
+  const mergeSelectedDefaultOrdinary = [
+    ...(selectedOrdinary || []), // Add selectedWhiteBg (if defined), or an empty array if it's not
+    ...(defaulOrdinary || []), // Add defaultWhiteBg (if defined), or an empty array if it's not
+  ];
+  // [...selectedOrdinary, ...defaulOrdinary];
+  const mergeSelectedDefaultDiscard = [
+    ...(selectedDiscard || []), // Add selectedWhiteBg (if defined), or an empty array if it's not
+    ...(defaultDiscard || []), // Add defaultWhiteBg (if defined), or an empty array if it's not
+  ];
+  // [...selectedDiscard, ...defaultDiscard];
+
+  console.log(mergeSelectedDefaultWhitebg);
 
   // state for disable button
   const [isThumbnailButtonDisabled, setIsThumbnailButtonDisabled] =
@@ -105,6 +123,8 @@ const ExtractionQA = (props) => {
   const [isOrdinarylEditMode, setIsOrdinarylEditMode] = useState(false);
   const [isDiscardlEditMode, setIsDiscardlEditMode] = useState(false);
 
+  const [visibilityNotDoable, setVisibilityNotDoable] = useState(false);
+
   const [url, setUrl] = useState("");
   const [jsonResult, setJsonResult] = useState(""); // Initialize as an empty string
 
@@ -120,7 +140,6 @@ const ExtractionQA = (props) => {
   // http://161.97.167.225:8000/api/get_job
 
   const executePythonScript = async () => {
-    console.log("button clicked");
     if (props.user) {
       // Get the authentication token
       props.user
@@ -128,7 +147,7 @@ const ExtractionQA = (props) => {
         .then((token) => {
           console.log(token);
           // Define the API endpoint URL
-          const apiUrl = "http://161.97.167.225:5001/api/get_job";
+          const apiUrl = "http://139.144.30.86:8000/api/get_job";
           setToken(token);
           // Make an authenticated API request
           fetch(apiUrl, {
@@ -141,7 +160,7 @@ const ExtractionQA = (props) => {
             .then((data) => {
               console.log("API Response:", data);
               setIsFetchButtonDisabled(true);
-              // setAllImages(data.unsorted);
+              setAllImages(data.unsorted || []);
               setDefaultThumbnail(data.thumbnails);
               setDefaultDimension(data.dimensional);
               setDefaultWhiteBg(data.whitebg);
@@ -150,6 +169,9 @@ const ExtractionQA = (props) => {
               setSku(data.id);
               setVideos(data.videos);
               setShowId(data.sku);
+              setNotDoable(data.not_doable);
+              // NOT DO ABLE BUTTON VISIBILITY
+              setVisibilityNotDoable(true);
             })
             .catch((error) => {
               console.error("Error:", error);
@@ -543,6 +565,7 @@ const ExtractionQA = (props) => {
       discard: [],
       videos: [],
       change: "",
+      not_doable: false,
     };
     structuredData.id = sku;
     // if (mergeSelectedDefaultThumbnail.length > 0) {
@@ -569,7 +592,7 @@ const ExtractionQA = (props) => {
     // console.log(JSON.stringify(structuredData, null, 2));
 
     // Define the API endpoint and data payload
-    const apiUrl = "http://161.97.167.225:5001/api/submit";
+    const apiUrl = "http://139.144.30.86:8000/api/submit";
     // Send the POST request
     fetch(apiUrl, {
       method: "POST",
@@ -619,6 +642,96 @@ const ExtractionQA = (props) => {
         console.error("Error:", error);
       });
   };
+  const executeNoDoAbleScript = () => {
+    // initialize an empty object to hold the structured data
+    const structuredData = {
+      id: {},
+      dimensional: [],
+      thumbnails: [],
+      whitebg: [],
+      ordinary: [],
+      discard: [],
+      videos: [],
+      change: "",
+      not_doable: true,
+    };
+    structuredData.id = sku;
+    // if (mergeSelectedDefaultThumbnail.length > 0) {
+    structuredData.thumbnails = mergeSelectedDefaultThumbnail;
+    // }
+    // if (mergeSelectedDefaultDimension.length > 0) {
+    structuredData.dimensional = mergeSelectedDefaultDimension;
+    // }
+    // if (mergeSelectedDefaultWhitebg.length > 0) {
+    structuredData.whitebg = mergeSelectedDefaultWhitebg;
+    // }
+    // if (mergeSelectedDefaultOrdinary.length > 0) {
+    structuredData.ordinary = mergeSelectedDefaultOrdinary;
+    // }
+    // if (mergeSelectedDefaultDiscard.length > 0) {
+    structuredData.discard = mergeSelectedDefaultDiscard;
+    // }
+    // if (videos.length > 0) {
+    structuredData.videos = videos;
+    // }
+    structuredData.change = selectedOption;
+
+    // Log the structured data as a JSON object.
+    // console.log(JSON.stringify(structuredData, null, 2));
+
+    // Define the API endpoint and data payload
+    const apiUrl = "http://139.144.30.86:8000/api/submit";
+    // Send the POST request
+    fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(structuredData),
+    })
+      .then((response) => response.json()) // Assuming server responds with json
+      .then((structuredData) => {
+        console.log("Success:", structuredData);
+        setDefaultThumbnail([]);
+        setSelectedThumbnail([]);
+        setDefaultDimension([]);
+        setSelectedDimentional([]);
+        setSelectedWhiteBg([]);
+        setDefaultWhiteBg([]);
+        setSelectedOrdinary([]);
+        setDefaultOrdinary([]);
+        setSelectedDiscard([]);
+        setDefaultDiscard([]);
+        setVideos([]);
+        setAllImages([]);
+
+        setHasThumbnailImagesMapped(false);
+        setHasDimensionalImagesMapped(false);
+        setHasWhiteBgImagesMapped(false);
+        setHasOrdinaryImagesMapped(false);
+        setHasDiscardImagesMapped(false);
+
+        // Enable the other buttons
+        setIsThumbnailButtonDisabled(false);
+        setIsDimensionalButtonDisabled(false);
+        setIsWhiteBgButtonDisabled(false);
+        setIsOrdinaryButtonDisabled(false);
+        setIsDiscardButtonDisabled(false);
+
+        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
+        setIsFetchButtonDisabled(false);
+
+        setVisibilityNotDoable(false);
+
+        toast.success("Data submited Successfully!", {
+          position: toast.POSITION.BOTTOM_RIGHT,
+        });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
 
   return (
     <>
@@ -637,18 +750,19 @@ const ExtractionQA = (props) => {
               <div className="col-lg-2 col-md-4">
                 <h3>QA Extraction</h3>
               </div>
-              <div className="col-lg-4 col-md-4 text-center">
+              <div className="col-lg-3 col-md-4 text-center">
                 <h6>
                   Product ID: <strong>{showId}</strong>
                 </h6>
               </div>
-              <div className="col-lg-3 col-md-4 text-end">
-                <button
-                  className="set-btn-red d-block w-100"
-                  // onClick={executePythonScript}
-                >
-                  Not Do Able
-                </button>
+              <div className="col-lg-4 col-md-4 text-end">
+                {notDoable === true ? (
+                  <button className="set-btn-red d-block w-100">
+                    Sorter declare as a Not A Doable Product!!!
+                  </button>
+                ) : (
+                  ""
+                )}
               </div>
               <div className="col-lg-3 col-md-4 text-end">
                 <button
@@ -866,30 +980,34 @@ const ExtractionQA = (props) => {
                 </div>
                 <div className="mt-4">
                   <div className="row">
-                    {defaultThumbnail.map((item) => (
-                      <div className="col-md-3 mb-4" key={item.id}>
-                        <div
-                          className={`card ${
-                            isDefaultThumbnailEditMode ? "edit-mode" : ""
-                          }`}
-                          onClick={() => selectMyItem(item)}
-                        >
-                          {isDefaultThumbnailEditMode && (
+                    {!defaultThumbnail
+                      ? toast.error("Sorted Data Ended!", {
+                          position: toast.POSITION.BOTTOM_RIGHT,
+                        })
+                      : defaultThumbnail.map((item) => (
+                          <div className="col-md-3 mb-4" key={item.id}>
                             <div
-                              className="cross"
-                              onClick={() => resetDefaultThumbnail(item)}
+                              className={`card ${
+                                isDefaultThumbnailEditMode ? "edit-mode" : ""
+                              }`}
+                              onClick={() => selectMyItem(item)}
                             >
-                              <CancelIcon />
+                              {isDefaultThumbnailEditMode && (
+                                <div
+                                  className="cross"
+                                  onClick={() => resetDefaultThumbnail(item)}
+                                >
+                                  <CancelIcon />
+                                </div>
+                              )}
+                              <img
+                                className="card-img-top img-fluid"
+                                src={item.src}
+                                alt=""
+                              />
                             </div>
-                          )}
-                          <img
-                            className="card-img-top img-fluid"
-                            src={item.src}
-                            alt=""
-                          />
-                        </div>
-                      </div>
-                    ))}
+                          </div>
+                        ))}
                   </div>
                 </div>
               </div>
@@ -1509,14 +1627,24 @@ const ExtractionQA = (props) => {
               <option value="QA passed">QA passed</option>
               <option value="Minor changes">Minor changes</option>
               <option value="Major changes">Major changes</option>
+              <option value="Extream changes">Extream changes</option>
             </select>
           </div>
+          {visibilityNotDoable === true && notDoable === true ? (
+            <>
+              <button className="set-btn-red" onClick={executeNoDoAbleScript}>
+                Not Doable
+              </button>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+            </>
+          ) : (
+            ""
+          )}
           {mergeSelectedDefaultThumbnail.length > 0 ||
           mergeSelectedDefaultDimension.length > 0 ||
           selectedWhiteBg.length > 0 ||
           selectedOrdinary.length > 0 ||
-          selectedDiscard.length > 0 ||
-          videos.length > 0 ? (
+          selectedDiscard.length > 0 ? (
             <button
               onClick={jsonData}
               className={`btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}
