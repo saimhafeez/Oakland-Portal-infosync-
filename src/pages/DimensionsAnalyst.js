@@ -11,41 +11,51 @@ import Paper from "@mui/material/Paper";
 import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
 import HeaderSignOut from "../components/header/HeaderSignOut";
 import {
+  Box,
   Button,
   ButtonGroup,
   CircularProgress,
   Grid,
   MenuItem,
+  Modal,
   Select,
   Stack,
   TableFooter,
+  TextField,
   Typography,
   colors,
 } from "@mui/material";
 
-import CloseIcon from "@mui/icons-material/Close";
-import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import PropsModel from "../res/PropsModel";
 import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTableRow";
 import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+
+// Import css files
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
 
 function DimensionsAnalyst(props) {
   const [dataLoading, setDataLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [dataSubmitting, setDataSubmitting] = useState(false);
-  const [displayProductDataType, setDisplayProductDataType] =
-    useState("images");
+  const [displayProductDataType, setDisplayProductDataType] = useState('images');
 
   const [productID, setProductID] = useState("");
   const [images, setImages] = useState([]);
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
-  const [displayHeader, setDisplayHeader] = useState(false);
+  const [displayHeader, setDisplayHeader] = useState(false)
+  const [openModal, setOpenModal] = useState(0);
+
 
   const executePythonScript = async () => {
-    setDataLoading(true);
+    setDataLoading(true)
     console.log("props.user", props.user);
     if (props.user) {
       // Get the authentication token
@@ -55,36 +65,28 @@ function DimensionsAnalyst(props) {
           // Define the API endpoint URL
           const apiUrl = "http://139.144.30.86:8000/api/get_job";
           console.log(token);
-          // Make an authenticated API request
-
-          // fetch(apiUrl, {
-          //   method: "GET",
-          //   headers: {
-          //     Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
-          //   },
-          // })
           fetch(apiUrl, {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token}`,
-            },
+              Authorization: `Bearer ${token}`
+            }
+          }).then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            console.log("network response was ok");
+            return response.json();
           })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Network response was not ok");
-              }
-              console.log("network response was ok");
-              return response.json();
-            })
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
               setImages(data.images);
               setWeightAndDimentions(data["weight and dimensions"]);
               setPreviewImage(data.images[0]);
+              // setPreviewImage(images.dimen[0]);
               setProductID(data.id);
               setDataLoaded(true);
-              setDataLoading(false);
+              setDataLoading(false)
             })
             .catch((error) => {
               // Handle any errors
@@ -133,16 +135,16 @@ function DimensionsAnalyst(props) {
               // Handle the API response data
               console.log("API Response:", data);
 
-              setImages([]);
-              setWeightAndDimentions({});
-              setProductID("");
-              setPreviewImage("");
+              setImages([])
+              setWeightAndDimentions({})
+              setProductID("")
+              setPreviewImage("")
               setDataLoading(false);
               setDataLoaded(false);
               SetFilters((pre) => ({
                 ...pre,
-                buildMaterial: "IRON PIPE / MDF",
-              }));
+                buildMaterial: "IRON PIPE / MDF"
+              }))
               setProductProperties({
                 ironPipeRows: [
                   PropsModel["ironPipeRows"],
@@ -178,9 +180,10 @@ function DimensionsAnalyst(props) {
                   PropsModel["woodTapeRows"],
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
-              });
+              })
 
-              setDataSubmitting(false);
+              setDataSubmitting(false)
+
             })
             .catch((error) => {
               // Handle any errors
@@ -194,7 +197,7 @@ function DimensionsAnalyst(props) {
     }
   };
 
-  const [previewImage, setPreviewImage] = useState(images[0]);
+  const [previewImage, setPreviewImage] = useState('');
   const [filters, SetFilters] = useState({
     unitSelector: "Inch",
     buildMaterial: "IRON PIPE / MDF",
@@ -292,42 +295,161 @@ function DimensionsAnalyst(props) {
     };
   };
 
+  const [pasteBin, setPasteBin] = useState('');
+
+  const fillDataFromPasteBin = () => {
+
+    const data = pasteBin.split("\n");
+
+    if (openModal === 1) {
+      const ironPipeRows = []
+      data.map((item) => {
+        const chunks = item.split("\t");
+        console.log('chunk[2] -->', chunks[2]);
+        ironPipeRows.push({
+          pipeTypeNSize: `${chunks[1]}  ${chunks[2].replaceAll('"', "''")}`,
+          length: chunks[3],
+          qty: chunks[4]
+        })
+      })
+
+      setProductProperties(pre => ({
+        ...pre,
+        ironPipeRows: ironPipeRows
+      }))
+
+      console.log('-->', ironPipeRows);
+
+      setOpenModal(0)
+      setPasteBin("")
+    } else if (openModal === 2) {
+      const woodenSheetRows = []
+      data.map((item) => {
+        const chunks = item.split("\t");
+        woodenSheetRows.push({
+          type: chunks[0],
+          length: chunks[1],
+          width: chunks[2],
+          qty: chunks[3]
+        })
+      })
+
+      setProductProperties(pre => ({
+        ...pre,
+        woodenSheetRows: woodenSheetRows
+      }))
+
+      console.log('-->', woodenSheetRows[0]);
+
+      setOpenModal(0)
+      setPasteBin("")
+    } else if (openModal === 3) {
+      const woodTapeRows = []
+      data.map((item) => {
+        const chunks = item.split("\t");
+        woodTapeRows.push({
+          size: chunks[0],
+          length: chunks[1],
+          qty: chunks[2]
+        })
+      })
+
+      setProductProperties(pre => ({
+        ...pre,
+        woodTapeRows: woodTapeRows
+      }))
+
+      console.log('-->', woodTapeRows[0]);
+
+      setOpenModal(0)
+      setPasteBin("")
+    } else if (openModal === 4) {
+      const miscTableRows = PropsModel["miscTableRows"]
+      data.map((item) => {
+        const chunks = item.split("\t");
+
+        for (var i = 0; i < miscTableRows.length; i++) {
+          if (chunks[0] === miscTableRows[i].item && chunks[2] !== "") {
+            miscTableRows[i].size = chunks[1]
+            miscTableRows[i].qty = chunks[2]
+          }
+        }
+      })
+
+      setProductProperties(pre => ({
+        ...pre,
+        miscTableRows: miscTableRows
+      }))
+
+      console.log('-->', miscTableRows[0]);
+
+      setOpenModal(0)
+      setPasteBin("")
+    }
+  }
+
   return (
     <>
-      {displayHeader && (
-        <HeaderSignOut
+      {
+        displayHeader && <HeaderSignOut
           userEmail={props.userEmail}
           userRole={props.userRole}
           userJdesc={props.userJdesc}
         />
-      )}
+      }
 
       <Wrapper>
-        <Stack
-          marginTop={"4px"}
-          marginBottom={"4px"}
-          direction="row"
-          height="calc(100vh - 8px)"
+
+        <Modal
+          open={openModal}
+          onClose={() => setOpenModal(0)}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
         >
-          <Stack
-            width="35%"
-            height="100%"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Stack direction="row" spacing={0.5} p={1} overflow="auto">
-              {!dataLoaded ? (
-                <Stack justifyContent="center" textAlign="center" width="100%">
-                  <Typography
-                    fontWeight="bold"
-                    textTransform="uppercase"
-                    color="#ff0000"
-                  >
-                    Press Fetch to Start Work
-                  </Typography>
-                </Stack>
-              ) : displayProductDataType === "images" ? (
-                <Stack direction="column" spacing={1}>
+          <Box sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '95%',
+            maxWidth: 1200,
+            bgcolor: 'background.paper',
+            border: '2px solid #000',
+            boxShadow: 24,
+            p: 4,
+          }}>
+            <Stack gap={2}>
+              <TextField
+                label="Table Data"
+                variant="outlined"
+                type="text"
+                multiline
+                value={pasteBin}
+                onChange={(e) => setPasteBin(e.target.value)}
+              />
+              <Button
+                onClick={fillDataFromPasteBin}
+                variant="contained"
+                style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
+              >
+                Save
+              </Button>
+            </Stack>
+          </Box>
+        </Modal>
+
+        <Stack marginTop={'4px'} marginBottom={'4px'} direction='row' height='calc(100vh - 8px)'>
+
+          <Stack width='50%' justifyContent='space-between' alignItems='center'>
+
+            <Stack direction='column' width='100%' spacing={0.5} p={1}>
+
+              {displayProductDataType === 'images' && <Stack>
+                <img src={previewImage} width="80%" height='auto' style={{ alignSelf: 'center' }} />
+              </Stack>}
+
+              {dataLoaded && displayProductDataType === 'images' ?
+                <Stack paddingTop={2} direction='row' overflow='auto' width='100%' spacing={1}>
                   {images.map((source, index) => {
                     return (
                       <img
@@ -336,100 +458,69 @@ function DimensionsAnalyst(props) {
                         src={source}
                         key={index}
                         style={{
-                          border: `2px solid ${
-                            source === previewImage ? "red" : "black"
-                          }`,
+                          border: `2px solid ${source === previewImage ? 'red' : 'black'}`
                         }}
                       />
                     );
                   })}
                 </Stack>
-              ) : (
+                :
                 <Stack>
-                  {Object.keys(weightAndDimentions).map((category, index) => {
-                    return (
-                      <Stack direction="column">
-                        <Typography fontWeight="bold">{category}</Typography>
+                  {
+                    Object.keys(weightAndDimentions).map((category, index) => {
 
-                        <Paper
-                          variant="outlined"
-                          direction="column"
-                          style={{ padding: 5 }}
-                        >
-                          {Object.keys(weightAndDimentions[category]).map(
-                            (item, _index) => {
-                              return (
-                                <Stack
-                                  direction="row"
-                                  justifyContent="space-between"
-                                  p={1}
-                                  gap={1}
-                                  style={{
-                                    backgroundColor:
-                                      _index % 2 == 0
-                                        ? "transparent"
-                                        : colors.grey[200],
-                                  }}
-                                >
-                                  <Typography>{item}: </Typography>
-                                  <Typography>
-                                    {weightAndDimentions[category][item]}
-                                  </Typography>
-                                </Stack>
-                              );
-                            }
-                          )}
+                      return <Stack direction='column'>
+                        <Typography fontWeight='bold'>{category}</Typography>
+
+                        <Paper variant="outlined" direction='column' style={{ padding: 5 }}>
+                          {Object.keys(weightAndDimentions[category]).map((item, _index) => {
+
+                            return <Stack direction='row' justifyContent='space-between' p={1} gap={1} style={{ backgroundColor: _index % 2 == 0 ? 'transparent' : colors.grey[200] }}>
+                              <Typography>{item}: </Typography>
+                              <Typography>{(weightAndDimentions[category])[item]}</Typography>
+                            </Stack>
+                          })}
                         </Paper>
-                      </Stack>
-                    );
-                  })}
-                </Stack>
-              )}
 
-              {displayProductDataType === "images" && (
-                <Stack>
-                  <img src={previewImage} width="100%" height="auto" />
+                      </Stack>
+
+                    })
+                  }
                 </Stack>
-              )}
+              }
+
             </Stack>
 
-            <Stack>
-              <ButtonGroup
-                variant="contained"
-                aria-label="outlined primary button group"
-              >
+            <Stack marginBottom={2}>
+              <ButtonGroup variant="contained" aria-label="outlined primary button group">
                 <Button
-                  variant={
-                    displayProductDataType === "images"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() => setDisplayProductDataType("images")}
-                >
-                  Images
-                </Button>
+                  style={{ width: '140px' }}
+                  variant={displayProductDataType === 'images' ? 'contained' : 'outlined'}
+                  onClick={() => setDisplayProductDataType('images')}>Images</Button>
                 <Button
-                  variant={
-                    displayProductDataType === "specification"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() => setDisplayProductDataType("specification")}
-                >
-                  Specification
-                </Button>
+                  style={{ width: '140px' }}
+                  variant={displayProductDataType === 'specification' ? 'contained' : 'outlined'}
+                  onClick={() => setDisplayProductDataType('specification')}>Specification</Button>
               </ButtonGroup>
             </Stack>
+
           </Stack>
 
-          <Stack direction="column" gap={3} width="50%" overflow="auto">
+          <Stack direction='column' gap={3} width='35%' overflow='auto'>
+
             <Stack>
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell className="table-head" colSpan={6}>
-                        Iron Pipe
+                        <Stack direction='row' justifyContent='space-between'>
+                          <div></div>
+                          <Typography fontWeight='bold'>Iron Pipe</Typography>
+                          <Box style={{ cursor: "pointer" }} onClick={() => setOpenModal(1)}>
+                            <ContentPasteIcon />
+                          </Box>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                     <TableRow className="cell-head">
@@ -475,7 +566,13 @@ function DimensionsAnalyst(props) {
                   <TableHead>
                     <TableRow>
                       <TableCell className="table-head" colSpan={8}>
-                        Wooden Sheet
+                        <Stack direction='row' justifyContent='space-between'>
+                          <div></div>
+                          <Typography fontWeight='bold'>Wooden Sheet</Typography>
+                          <Box style={{ cursor: "pointer" }} onClick={() => setOpenModal(2)}>
+                            <ContentPasteIcon />
+                          </Box>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                     <TableRow className="cell-head">
@@ -530,7 +627,13 @@ function DimensionsAnalyst(props) {
                     <TableHead>
                       <TableRow>
                         <TableCell className="table-head" colSpan={8}>
-                          Wood Tape
+                          <Stack direction='row' justifyContent='space-between'>
+                            <div></div>
+                            <Typography fontWeight='bold'>Wood Tape</Typography>
+                            <Box style={{ cursor: "pointer" }} onClick={() => setOpenModal(3)}>
+                              <ContentPasteIcon />
+                            </Box>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                       <TableRow className="cell-head">
@@ -574,13 +677,21 @@ function DimensionsAnalyst(props) {
     </Grid>
   </Grid> */}
 
+
             <Stack>
+
               <TableContainer component={Paper} variant="outlined">
                 <Table padding={0} size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell className="table-head" colSpan={8}>
-                        Misc
+                        <Stack direction='row' justifyContent='space-between'>
+                          <div></div>
+                          <Typography fontWeight='bold'>Misc</Typography>
+                          <Box style={{ cursor: "pointer" }} onClick={() => setOpenModal(4)}>
+                            <ContentPasteIcon />
+                          </Box>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                     <TableRow className="cell-head">
@@ -605,41 +716,45 @@ function DimensionsAnalyst(props) {
                 </Table>
               </TableContainer>
             </Stack>
+
           </Stack>
 
-          <Stack
-            direction="column"
-            width="15%"
-            gap={4}
-            p={1}
-            justifyContent="space-between"
-          >
+          <Stack direction="column" width='15%' gap={4} p={1} justifyContent='space-between'>
+
             <Stack direction="column" gap={1}>
-              <Button
-                variant="contained"
+
+              <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
-                style={{
-                  backgroundColor: "#ffeb9c",
-                  color: "black",
-                  width: "fit-content",
-                  alignSelf: "end",
-                }}
+                style={{ backgroundColor: '#ffeb9c', color: 'black', width: 'fit-content', alignSelf: 'end' }}
               >
                 {displayHeader ? <CloseIcon /> : <MenuIcon />}
               </Button>
 
-              <Button
-                variant="contained"
+              <Stack direction='row' justifyContent='end'>
+                <TextField placeholder="Search by URL" variant="filled" style={{ borderRadius: 0 }} />
+                <Button variant="contained"
+                  onClick={executePythonScript}
+                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
+                >
+
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>GO</Typography>
+                    {dataLoading && <CircularProgress size={26} color="warning" />}
+                  </Stack>
+                </Button>
+              </Stack>
+              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
+              <Button variant="contained"
                 onClick={executePythonScript}
-                style={{ backgroundColor: "#ffeb9c", color: "black" }}
+                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
               >
-                <Stack direction="row" gap={2} alignItems="center">
-                  <Typography fontWeight="bold">Fetch</Typography>
-                  {dataLoading && (
-                    <CircularProgress size={26} color="warning" />
-                  )}
+
+                <Stack direction='row' gap={2} alignItems='center'>
+                  <Typography fontWeight='bold'>Fetch</Typography>
+                  {dataLoading && <CircularProgress size={26} color="warning" />}
                 </Stack>
               </Button>
+
 
               <Stack direction="column">
                 <Typography>Report Issue</Typography>
@@ -659,9 +774,12 @@ function DimensionsAnalyst(props) {
                   <MenuItem value="Not Understandable">
                     Not Understandable
                   </MenuItem>
-                  <MenuItem value="Not a Doable">Not a Doable</MenuItem>
+                  <MenuItem value="Not a Doable">
+                    Not a Doable
+                  </MenuItem>
                 </Select>
               </Stack>
+
 
               <Stack direction="column">
                 <Typography>Build Material</Typography>
@@ -700,25 +818,25 @@ function DimensionsAnalyst(props) {
                   <MenuItem value="Meter">Meter</MenuItem>
                 </Select>
               </Stack>
+
             </Stack>
 
             <Stack direction="column">
-              <Button
-                variant="outlined"
+              <Button variant="outlined"
                 onClick={executePythonScriptSubmit}
                 disabled={!dataLoaded}
+                color="error"
               >
-                <Stack direction="row" gap={2} alignItems="center">
-                  <Typography fontWeight="bold">Submit</Typography>
-                  {dataSubmitting && (
-                    <CircularProgress size={26} color="info" />
-                  )}
+                <Stack direction='row' gap={2} alignItems='center'>
+                  <Typography fontWeight='bold'>Submit</Typography>
+                  {dataSubmitting && <CircularProgress size={26} color="info" />}
                 </Stack>
               </Button>
             </Stack>
           </Stack>
+
         </Stack>
-      </Wrapper>
+      </Wrapper >
     </>
   );
 }
@@ -735,23 +853,27 @@ const Wrapper = styled.main`
   }
   td div {
     border-radius: 0px;
-    font-size: small;
+    font-size: medium;
   }
   .table-head {
     background-color: black;
     color: white;
     font-weight: bold;
     text-align: center;
+    border: 2px solid black;
   }
 
   .cell-head {
     background-color: #ffeb9c;
     white-space: nowrap;
   }
-
+  
   .cell-head > th {
     color: #9c6500;
     font-weight: bold;
+    text-align: center;
+    border: 2px solid black;
+    font-size: medium;
   }
 
   .cell-disabled {
@@ -764,3 +886,59 @@ const Wrapper = styled.main`
 `;
 
 export default DimensionsAnalyst;
+
+// FOR NEW IMAGES FORMAT
+// UPCOMING NEW IMAGE FORMAT
+// {
+//   thumbnail: 'https://assets.wfcdn.com/im/44077389/resize-h755-w755%5Ecompr-r85/1574/157448955/Ossabaw+3+Piece+Bedroom+Set.jpg',
+//   dimen: [
+//     'https://assets.wfcdn.com/im/92000998/resize-h755-w755%5Ecompr-r85/2173/217355837/Ossabaw+3+Piece+Bedroom+Set.jpg',
+//     'https://assets.wfcdn.com/im/39043468/resize-h755-w755%5Ecompr-r85/2464/246410978/Ossabaw+3+Piece+Bedroom+Set.jpg',
+//     'https://assets.wfcdn.com/im/47924497/resize-h755-w755%5Ecompr-r85/1574/157448937/Ossabaw+3+Piece+Bedroom+Set.jpg'
+//   ],
+//   supporting: [
+//     'https://assets.wfcdn.com/im/70782765/resize-h755-w755%5Ecompr-r85/1574/157448944/Ossabaw+3+Piece+Bedroom+Set.jpg',
+//     'https://assets.wfcdn.com/im/42118335/resize-h755-w755%5Ecompr-r85/1714/171434297/Ossabaw+3+Piece+Bedroom+Set.jpg',
+//     'https://assets.wfcdn.com/im/40131680/resize-h755-w755%5Ecompr-r85/1714/171428743/Ossabaw+3+Piece+Bedroom+Set.jpg'
+//   ]
+// }
+
+{/* <Stack direction='row' overflow='auto' width='100%' spacing={1}>
+  {images.dimen.map((source, index) => {
+    return (
+      <img
+        onClick={() => setPreviewImage(source)}
+        width="90px"
+        src={source}
+        key={index}
+        style={{
+          border: `2px solid ${source === previewImage ? 'red' : 'black'}`
+        }}
+      />
+    );
+  })}
+  <img
+    onClick={() => setPreviewImage(images.thumbnail)}
+    width="90px"
+    src={images.thumbnail}
+    style={{
+      border: `2px solid ${images.thumbnail === previewImage ? 'red' : 'black'}`
+    }}
+  />
+  {images.supporting.map((source, index) => {
+    return (
+      <img
+        onClick={() => {
+          console.log('source', source);
+          setPreviewImage(source)
+        }}
+        width="90px"
+        src={source}
+        key={index}
+        style={{
+          border: `2px solid ${source === previewImage ? 'red' : 'black'}`
+        }}
+      />
+    );
+  })}
+</Stack> */}

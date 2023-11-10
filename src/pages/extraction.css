@@ -19,11 +19,9 @@
 }
 
 :root {
-  --gradient: linear-gradient(
-    0deg,
-    rgb(132, 144, 255) 0%,
-    rgb(98, 189, 252) 100%
-  );
+  --gradient: linear-gradient(0deg,
+      rgb(132, 144, 255) 0%,
+      rgb(98, 189, 252) 100%);
   --font-family: "Poppins", sans-serif;
   /*? backgroun color */
   --bg-danger: #f63448;
@@ -52,6 +50,37 @@
   border-radius: 5px;
   color: #fff;
   font-size: 1.1rem;
+}
+
+.btn-fetch {
+  background: #ffeb9c;
+  color: black;
+}
+
+.btn-fetch:hover {
+  background: #f0d87b;
+  color: black;
+}
+
+.btn-fetch:disabled {
+  background: #f0d87b;
+  color: black;
+}
+
+.btn-go-fetch {
+  border-radius: 0px;
+  background: #000000;
+  color: #ffffff;
+}
+
+.btn-go-fetch:hover {
+  background: #e99f9f;
+  color: black;
+}
+
+.btn-go-fetch:disabled {
+  background: #e99f9f;
+  color: black;
 }
 
 .btn-equ {
@@ -133,9 +162,11 @@ span {
 .ordinary-bg {
   background-color: #f4eeee;
 }
+
 .ordinary-b {
   background-color: #e99f9f;
 }
+
 .discard-bg {
   background: #f0f0f0;
 }
@@ -214,6 +245,7 @@ footer p {
   transition: all 0.3s linear;
   z-index: 1000;
 }
+
 .selected-image img {
   opacity: 0.2;
 }

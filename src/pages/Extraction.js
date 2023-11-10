@@ -10,6 +10,11 @@ import { toast, ToastContainer } from "react-toastify";
 
 const Extraction = (props) => {
   const navigate = useNavigate();
+
+  // =========================================================================
+  const [searchQuery, setSearchQuery] = useState('')
+  // =========================================================================
+
   const [allImages, setAllImages] = useState([]);
   const [selectedButton, setSelectedButton] = useState("");
   const [selectedThumbnail, setSelectedThumbnail] = useState([]);
@@ -81,15 +86,19 @@ const Extraction = (props) => {
   // http://139.144.30.86:3001/api/fetch-data
   // 161.97.167.225/scrape
   // http://161.97.167.225:8000/api/get_job
+  //http://139.144.30.86:8000/api/get_job
+  const executePythonScript = async (e) => {
 
-  const executePythonScript = async () => {
     if (props.user) {
       // Get the authentication token
       props.user
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://139.144.30.86:8000/api/get_job";
+          var apiUrl = 'http://139.144.30.86:8000/api/get_job'
+          if (e.target.id === 'btn-go' && searchQuery !== '') {
+            apiUrl = apiUrl + `?url=${encodeURIComponent(searchQuery)}`
+          }
           console.log(token);
           setToken(token);
           // Make an authenticated API request
@@ -553,6 +562,9 @@ const Extraction = (props) => {
         toast.success("Sorted Data Submit Successfully!", {
           position: toast.POSITION.BOTTOM_RIGHT,
         });
+
+        setSearchQuery("")
+
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -640,7 +652,7 @@ const Extraction = (props) => {
       <div className="set-right-container">
         {/* header section  */}
         <div className="header">
-          <div className="container">
+          <div className="set-container">
             <div className="row d-flex align-items-center justify-content-between">
               <div className="col-lg-2 col-md-4">
                 <h3>Extraction</h3>
@@ -673,9 +685,32 @@ const Extraction = (props) => {
                   ""
                 )}
               </div>
-              <div className="col-lg-3 col-md-4 text-end">
+              {/* <div className="col-lg-3 col-md-4 text-end">
                 <button
                   className="btn d-block w-100"
+                  onClick={executePythonScript}
+                  disabled={isFetchButtonDisabled}
+                >
+                  Fetch Data
+                </button>
+              </div> */}
+              <div className="col-lg-3 col-md-4 text-end d-flex flex-column gap-0">
+                <div className="d-flex">
+                  <input className="w-100 px-3" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
+                  <button
+                    id="btn-go"
+                    className="btn p-2 px-3  btn-go-fetch"
+
+                    onClick={executePythonScript}
+                    disabled={isFetchButtonDisabled}
+                  >
+                    GO
+                  </button>
+                </div>
+                <h5 className="m-0" style={{ textAlign: 'center' }}>or</h5>
+                <button
+                  id="btn-fetch"
+                  className="btn d-block w-100 btn-fetch"
                   onClick={executePythonScript}
                   disabled={isFetchButtonDisabled}
                 >
@@ -697,9 +732,8 @@ const Extraction = (props) => {
           </div> */}
           <button
             onClick={() => handleButtonClick("Thumbnail")}
-            className={`select-btn btn ${
-              selectedButton === "Thumbnail" ? "active-button" : ""
-            }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
+            className={`select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
+              }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
             disabled={isThumbnailButtonDisabled}
           >
             Thumbnail
@@ -707,9 +741,8 @@ const Extraction = (props) => {
 
           <button
             onClick={() => handleButtonClick("Dimensional")}
-            className={`select-btn btn ${
-              selectedButton === "Dimensional" ? "active-button" : ""
-            }
+            className={`select-btn btn ${selectedButton === "Dimensional" ? "active-button" : ""
+              }
               ${isDimensionalButtonDisabled ? " button-disable" : ""}`}
             disabled={isDimensionalButtonDisabled}
           >
@@ -717,18 +750,16 @@ const Extraction = (props) => {
           </button>
           <button
             onClick={() => handleButtonClick("WhiteBg")}
-            className={`select-btn btn ${
-              selectedButton === "WhiteBg" ? "active-button" : ""
-            }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
+            className={`select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
+              }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
             disabled={isWhiteBgButtonDisabled}
           >
             WhiteBg
           </button>
           <button
             onClick={() => handleButtonClick("Ordinary")}
-            className={`select-btn btn btn-equ ${
-              selectedButton === "Ordinary" ? "active-button" : ""
-            }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
+            className={`select-btn btn btn-equ ${selectedButton === "Ordinary" ? "active-button" : ""
+              }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
             disabled={isOrdinaryButtonDisabled}
           >
             Ordinary
@@ -736,9 +767,8 @@ const Extraction = (props) => {
 
           <button
             onClick={() => handleButtonClick("Discard")}
-            className={`select-btn btn btn-equ ${
-              selectedButton === "Discard" ? "active-button" : ""
-            }${isDiscardButtonDisabled ? " button-disable" : ""}`}
+            className={`select-btn btn btn-equ ${selectedButton === "Discard" ? "active-button" : ""
+              }${isDiscardButtonDisabled ? " button-disable" : ""}`}
             disabled={isDiscardButtonDisabled}
           >
             Discard
@@ -759,9 +789,8 @@ const Extraction = (props) => {
             {allImages.map((item) => (
               <div className="col-md-3 mt-4" key={item.id}>
                 <div
-                  className={`card img-fluid ${
-                    imageSelectedIds.includes(item) ? "selected-image" : ""
-                  }`}
+                  className={`card img-fluid ${imageSelectedIds.includes(item) ? "selected-image" : ""
+                    }`}
                   onClick={() => selectMyItem(item)}
                 >
                   <img src={item.src} id={`img-${item.id}`} />
@@ -828,9 +857,8 @@ const Extraction = (props) => {
                     {selectedThumbnail.map((item) => (
                       <div className="col-md-3 mb-4" key={item.id}>
                         <div
-                          className={`card ${
-                            isThumbnailEditMode ? "edit-mode" : ""
-                          }`}
+                          className={`card ${isThumbnailEditMode ? "edit-mode" : ""
+                            }`}
                           onClick={() => selectMyItem(item)}
                         >
                           {isThumbnailEditMode && (
@@ -891,9 +919,8 @@ const Extraction = (props) => {
                     {defaultThumbnail.map((item) => (
                       <div className="col-md-3 mb-4" key={item.id}>
                         <div
-                          className={`card ${
-                            isDefaultThumbnailEditMode ? "edit-mode" : ""
-                          }`}
+                          className={`card ${isDefaultThumbnailEditMode ? "edit-mode" : ""
+                            }`}
                           onClick={() => selectMyItem(item)}
                         >
                           {isDefaultThumbnailEditMode && (
@@ -965,9 +992,8 @@ const Extraction = (props) => {
                     {selectedDimentional.map((item) => (
                       <div className="col-md-3 mb-4" key={item.id}>
                         <div
-                          className={`card ${
-                            isDimensionalEditMode ? "edit-mode" : ""
-                          }`}
+                          className={`card ${isDimensionalEditMode ? "edit-mode" : ""
+                            }`}
                           onClick={() => selectMyItem(item)}
                         >
                           {isDimensionalEditMode && (
@@ -1022,28 +1048,27 @@ const Extraction = (props) => {
                   <div className="row">
                     {defaultDimension
                       ? defaultDimension.map((item) => (
-                          <div className="col-md-3 mb-4" key={item.id}>
-                            <div
-                              className={`card ${
-                                isDefaultDimensionEditMode ? "edit-mode" : ""
+                        <div className="col-md-3 mb-4" key={item.id}>
+                          <div
+                            className={`card ${isDefaultDimensionEditMode ? "edit-mode" : ""
                               }`}
-                              onClick={() => selectMyItem(item)}
-                            >
-                              {isDefaultDimensionEditMode && (
-                                <div
-                                  className="cross"
-                                  onClick={() => resetDefaultDimension(item)}
-                                >
-                                  <CancelIcon />
-                                </div>
-                              )}
-                              <img
-                                className="card-img-top img-fluid"
-                                src={item.src}
-                              />
-                            </div>
+                            onClick={() => selectMyItem(item)}
+                          >
+                            {isDefaultDimensionEditMode && (
+                              <div
+                                className="cross"
+                                onClick={() => resetDefaultDimension(item)}
+                              >
+                                <CancelIcon />
+                              </div>
+                            )}
+                            <img
+                              className="card-img-top img-fluid"
+                              src={item.src}
+                            />
                           </div>
-                        ))
+                        </div>
+                      ))
                       : ""}
                   </div>
                 </div>
@@ -1098,9 +1123,8 @@ const Extraction = (props) => {
                     {selectedWhiteBg.map((item) => (
                       <div className="col-md-3 mb-4" key={item.id}>
                         <div
-                          className={`card ${
-                            isWhiteBgEditMode ? "edit-mode" : ""
-                          }`}
+                          className={`card ${isWhiteBgEditMode ? "edit-mode" : ""
+                            }`}
                           onClick={() => selectMyItem(item)}
                         >
                           {isWhiteBgEditMode && (
@@ -1171,9 +1195,8 @@ const Extraction = (props) => {
                     {selectedOrdinary.map((item) => (
                       <div className="col-md-3 mb-4" key={item.id}>
                         <div
-                          className={`card ${
-                            isOrdinarylEditMode ? "edit-mode" : ""
-                          }`}
+                          className={`card ${isOrdinarylEditMode ? "edit-mode" : ""
+                            }`}
                           onClick={() => selectMyItem(item)}
                         >
                           {isOrdinarylEditMode && (
@@ -1244,9 +1267,8 @@ const Extraction = (props) => {
                     {selectedDiscard.map((item) => (
                       <div className="col-md-3 mb-4" key={item.id}>
                         <div
-                          className={`card ${
-                            isDiscardlEditMode ? "edit-mode" : ""
-                          }`}
+                          className={`card ${isDiscardlEditMode ? "edit-mode" : ""
+                            }`}
                           onClick={() => selectMyItem(item)}
                         >
                           {isDiscardlEditMode && (
@@ -1323,10 +1345,10 @@ const Extraction = (props) => {
 
         <div className="col-lg-10 col-md-4 text-end mt-4 mb-5">
           {mergeSelectedDefaultThumbnail.length > 0 ||
-          mergeSelectedDefaultDimension.length > 0 ||
-          selectedWhiteBg.length > 0 ||
-          selectedOrdinary.length > 0 ||
-          selectedDiscard.length > 0 ? (
+            mergeSelectedDefaultDimension.length > 0 ||
+            selectedWhiteBg.length > 0 ||
+            selectedOrdinary.length > 0 ||
+            selectedDiscard.length > 0 ? (
             <button
               onClick={jsonData}
               className={`btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}

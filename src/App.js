@@ -53,6 +53,9 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NestedRoutes from "./routes/NestedRoutes";
 import DimensionalQAAnalyst from "./pages/DimensionalQAAnalyst";
+import SuperAdmin from "./pages/SuperAdmin";
+import Ingredients from "./pages/Ingredients";
+import ProductVendorInformation from "./pages/ProductVendorInformation";
 
 function App() {
   const notify = () => toast("Wow so easy!");
@@ -145,6 +148,52 @@ function App() {
         <ToastContainer />
         <BrowserRouter>
           <Routes>
+
+            <Route
+              path="/super-admin"
+              element={
+                <SuperAdmin
+                  userEmail={userEmail}
+                  userRole={userRole}
+                  userJdesc={userJdesc}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/ingredients"
+              element={
+                <Ingredients
+                  userEmail={userEmail}
+                  userRole={userRole}
+                  userJdesc={userJdesc}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/ingredients"
+              element={
+                <Ingredients
+                  userEmail={userEmail}
+                  userRole={userRole}
+                  userJdesc={userJdesc}
+                  user={user}
+                />
+              }
+            />
+            <Route
+              path="/product-detail-info"
+              element={
+                <ProductVendorInformation
+                  userEmail={userEmail}
+                  userRole={userRole}
+                  userJdesc={userJdesc}
+                  user={user}
+                />
+              }
+            />
+
             {/* SECURE LOGIN ROUTE */}
             <Route
               element={

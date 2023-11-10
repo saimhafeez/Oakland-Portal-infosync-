@@ -22,12 +22,13 @@ import {
   Stack,
   Switch,
   TableFooter,
+  TextField,
   Typography,
   colors,
 } from "@mui/material";
 
-import CloseIcon from "@mui/icons-material/Close";
-import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import PropsModel from "../res/PropsModel";
 import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTableRow";
@@ -39,8 +40,7 @@ function DimensionalQAAnalyst(props) {
   const [dataLoading, setDataLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [dataSubmitting, setDataSubmitting] = useState(false);
-  const [displayProductDataType, setDisplayProductDataType] =
-    useState("images");
+  const [displayProductDataType, setDisplayProductDataType] = useState('images');
 
   const [productID, setProductID] = useState("");
   const [productPropertiesOld, setProductPropertiesOld] = useState({
@@ -52,8 +52,9 @@ function DimensionalQAAnalyst(props) {
   const [images, setImages] = useState([]);
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
+
   const executePythonScript = async () => {
-    setDataLoading(true);
+    setDataLoading(true)
     console.log("props.user", props.user);
     if (props.user) {
       // Get the authentication token
@@ -74,37 +75,33 @@ function DimensionalQAAnalyst(props) {
           fetch(apiUrl, {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token}`,
-            },
+              Authorization: `Bearer ${token}`
+            }
+          }).then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            console.log("network response was ok");
+            return response.json();
           })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Network response was not ok");
-              }
-              console.log("network response was ok");
-              return response.json();
-            })
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
 
-              const mergedArray = PropsModel["miscTableRows"].map(
-                (existingItem) => {
-                  const newDataItem = data.productProperties.miscTableRows.find(
-                    (newItem) => newItem.item === existingItem.item
-                  );
+              const mergedArray = PropsModel["miscTableRows"].map(existingItem => {
+                const newDataItem = data.productProperties.miscTableRows.find(newItem => newItem.item === existingItem.item);
 
-                  return newDataItem ? newDataItem : existingItem;
-                }
-              );
+                return newDataItem ? newDataItem : existingItem;
+              });
 
               setImages(data.images);
               setWeightAndDimentions(data["weight and dimensions"]);
               setPageLoading(false);
               setPreviewImage(data.images[0]);
+              // setPreviewImage(images.dimen[0]);
               setProductProperties({
                 ...data.productProperties,
-                miscTableRows: mergedArray,
+                miscTableRows: mergedArray
               });
               setProductPropertiesOld(data.productProperties);
               setProductID(data.id);
@@ -113,7 +110,7 @@ function DimensionalQAAnalyst(props) {
                 buildMaterial: data.buildMaterial,
               }));
               setDataLoaded(true);
-              setDataLoading(false);
+              setDataLoading(false)
             })
             .catch((error) => {
               // Handle any errors
@@ -160,16 +157,16 @@ function DimensionalQAAnalyst(props) {
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
-              setImages([]);
-              setWeightAndDimentions({});
-              setProductID("");
-              setPreviewImage("");
+              setImages([])
+              setWeightAndDimentions({})
+              setProductID("")
+              setPreviewImage("")
               setDataLoading(false);
               setDataLoaded(false);
               setFilters((pre) => ({
                 ...pre,
-                buildMaterial: "IRON PIPE / MDF",
-              }));
+                buildMaterial: "IRON PIPE / MDF"
+              }))
               setProductProperties({
                 ironPipeRows: [
                   PropsModel["ironPipeRows"],
@@ -205,9 +202,9 @@ function DimensionalQAAnalyst(props) {
                   PropsModel["woodTapeRows"],
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
-              });
+              })
 
-              setDataSubmitting(false);
+              setDataSubmitting(false)
             })
             .catch((error) => {
               // Handle any errors
@@ -222,7 +219,7 @@ function DimensionalQAAnalyst(props) {
   };
 
   const [suggestEdit, setSuggestEdit] = useState(false);
-  const [previewImage, setPreviewImage] = useState(images[0]);
+  const [previewImage, setPreviewImage] = useState();
 
   const [filters, setFilters] = useState({
     unitSelector: "Inch",
@@ -285,6 +282,7 @@ function DimensionalQAAnalyst(props) {
       };
       return { ...pre, [propType]: updatedRows };
     });
+
   };
 
   const exportData = () => {
@@ -321,48 +319,37 @@ function DimensionalQAAnalyst(props) {
         woodTapeRows: exportedWoodTapeRows,
         miscTableRows: exportedMiscTableRows,
       },
-      qaScorecard: filters.qaScorecard,
+      change: filters.qaScorecard,
     };
   };
 
-  const [displayHeader, setDisplayHeader] = useState(false);
+
+  const [displayHeader, setDisplayHeader] = useState(false)
 
   return (
     <>
-      {displayHeader && (
-        <HeaderSignOut
+      {
+        displayHeader && <HeaderSignOut
           userEmail={props.userEmail}
           userRole={props.userRole}
           userJdesc={props.userJdesc}
         />
-      )}
+      }
 
       <Wrapper>
-        <Stack
-          marginTop={"4px"}
-          marginBottom={"4px"}
-          direction="row"
-          height="calc(100vh - 8px)"
-        >
-          <Stack
-            width="35%"
-            height="100%"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Stack direction="row" spacing={0.5} p={1} overflow="auto">
-              {!dataLoaded ? (
-                <Stack justifyContent="center" textAlign="center" width="100%">
-                  <Typography
-                    fontWeight="bold"
-                    textTransform="uppercase"
-                    color="#ff0000"
-                  >
-                    Press Fetch to Start Work
-                  </Typography>
-                </Stack>
-              ) : displayProductDataType === "images" ? (
-                <Stack direction="column" spacing={1}>
+
+        <Stack marginTop={'4px'} marginBottom={'4px'} direction='row' height='calc(100vh - 8px)'>
+
+          <Stack width='50%' height='100%' justifyContent='space-between' alignItems='center'>
+
+            <Stack direction='column' width='100%' spacing={0.5} p={1}>
+
+              {displayProductDataType === 'images' && <Stack>
+                <img src={previewImage} width="80%" height='auto' style={{ alignSelf: 'center' }} />
+              </Stack>}
+
+              {dataLoaded && displayProductDataType === 'images' ?
+                <Stack direction='row' overflow='auto' width='100%' spacing={1}>
                   {images.map((source, index) => {
                     return (
                       <img
@@ -371,93 +358,55 @@ function DimensionalQAAnalyst(props) {
                         src={source}
                         key={index}
                         style={{
-                          border: `2px solid ${
-                            source === previewImage ? "red" : "black"
-                          }`,
+                          border: `2px solid ${source === previewImage ? 'red' : 'black'}`
                         }}
                       />
                     );
                   })}
                 </Stack>
-              ) : (
+                :
                 <Stack>
-                  {Object.keys(weightAndDimentions).map((category, index) => {
-                    return (
-                      <Stack direction="column">
-                        <Typography fontWeight="bold">{category}</Typography>
+                  {
+                    Object.keys(weightAndDimentions).map((category, index) => {
 
-                        <Paper
-                          variant="outlined"
-                          direction="column"
-                          style={{ padding: 5 }}
-                        >
-                          {Object.keys(weightAndDimentions[category]).map(
-                            (item, _index) => {
-                              return (
-                                <Stack
-                                  direction="row"
-                                  justifyContent="space-between"
-                                  p={1}
-                                  gap={1}
-                                  style={{
-                                    backgroundColor:
-                                      _index % 2 == 0
-                                        ? "transparent"
-                                        : colors.grey[200],
-                                  }}
-                                >
-                                  <Typography>{item}: </Typography>
-                                  <Typography>
-                                    {weightAndDimentions[category][item]}
-                                  </Typography>
-                                </Stack>
-                              );
-                            }
-                          )}
+                      return <Stack direction='column'>
+                        <Typography fontWeight='bold'>{category}</Typography>
+
+                        <Paper variant="outlined" direction='column' style={{ padding: 5 }}>
+                          {Object.keys(weightAndDimentions[category]).map((item, _index) => {
+
+                            return <Stack direction='row' justifyContent='space-between' p={1} gap={1} style={{ backgroundColor: _index % 2 == 0 ? 'transparent' : colors.grey[200] }}>
+                              <Typography>{item}: </Typography>
+                              <Typography>{(weightAndDimentions[category])[item]}</Typography>
+                            </Stack>
+                          })}
                         </Paper>
-                      </Stack>
-                    );
-                  })}
-                </Stack>
-              )}
 
-              {displayProductDataType === "images" && (
-                <Stack>
-                  <img src={previewImage} width="100%" height="auto" />
+                      </Stack>
+
+                    })
+                  }
                 </Stack>
-              )}
+              }
+
             </Stack>
 
-            <Stack>
-              <ButtonGroup
-                variant="contained"
-                aria-label="outlined primary button group"
-              >
+            <Stack marginBottom={2}>
+              <ButtonGroup variant="contained" aria-label="outlined primary button group">
                 <Button
-                  variant={
-                    displayProductDataType === "images"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() => setDisplayProductDataType("images")}
-                >
-                  Images
-                </Button>
+                  style={{ width: '140px' }}
+                  variant={displayProductDataType === 'images' ? 'contained' : 'outlined'}
+                  onClick={() => setDisplayProductDataType('images')}>Images</Button>
                 <Button
-                  variant={
-                    displayProductDataType === "specification"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() => setDisplayProductDataType("specification")}
-                >
-                  Specification
-                </Button>
+                  style={{ width: '140px' }}
+                  variant={displayProductDataType === 'specification' ? 'contained' : 'outlined'}
+                  onClick={() => setDisplayProductDataType('specification')}>Specification</Button>
               </ButtonGroup>
             </Stack>
           </Stack>
 
-          <Stack direction="column" gap={3} width="50%" overflow="auto">
+          <Stack direction='column' gap={3} width='35%' overflow='auto'>
+
             <Stack>
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
@@ -634,39 +583,43 @@ function DimensionalQAAnalyst(props) {
                 </Table>
               </TableContainer>
             </Stack>
+
           </Stack>
 
-          <Stack
-            direction="column"
-            width="15%"
-            gap={4}
-            p={1}
-            justifyContent="space-between"
-          >
+
+          <Stack direction="column" width='15%' gap={4} p={1} justifyContent='space-between'>
+
             <Stack direction="column" gap={1}>
-              <Button
-                variant="contained"
+
+              <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
-                style={{
-                  backgroundColor: "#ffeb9c",
-                  color: "black",
-                  width: "fit-content",
-                  alignSelf: "end",
-                }}
+                style={{ backgroundColor: '#ffeb9c', color: 'black', width: 'fit-content', alignSelf: 'end' }}
               >
                 {displayHeader ? <CloseIcon /> : <MenuIcon />}
               </Button>
 
-              <Button
-                variant="contained"
+              <Stack direction='row' justifyContent='end'>
+                <TextField placeholder="Search by URL" variant="filled" style={{ borderRadius: 0 }} />
+                <Button variant="contained"
+                  onClick={executePythonScript}
+                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
+                >
+
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>GO</Typography>
+                    {dataLoading && <CircularProgress size={26} color="warning" />}
+                  </Stack>
+                </Button>
+              </Stack>
+              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
+              <Button variant="contained"
                 onClick={executePythonScript}
-                style={{ backgroundColor: "#ffeb9c", color: "black" }}
+                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
               >
-                <Stack direction="row" gap={2} alignItems="center">
-                  <Typography fontWeight="bold">Fetch</Typography>
-                  {dataLoading && (
-                    <CircularProgress size={26} color="warning" />
-                  )}
+
+                <Stack direction='row' gap={2} alignItems='center'>
+                  <Typography fontWeight='bold'>Fetch</Typography>
+                  {dataLoading && <CircularProgress size={26} color="warning" />}
                 </Stack>
               </Button>
 
@@ -720,35 +673,35 @@ function DimensionalQAAnalyst(props) {
                   }}
                 />
               </Stack>
+
             </Stack>
 
-            <Stack direction="column" alignSelf="end" width="100%" gap={1}>
+
+            <Stack direction='column' alignSelf='end' width='100%' gap={1}>
               <Select
-                size="small"
+                size='small'
                 disabled={!dataLoaded}
                 value={filters.qaScorecard}
                 onChange={(e) => {
-                  setFilters((pre) => ({
+                  setFilters(pre => ({
                     ...pre,
-                    qaScorecard: e.target.value,
-                  }));
+                    qaScorecard: e.target.value
+                  }))
                 }}
-                name="buildMaterial"
+                name='buildMaterial'
               >
                 <MenuItem value="QA Scorecard">QA Scorecard</MenuItem>
                 <MenuItem value="Minor Changes">Minor Changes</MenuItem>
                 <MenuItem value="Major Changes">Major Changes</MenuItem>
+                <MenuItem value="Extreme Changes">Extreme Changes</MenuItem>
                 <MenuItem value="QA Passed">QA Passed</MenuItem>
               </Select>
-              <Button
-                variant="outlined"
-                disabled={filters.qaScorecard === "QA Scorecard" || !dataLoaded}
-                onClick={executePythonScriptSubmit}
-              >
+              <Button variant='outlined' color="error" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded} onClick={executePythonScriptSubmit}>
                 submit
               </Button>
             </Stack>
           </Stack>
+
         </Stack>
       </Wrapper>
     </>
