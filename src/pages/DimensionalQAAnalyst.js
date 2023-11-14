@@ -218,6 +218,102 @@ function DimensionalQAAnalyst(props) {
     }
   };
 
+  const executePythonScriptSubmit_not_understandable = async () => {
+    console.log("props.user", props.user);
+
+
+    const payload = exportData();
+    payload.qaStatus = 'not_understandable'
+    console.log("body", payload);
+
+    if (props.user) {
+      // Get the authentication token
+      props.user
+        .getIdToken()
+        .then((token) => {
+          // Define the API endpoint URL
+          const apiUrl = "http://139.144.30.86:8000/api/submit";
+          console.log(token);
+          // Make an authenticated API request
+          fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              console.log("network response was ok");
+              return response.json();
+            })
+            .then((data) => {
+              // Handle the API response data
+              console.log("API Response:", data);
+              setImages([])
+              setWeightAndDimentions({})
+              setProductID("")
+              setPreviewImage("")
+              setDataLoading(false);
+              setDataLoaded(false);
+              setFilters((pre) => ({
+                ...pre,
+                buildMaterial: "IRON PIPE / MDF"
+              }))
+              setProductProperties({
+                ironPipeRows: [
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                  PropsModel["ironPipeRows"],
+                ],
+                woodenSheetRows: [
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                  PropsModel["woodenSheetRows"],
+                ],
+                woodTapeRows: [
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"],
+                ],
+                miscTableRows: PropsModel["miscTableRows"],
+              })
+
+              setDataSubmitting(false)
+            })
+            .catch((error) => {
+              // Handle any errors
+              console.error("Error:", error);
+            });
+        })
+        .catch((error) => {
+          // Handle any errors while getting the token
+          console.error("Token Error:", error);
+        });
+    }
+  };
+
   const [suggestEdit, setSuggestEdit] = useState(false);
   const [previewImage, setPreviewImage] = useState();
 
@@ -622,6 +718,22 @@ function DimensionalQAAnalyst(props) {
                   {dataLoading && <CircularProgress size={26} color="warning" />}
                 </Stack>
               </Button>
+
+              <Stack direction="column">
+                <Typography>Report Issue</Typography>
+
+                <Button variant="outlined"
+                  onClick={executePythonScriptSubmit_not_understandable}
+                  disabled={!dataLoaded}
+
+                  color="error"
+                >
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>Not Understandable</Typography>
+                    {dataSubmitting && <CircularProgress size={26} color="info" />}
+                  </Stack>
+                </Button>
+              </Stack>
 
               <Stack direction="column">
                 <Typography>Build Material</Typography>

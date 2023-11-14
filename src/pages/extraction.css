@@ -41,7 +41,7 @@
   box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
 }
 
-.btn {
+/* .btn {
   background: var(--gradient);
   padding: 0.5rem 1rem;
   border: none;
@@ -50,7 +50,7 @@
   border-radius: 5px;
   color: #fff;
   font-size: 1.1rem;
-}
+} */
 
 .btn-fetch {
   background: #ffeb9c;
