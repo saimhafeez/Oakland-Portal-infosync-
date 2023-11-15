@@ -11,6 +11,10 @@ import AdminTable from "../tables/AdminTable";
 import ManagerTable from "../tables/ManagerTable";
 import DimensionAnalystTable from "../tables/DimensionAnalystTable";
 import DimensionQATable from "../tables/DimensionQATable";
+import ManagerExtractorTable from "../tables/ManagerExtractorTable";
+import ManagerQAExtractorTable from "../tables/ManagerQAExtractorTable";
+import ManagerDimensionsTable from "../tables/ManagerDimensionsTable";
+import ManagerQADimensionsTable from "../tables/ManagerQADimensionsTable";
 
 const DashboardPage = (props) => {
   const navigate = useNavigate();
@@ -34,7 +38,7 @@ const DashboardPage = (props) => {
         userJdesc={props.userJdesc}
       />
       <Sidebar />
-      <div className="set-right-container-252 p-3">
+      <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
         <div className="row align-items-center">
           <div className="col-lg-6 text-center text-lg-start">
             <h5>
@@ -52,16 +56,14 @@ const DashboardPage = (props) => {
           </div>
         </div>
         {/* TABLES */}
-        {props.userJdesc === "Extractor" && (
-          <ExtractorTable user={props.user} />
-        )}
-        {props.userJdesc === "QA-Extractor" && (
-          <ExtractorQATable user={props.user} />
-        )}
-        {props.userJdesc === "DimAna" && <DimensionAnalystTable />}
-        {props.userJdesc === "QA-DimAna" && <DimensionQATable />}
-        {props.userRole === "admin" && <AdminTable />}
-        {props.userRole === "manager" && <ManagerTable />}
+        {/* {props.userJdesc === "Extractor" && (<ExtractorTable user={props.user} />)} */}
+        {/* {props.userJdesc === "QA-Extractor" && (<ExtractorQATable user={props.user} />)} */}
+        {/* {props.userJdesc === "DimAna" && <DimensionAnalystTable />} */}
+        {/* {props.userJdesc === "QA-DimAna" && <DimensionQATable />} */}
+        {/* {props.userRole === "admin" && <AdminTable />} */}
+        {/* {props.userRole === "manager" && <ManagerTable />} */}
+        <ManagerQADimensionsTable />
+        {/* {props.userRole === "QA-ExtractorManager" && <ManagerTable />} */}
       </div>
     </>
   );

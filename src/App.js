@@ -171,17 +171,7 @@ function App() {
                 />
               }
             />
-            <Route
-              path="/ingredients"
-              element={
-                <Ingredients
-                  userEmail={userEmail}
-                  userRole={userRole}
-                  userJdesc={userJdesc}
-                  user={user}
-                />
-              }
-            />
+
             <Route
               path="/product-detail-info"
               element={
