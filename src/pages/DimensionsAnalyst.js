@@ -105,8 +105,8 @@ function DimensionsAnalyst(props) {
     setDataSubmitting(true);
 
     const payload = exportData();
+    payload.change = ''
     console.log("body", payload);
-    return
     if (props.user) {
       // Get the authentication token
       props.user
@@ -202,10 +202,9 @@ function DimensionsAnalyst(props) {
     setDataSubmitting(true);
 
     const payload = exportData();
-    payload.qaStatus = 'not_understandable'
+    payload.change = 'not_understandable'
 
     console.log("body", payload);
-    return
     if (props.user) {
       // Get the authentication token
       props.user

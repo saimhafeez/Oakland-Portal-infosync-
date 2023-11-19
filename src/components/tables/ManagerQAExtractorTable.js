@@ -286,15 +286,34 @@ const ManagerQAExtractorTable = (props) => {
         }
     }, []);
 
+    useEffect(() => {
+
+        const lt = (new Date().getTime() / 1000).toFixed(0)
+        const apiURL = `http://139.144.30.86:8000/api/super_table?job=QA-Extractor&lt=${lt}&gt=0&page=0`
+        fetch(apiURL).then(res => res.json()).then((result) => {
+            console.log(result);
+            setTableData(pre => ({
+                ...pre,
+                data: result.data
+            }))
+
+            setTableDataStats(pre => ({
+                ...pre,
+                data: result.data
+            }))
+        })
+
+    }, []);
+
     const getStats = () => {
 
         const teamStats = [];
         const team = []
         tableDataStats.data.map((_item) => {
-            if (!team.includes(_item.qaExtractor)) {
-                team.push(_item.qaExtractor)
+            if (!team.includes(_item['QA-Worker'])) {
+                team.push(_item['QA-Worker'])
 
-                const memberProducts = tableDataStats.data.filter((product) => product.qaExtractor === _item.qaExtractor);
+                const memberProducts = tableDataStats.data.filter((product) => product['QA-Worker'] === _item['QA-Worker']);
 
                 const attempted = memberProducts.length;
                 var rejected_nad = 0;
@@ -306,26 +325,26 @@ const ManagerQAExtractorTable = (props) => {
 
                 memberProducts.map((product) => {
 
-                    if (product.QAStatus === "under_qa") {
+                    if (!product.status || product.status === "under_qa") {
                         under_qa++;
-                    } else if (product.QAStatus === "passed") {
+                    } else if (product.status === "passed") {
                         passed++;
-                    } else if (product.QAStatus === "minor") {
+                    } else if (product.status === "minor") {
                         minor++;
-                    } else if (product.QAStatus === "major") {
+                    } else if (product.status === "major") {
                         major++;
-                    } else if (product.QAStatus === 'rejected_nad') {
+                    } else if (product.status === 'rejected_nad') {
                         rejected_nad++;
                     }
 
-                    if (product.Earning !== 'N/A') {
-                        earnings = earnings + parseInt(product.Earning)
+                    if (product.earning && product.earning !== 'N/A') {
+                        earnings = earnings + parseInt(product.earning)
                     }
                 })
 
                 teamStats.push(
                     [
-                        _item.qaExtractor,
+                        _item['QA-Worker'],
                         attempted,
                         under_qa,
                         minor,
@@ -346,11 +365,11 @@ const ManagerQAExtractorTable = (props) => {
         var products = tableData.data;
 
         if (searchByID !== '') {
-            products = products.filter((item) => item.productID.includes(searchByID))
+            products = products.filter((item) => item.productID.toString().includes(searchByID))
         }
 
         if (filterByQAStatus !== 'qa-status') {
-            products = products.filter((item) => item.QAStatus === filterByQAStatus)
+            products = products.filter((item) => item.status === filterByQAStatus)
         }
 
         return products
@@ -444,9 +463,9 @@ const ManagerQAExtractorTable = (props) => {
                                 >
                                     <option value="qa-status">Filter by QA Status</option>
                                     <option value="under_qa">Under QA</option>
-                                    <option value="100% [QA Passed]">100% [QA Passed]</option>
-                                    <option value="MINOR [QA Passed]">MINOR Fixes</option>
-                                    <option value="MAJOR [QA Passed]">MAJOR Fixes</option>
+                                    <option value="passed">100% [QA Passed]</option>
+                                    <option value="minor">MINOR Fixes</option>
+                                    <option value="major">MAJOR Fixes</option>
                                     <option value="rejected_nad">Rejected NAD</option>
                                 </select>
 
@@ -473,14 +492,14 @@ const ManagerQAExtractorTable = (props) => {
                             <tr key={index}>
                                 <td>{index + 1}</td>
                                 <td>
-                                    <img src={item.thumbnail} alt="" height="52px" />
+                                    <img src={item.thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'} alt="" height="52px" />
                                 </td>
                                 <td>{item.productID}</td>
-                                <td>{item.varientID}</td>
-                                <td>{item.qaExtractor}</td>
-                                <td>{formatDate(item.extractionTimeStamp)}</td>
-                                <td>{item.QAStatus === 'under_qa' ? 'Under QA' : item.QAStatus === 'rejected_nad' ? 'Rejected NAD' : item.QAStatus === 'minor' ? 'MINOR Fixes' : item.QAStatus === 'major' ? 'MAJOR Fixes' : item.QAStatus === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
-                                <td>{item.Earning}</td>
+                                <td>{item.variantID || 'N/A'}</td>
+                                <td>{item['QA-Worker']}</td>
+                                <td>{formatDate(item.lastModified)}</td>
+                                <td>{item.status === 'under_qa' || !item.status ? 'Under QA' : item.status === 'rejected_nad' ? 'Rejected NAD' : item.status === 'minor' ? 'MINOR Fixes' : item.status === 'major' ? 'MAJOR Fixes' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
+                                <td>{item.earning || 'N/A'}</td>
                             </tr>
                         ))}
                     </tbody>

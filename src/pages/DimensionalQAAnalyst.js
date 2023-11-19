@@ -223,7 +223,7 @@ function DimensionalQAAnalyst(props) {
 
 
     const payload = exportData();
-    payload.qaStatus = 'not_understandable'
+    payload.change = 'not_understandable'
     console.log("body", payload);
 
     if (props.user) {
@@ -803,10 +803,9 @@ function DimensionalQAAnalyst(props) {
                 name='buildMaterial'
               >
                 <MenuItem value="QA Scorecard">QA Scorecard</MenuItem>
-                <MenuItem value="Minor Changes">Minor Changes</MenuItem>
-                <MenuItem value="Major Changes">Major Changes</MenuItem>
-                <MenuItem value="Extreme Changes">Extreme Changes</MenuItem>
-                <MenuItem value="QA Passed">QA Passed</MenuItem>
+                <MenuItem value="minor">MINOR Fixes</MenuItem>
+                <MenuItem value="major">MAJOR Fixes</MenuItem>
+                <MenuItem value="passed">100% [QA Passed]</MenuItem>
               </Select>
               <Button variant='outlined' color="error" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded} onClick={executePythonScriptSubmit}>
                 submit

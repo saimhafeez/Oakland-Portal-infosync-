@@ -56,14 +56,15 @@ const DashboardPage = (props) => {
           </div>
         </div>
         {/* TABLES */}
-        {/* {props.userJdesc === "Extractor" && (<ExtractorTable user={props.user} />)} */}
-        {/* {props.userJdesc === "QA-Extractor" && (<ExtractorQATable user={props.user} />)} */}
-        {/* {props.userJdesc === "DimAna" && <DimensionAnalystTable />} */}
-        {/* {props.userJdesc === "QA-DimAna" && <DimensionQATable />} */}
-        {/* {props.userRole === "admin" && <AdminTable />} */}
-        {/* {props.userRole === "manager" && <ManagerTable />} */}
-        <ManagerQADimensionsTable />
-        {/* {props.userRole === "QA-ExtractorManager" && <ManagerTable />} */}
+        {props.userJdesc === "Extractor" && (<ExtractorTable user={props.user} />)}
+        {props.userJdesc === "QA-Extractor" && (<ExtractorQATable user={props.user} />)}
+        {props.userJdesc === "DimAna" && <DimensionAnalystTable user={props.user} />}
+        {props.userJdesc === "QA-DimAna" && <DimensionQATable user={props.user} />}
+        {props.userRole === "admin" && <AdminTable />}
+        {props.userRole === "manager" && props.userJdesc === "Extractor-Manager" && <ManagerExtractorTable />}
+        {props.userRole === "manager" && props.userJdesc === "QA-Extractor-Manager" && <ManagerQAExtractorTable />}
+        {props.userRole === "manager" && props.userJdesc === "DimAna-Manager" && <ManagerDimensionsTable />}
+        {props.userRole === "manager" && props.userJdesc === "QA-DimAna-Manager" && <ManagerQADimensionsTable />}
       </div>
     </>
   );

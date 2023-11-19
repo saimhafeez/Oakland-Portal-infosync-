@@ -33,6 +33,7 @@ function Ingredients(props) {
 
     const [open, setOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState('active')
+    const [isLoading, setIsLoading] = useState(true);
 
     const [newIngredient, setNewIngredient] = useState({
         name: '',
@@ -44,38 +45,7 @@ function Ingredients(props) {
 
     const [currentlyEditing, setCurrentlyEditing] = useState(null)
 
-    const [ingredients, setIngredients] = useState({
-        "Iron Pipe [Square  01'' x 01'']": {
-            price: 2000,
-            unit: "ft",
-            totalQuantity: 20,
-            status: 'active'
-        },
-        "Iron Pipe [Square  0.5'' x 0.5'']": {
-            price: 5000,
-            unit: "ft",
-            totalQuantity: 10,
-            status: 'inactive'
-        },
-        "Iron Pipe [Solid Wood  1.5'' x 1.5'']": {
-            price: 7000,
-            unit: "ft",
-            totalQuantity: 30,
-            status: 'active'
-        },
-        "Wooden Sheet": {
-            price: 5000,
-            unit: 'sq.ft',
-            totalQuantity: 32,
-            status: 'active'
-        },
-        "Wood Tape": {
-            price: 2000,
-            unit: 'ft',
-            totalQuantity: 10,
-            status: 'trash'
-        }
-    })
+    const [ingredients, setIngredients] = useState()
 
     function deleteItem(data, itemName) {
         if (data.hasOwnProperty(itemName)) {
@@ -95,6 +65,110 @@ function Ingredients(props) {
 
         return count
 
+    }
+
+    const fetchIngredients = async () => {
+        setIsLoading(true)
+        fetch('http://139.144.30.86:8000/api/ingredients').then((res) => res.json()).then((result) => {
+            console.log('result', result);
+            setIngredients(result.data)
+            setIsLoading(false)
+        })
+    }
+
+    useEffect(() => {
+        fetchIngredients()
+    }, [])
+
+    const addIngredient = () => {
+        if (currentlyEditing != null) {
+            const ingredient = {
+                ...ingredients,
+                [currentlyEditing.name]: {
+                    price: newIngredient.price,
+                    unit: newIngredient.unit,
+                    totalQuantity: newIngredient.totalQuantity,
+                    status: newIngredient.status
+                }
+            }
+            fetch('http://139.144.30.86:8000/api/ingredients', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(ingredient),
+            }).then((res) => res.json()).then((result) => {
+                console.log('submitted', result);
+                setNewIngredient({
+                    name: '',
+                    price: '',
+                    unit: '',
+                    totalQuantity: 0,
+                    status: 'active'
+                })
+                setOpen(false)
+                setCurrentlyEditing(null)
+                fetchIngredients()
+            })
+        } else {
+            const ingredient = {
+                ...ingredients,
+                [newIngredient.name]: {
+                    price: newIngredient.price,
+                    unit: newIngredient.unit,
+                    totalQuantity: newIngredient.totalQuantity,
+                    status: newIngredient.status
+                }
+            }
+            fetch('http://139.144.30.86:8000/api/ingredients', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(ingredient),
+            }).then((res) => res.json()).then((result) => {
+                console.log('submitted', result);
+                setNewIngredient({
+                    name: '',
+                    price: '',
+                    unit: '',
+                    totalQuantity: 0,
+                    status: 'active'
+                })
+                setOpen(false)
+                fetchIngredients()
+            })
+        }
+    }
+
+    const updateIngredientStatus = (_ingredient, status) => {
+
+        const ingredient = {
+            ...ingredients,
+            [_ingredient]: {
+                ...ingredients[_ingredient],
+                status: status
+            }
+        }
+
+        fetch('http://139.144.30.86:8000/api/ingredients', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(ingredient),
+        }).then((res) => res.json()).then((result) => {
+            console.log('submitted', result);
+            setNewIngredient({
+                name: '',
+                price: '',
+                unit: '',
+                totalQuantity: 0,
+                status: 'active'
+            })
+            setOpen(false)
+            fetchIngredients()
+        })
     }
 
     return (
@@ -161,51 +235,7 @@ function Ingredients(props) {
                             onChange={(e) => setNewIngredient((pre) => ({ ...pre, totalQuantity: e.target.value }))}
                         />
                         <Button
-                            onClick={() => {
-
-                                if (currentlyEditing != null) {
-                                    const updatedIng = deleteItem(ingredients, currentlyEditing.name)
-                                    setIngredients((pre) => ({
-                                        ...updatedIng,
-                                        [newIngredient.name]: {
-                                            price: newIngredient.price,
-                                            unit: newIngredient.unit,
-                                            totalQuantity: newIngredient.totalQuantity,
-                                            status: newIngredient.status
-                                        }
-
-                                    }))
-                                    setOpen(false)
-                                    setNewIngredient({
-                                        name: '',
-                                        price: '',
-                                        unit: '',
-                                        totalQuantity: 0,
-                                        status: 'active'
-                                    })
-                                    setCurrentlyEditing(null)
-                                } else {
-                                    setIngredients((pre) => ({
-                                        ...pre,
-                                        [newIngredient.name]: {
-                                            price: newIngredient.price,
-                                            unit: newIngredient.unit,
-                                            totalQuantity: newIngredient.totalQuantity,
-                                            status: newIngredient.status
-                                        }
-
-                                    }))
-                                    setOpen(false)
-                                    setNewIngredient({
-                                        name: '',
-                                        price: '',
-                                        unit: '',
-                                        totalQuantity: 0,
-                                        status: 'active'
-                                    })
-                                }
-
-                            }}
+                            onClick={addIngredient}
                             variant="contained"
                             style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
                         >
@@ -216,181 +246,192 @@ function Ingredients(props) {
             </Modal>
 
             <Wrapper>
-                <Stack>
-                    <Stack direction='row' justifyContent='space-between'>
-                        <div></div>
-                        <Stack direction='row' margin='10px' gap={1}>
-                            <Button
-                                onClick={() => setActiveFilter('active')}
-                                variant={activeFilter === 'active' ? "contained" : "outlined"}
 
-                            >
-                                <Typography>Active</Typography>
-                            </Button>
-                            <Button
-                                onClick={() => setActiveFilter('inactive')}
-                                variant={activeFilter === 'inactive' ? "contained" : "outlined"}
+                {
+                    isLoading && <CircularProgress />
+                }
 
-                            >
-                                <Typography>Inactive</Typography>
-                            </Button>
-                            <Button
-                                onClick={() => setActiveFilter('trash')}
-                                variant={activeFilter === 'trash' ? "contained" : "outlined"}
+                {
+                    !isLoading && <Stack>
+                        <Stack direction='row' justifyContent='space-between'>
+                            <div></div>
+                            <Stack direction='row' margin='10px' gap={1}>
+                                <Button
+                                    onClick={() => setActiveFilter('active')}
+                                    variant={activeFilter === 'active' ? "contained" : "outlined"}
 
+                                >
+                                    <Typography>Active</Typography>
+                                </Button>
+                                <Button
+                                    onClick={() => setActiveFilter('inactive')}
+                                    variant={activeFilter === 'inactive' ? "contained" : "outlined"}
+
+                                >
+                                    <Typography>Inactive</Typography>
+                                </Button>
+                                <Button
+                                    onClick={() => setActiveFilter('trash')}
+                                    variant={activeFilter === 'trash' ? "contained" : "outlined"}
+
+                                >
+                                    <Typography>Trash</Typography>
+                                </Button>
+                            </Stack>
+
+                            <Button
+                                onClick={() => setOpen(true)}
+                                variant="contained"
+                                style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
                             >
-                                <Typography>Trash</Typography>
+                                <AddCircleOutlineIcon />
+                                <Typography>Add New Ingredient</Typography>
                             </Button>
                         </Stack>
 
-                        <Button
-                            onClick={() => setOpen(true)}
-                            variant="contained"
-                            style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
-                        >
-                            <AddCircleOutlineIcon />
-                            <Typography>Add New Ingredient</Typography>
-                        </Button>
+                        {getIngredientsCount() === 0 ?
+                            <Stack style={{ textAlign: 'center' }}>
+
+                                <Typography style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Not Record Found</Typography>
+
+                            </Stack>
+                            :
+                            <TableContainer TableContainer className="cost-table" component={Paper} variant="outlined" style={{ width: '80%', alignSelf: 'center' }}>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow className="cell-head">
+                                            <TableCell>Raw Material</TableCell>
+                                            <TableCell>Total Quantity</TableCell>
+                                            <TableCell>Price</TableCell>
+                                            <TableCell>Unit Cost</TableCell>
+                                            <TableCell>Actions</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {Object.keys(ingredients).map((ingredient, index) => {
+                                            console.log(ingredient);
+                                            if (ingredients[ingredient].status === activeFilter) {
+                                                return (
+                                                    <TableRow>
+                                                        <TableCell width='30%'>
+                                                            <TextField
+                                                                size="small"
+                                                                variant="outlined"
+                                                                value={ingredient}
+                                                                className="cell-disabled"
+                                                                disabled
+                                                                fullWidth
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell width='14%'>
+                                                            <TextField
+                                                                size="small"
+                                                                variant="outlined"
+                                                                value={
+                                                                    `${ingredients[ingredient].totalQuantity} ${ingredients[ingredient].unit}`
+                                                                }
+                                                                className="cell-disabled"
+                                                                disabled
+                                                                fullWidth
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell width='14%'>
+                                                            <TextField
+                                                                size="small"
+                                                                variant="outlined"
+                                                                value={ingredients[ingredient].price}
+                                                                className="cell-disabled"
+                                                                disabled
+                                                                fullWidth
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell width='14%'>
+                                                            <TextField
+                                                                size="small"
+                                                                variant="outlined"
+                                                                value={(ingredients[ingredient].price / ingredients[ingredient].totalQuantity).toFixed(2)}
+                                                                className="cell-disabled"
+                                                                disabled
+                                                                fullWidth
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell width='14%'>
+                                                            <Stack direction='row' justifyContent='center'>
+                                                                {activeFilter !== 'trash' && <Button
+                                                                    // style={{ width: '75px', height: '100%' }}
+                                                                    color="secondary"
+                                                                    variant="outlined"
+                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                                    onClick={() => {
+                                                                        setCurrentlyEditing({
+                                                                            name: ingredient,
+                                                                            ...ingredients[ingredient]
+                                                                        })
+                                                                        setNewIngredient({
+                                                                            name: ingredient,
+                                                                            ...ingredients[ingredient]
+                                                                        })
+                                                                        setOpen(true)
+                                                                    }}>Edit</Button>}
+                                                                {activeFilter !== 'trash' && <Button
+                                                                    // style={{ width: '75px', height: '100%' }}
+                                                                    color="info"
+                                                                    variant="outlined"
+                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                                    onClick={() => {
+                                                                        updateIngredientStatus(ingredient, activeFilter === 'inactive' ? 'active' : 'inactive')
+                                                                        // setIngredients(pre => ({
+                                                                        //     ...pre,
+                                                                        //     [ingredient]: {
+                                                                        //         ...ingredients[ingredient],
+                                                                        //         status: activeFilter === 'inactive' ? 'active' : 'inactive'
+                                                                        //     }
+                                                                        // }))
+                                                                    }}>
+                                                                    {activeFilter === 'inactive' ? 'Set Active' : 'Set Inactive'}
+                                                                </Button>}
+                                                                <Button
+                                                                    // style={{ width: '75px', height: '100%' }}
+                                                                    color="error"
+                                                                    variant="outlined"
+                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                                    onClick={() => {
+                                                                        // setIngredients(deleteItem(ingredients, ingredient))
+                                                                        updateIngredientStatus(ingredient, activeFilter !== 'trash' ?
+                                                                            'trash' : 'active')
+
+                                                                        // activeFilter !== 'trash' ? setIngredients(pre => ({
+                                                                        //     ...pre,
+                                                                        //     [ingredient]: {
+                                                                        //         ...ingredients[ingredient],
+                                                                        //         status: 'trash'
+                                                                        //     }
+                                                                        // })) : setIngredients(pre => ({
+                                                                        //     ...pre,
+                                                                        //     [ingredient]: {
+                                                                        //         ...ingredients[ingredient],
+                                                                        //         status: 'active'
+                                                                        //     }
+                                                                        // }))
+
+                                                                        // console.log(deleteItem(ingredients, ingredient));
+                                                                    }}>
+                                                                    {activeFilter !== 'trash' ? 'Remove' : 'Restore'}
+                                                                </Button>
+                                                            </Stack>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            }
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+
+                        }
+
                     </Stack>
-
-                    {getIngredientsCount() === 0 ?
-                        <Stack style={{ textAlign: 'center' }}>
-
-                            <Typography style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Not Record Found</Typography>
-
-                        </Stack>
-                        :
-                        <TableContainer TableContainer className="cost-table" component={Paper} variant="outlined" style={{ width: '80%', alignSelf: 'center' }}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow className="cell-head">
-                                        <TableCell>Raw Material</TableCell>
-                                        <TableCell>Total Quantity</TableCell>
-                                        <TableCell>Price</TableCell>
-                                        <TableCell>Unit Cost</TableCell>
-                                        <TableCell>Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {Object.keys(ingredients).map((ingredient, index) => {
-                                        console.log(ingredient);
-                                        if (ingredients[ingredient].status === activeFilter) {
-                                            return (
-                                                <TableRow>
-                                                    <TableCell width='30%'>
-                                                        <TextField
-                                                            size="small"
-                                                            variant="outlined"
-                                                            value={ingredient}
-                                                            className="cell-disabled"
-                                                            disabled
-                                                            fullWidth
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell width='14%'>
-                                                        <TextField
-                                                            size="small"
-                                                            variant="outlined"
-                                                            value={
-                                                                `${ingredients[ingredient].totalQuantity} ${ingredients[ingredient].unit}`
-                                                            }
-                                                            className="cell-disabled"
-                                                            disabled
-                                                            fullWidth
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell width='14%'>
-                                                        <TextField
-                                                            size="small"
-                                                            variant="outlined"
-                                                            value={ingredients[ingredient].price}
-                                                            className="cell-disabled"
-                                                            disabled
-                                                            fullWidth
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell width='14%'>
-                                                        <TextField
-                                                            size="small"
-                                                            variant="outlined"
-                                                            value={(ingredients[ingredient].price / ingredients[ingredient].totalQuantity).toFixed(2)}
-                                                            className="cell-disabled"
-                                                            disabled
-                                                            fullWidth
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell width='14%'>
-                                                        <Stack direction='row' justifyContent='center'>
-                                                            {activeFilter !== 'trash' && <Button
-                                                                // style={{ width: '75px', height: '100%' }}
-                                                                color="secondary"
-                                                                variant="outlined"
-                                                                style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
-                                                                onClick={() => {
-                                                                    setCurrentlyEditing({
-                                                                        name: ingredient,
-                                                                        ...ingredients[ingredient]
-                                                                    })
-                                                                    setNewIngredient({
-                                                                        name: ingredient,
-                                                                        ...ingredients[ingredient]
-                                                                    })
-                                                                    setOpen(true)
-                                                                }}>Edit</Button>}
-                                                            {activeFilter !== 'trash' && <Button
-                                                                // style={{ width: '75px', height: '100%' }}
-                                                                color="info"
-                                                                variant="outlined"
-                                                                style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
-                                                                onClick={() => {
-                                                                    setIngredients(pre => ({
-                                                                        ...pre,
-                                                                        [ingredient]: {
-                                                                            ...ingredients[ingredient],
-                                                                            status: activeFilter === 'inactive' ? 'active' : 'inactive'
-                                                                        }
-                                                                    }))
-                                                                }}>
-                                                                {activeFilter === 'inactive' ? 'Set Active' : 'Set Inactive'}
-                                                            </Button>}
-                                                            <Button
-                                                                // style={{ width: '75px', height: '100%' }}
-                                                                color="error"
-                                                                variant="outlined"
-                                                                style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
-                                                                onClick={() => {
-                                                                    // setIngredients(deleteItem(ingredients, ingredient))
-                                                                    activeFilter !== 'trash' ? setIngredients(pre => ({
-                                                                        ...pre,
-                                                                        [ingredient]: {
-                                                                            ...ingredients[ingredient],
-                                                                            status: 'trash'
-                                                                        }
-                                                                    })) : setIngredients(pre => ({
-                                                                        ...pre,
-                                                                        [ingredient]: {
-                                                                            ...ingredients[ingredient],
-                                                                            status: 'active'
-                                                                        }
-                                                                    }))
-
-                                                                    // console.log(deleteItem(ingredients, ingredient));
-                                                                }}>
-                                                                {activeFilter !== 'trash' ? 'Remove' : 'Restore'}
-                                                            </Button>
-                                                        </Stack>
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        }
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-
-                    }
-
-                </Stack>
+                }
             </Wrapper >
 
         </>
@@ -470,3 +511,38 @@ const Wrapper = styled.main`
 `;
 
 export default Ingredients
+
+
+
+// {
+//     "Iron Pipe [Square  01'' x 01'']": {
+//         price: 2000,
+//         unit: "ft",
+//         totalQuantity: 20,
+//         status: 'active'
+//     },
+//     "Iron Pipe [Square  0.5'' x 0.5'']": {
+//         price: 5000,
+//         unit: "ft",
+//         totalQuantity: 10,
+//         status: 'inactive'
+//     },
+//     "Iron Pipe [Solid Wood  1.5'' x 1.5'']": {
+//         price: 7000,
+//         unit: "ft",
+//         totalQuantity: 30,
+//         status: 'active'
+//     },
+//     "Wooden Sheet": {
+//         price: 5000,
+//         unit: 'sq.ft',
+//         totalQuantity: 32,
+//         status: 'active'
+//     },
+//     "Wood Tape": {
+//         price: 2000,
+//         unit: 'ft',
+//         totalQuantity: 10,
+//         status: 'trash'
+//     }
+// }

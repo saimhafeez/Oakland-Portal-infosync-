@@ -7,108 +7,12 @@ const ExtractorQATable = (props) => {
 
   const [tableDataStats, setTableDataStats] = useState({
     isLoading: true,
-    data: [
-      {
-        thumbnail: "https://assets.wfcdn.com/im/19503566/resize-h755-w755%5Ecompr-r85/1971/197195106/2+Piece.jpg",
-        productID: "1122233",
-        varientID: '8327560',
-        extractionTimeStamp: "2023-09-12T15:25:16+00:00",
-        QAStatus: "passed",
-        Earning: 3
-      },
-      {
-        thumbnail: "https://assets.wfcdn.com/im/19503566/resize-h755-w755%5Ecompr-r85/1971/197195106/2+Piece.jpg",
-        productID: "1122233",
-        varientID: '8327560',
-        extractionTimeStamp: "2023-11-12T15:25:16+00:00",
-        QAStatus: "minor",
-        Earning: 4
-      },
-      {
-        thumbnail: "https://assets.wfcdn.com/im/19503566/resize-h755-w755%5Ecompr-r85/1971/197195106/2+Piece.jpg",
-        productID: "123423",
-        varientID: '8327560',
-        extractionTimeStamp: "2023-10-12T15:25:16+00:00",
-        QAStatus: 'rejected_nad',
-        Earning: 0
-      }
-    ]
-  })
-
-  const executePythonScript = async () => {
-    if (props.user) {
-      // Get the authentication token
-      props.user
-        .getIdToken()
-        .then((token) => {
-          // Define the API endpoint URL
-          const uid = props.user.uid;
-          const apiUrl = `http://139.144.30.86:8000/api/stats?job=QA-Extractor&uid=${uid}`
-          console.log(token);
-          fetch(apiUrl, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }).then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            console.log("network response was ok");
-            return response.json();
-          })
-            .then((data) => {
-              // Handle the API response data
-              console.log("API Response:", data);
-            })
-            .catch((error) => {
-              // Handle any errors
-              console.error("Error:", error);
-            });
-        })
-        .catch((error) => {
-          // Handle any errors while getting the token
-          console.error("Token Error:", error);
-        });
-    }
-  };
-
-  useEffect(() => {
-
-    executePythonScript()
-
-    //uiEZHND3DxfKMndj6iI2YSYiKZQ2
-
+    data: []
   })
 
   const [tableData, setTableData] = useState({
     isLoading: true,
-    data: [
-      {
-        thumbnail: "https://assets.wfcdn.com/im/19503566/resize-h755-w755%5Ecompr-r85/1971/197195106/2+Piece.jpg",
-        productID: "1122233",
-        varientID: '8327560',
-        extractionTimeStamp: "2023-11-12T15:25:16+00:00",
-        QAStatus: "passed",
-        Earning: 3
-      },
-      {
-        thumbnail: "https://assets.wfcdn.com/im/19503566/resize-h755-w755%5Ecompr-r85/1971/197195106/2+Piece.jpg",
-        productID: "1122233",
-        varientID: '8327560',
-        extractionTimeStamp: "2023-11-12T15:25:16+00:00",
-        QAStatus: "minor",
-        Earning: 4
-      },
-      {
-        thumbnail: "https://assets.wfcdn.com/im/19503566/resize-h755-w755%5Ecompr-r85/1971/197195106/2+Piece.jpg",
-        productID: "123423",
-        varientID: '8327560',
-        extractionTimeStamp: "2023-11-12T15:25:16+00:00",
-        QAStatus: 'rejected_nad',
-        Earning: 0
-      }
-    ]
+    data: []
   })
 
   const [searchByID, setSearchByID] = useState("");
@@ -117,43 +21,24 @@ const ExtractorQATable = (props) => {
 
 
   useEffect(() => {
-    if (props.user) {
-      // Get the authentication token
-      props.user
-        .getIdToken()
-        .then((token) => {
-          // Define the API endpoint URL
-          const apiUrl = "http://139.144.30.86:8000/api/table";
-          console.log(token);
-          setToken(token);
-          // Make an authenticated API request
-          fetch(apiUrl, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
-            },
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Network response was not ok");
-              }
-              return response.json();
-            })
-            .then((data) => {
-              // Handle the API response data
-              console.log("API Response:", data);
-              // setExtractedDate(data.lastModified);
-            })
-            .catch((error) => {
-              // Handle any errors
-              console.error("Error:", error);
-            });
-        })
-        .catch((error) => {
-          // Handle any errors while getting the token
-          console.error("Token Error:", error);
-        });
-    }
+
+    const lt = (new Date().getTime() / 1000).toFixed(0)
+
+    const apiURL = `http://139.144.30.86:8000/api/super_table?job=QA-Extractor&lt=${lt}&gt=0&page=0&uid=${props.user.uid}`
+    fetch(apiURL).then(res => res.json()).then((result) => {
+      console.log(result);
+      setTableData(pre => ({
+        ...pre,
+        data: result.data
+      }))
+
+      setTableDataStats(pre => ({
+        ...pre,
+        data: result.data
+      }))
+    })
+
+
   }, []);
 
   const getStats = () => {
@@ -167,20 +52,20 @@ const ExtractorQATable = (props) => {
     var earnings = 0;
 
     tableDataStats.data.map((item) => {
-      if (item.QAStatus === "passed") {
+      if (item.status === "passed") {
         passed++;
-      } else if (item.QAStatus === "minor") {
+      } else if (item.status === "minor") {
         minor++;
-      } else if (item.QAStatus === "major") {
+      } else if (item.status === "major") {
         major++;
-      } else if (item.QAStatus === 'rejected_nad') {
+      } else if (item.status === 'rejected_nad') {
         rejected_nad++;
-      } else if (item.QAStatus === 'under_qa') {
+      } else if (item.status === 'under_qa') {
         under_qa++
       }
 
-      if (item.Earning !== 'N/A') {
-        earnings = earnings + parseInt(item.Earning)
+      if (item.earning && item.earning !== 'N/A') {
+        earnings = earnings + parseInt(item.earning)
       }
     })
     return [
@@ -224,7 +109,7 @@ const ExtractorQATable = (props) => {
           </div>
           <button className="btn btn-fetch">Submit</button>
         </div>
-        <table className="table mt-4 table-bordered">
+        <table className="table mt-4 table-bordered table-striped align-middle text-center">
           <thead className="table-info">
             <tr>
               <th>Attempted</th>
@@ -258,7 +143,7 @@ const ExtractorQATable = (props) => {
           </div>
           <button className="btn btn-fetch">Submit</button>
         </div>
-        <table className="table mt-4 table-striped table-bordered">
+        <table className="table mt-4 table-bordered table-striped align-middle text-center">
           <thead className="table-dark">
             <tr className="border-0 bg-white">
               <th colSpan={2} className="bg-white text-dark border-0">
@@ -290,9 +175,9 @@ const ExtractorQATable = (props) => {
                 >
                   <option value="qa-status">Filter by QA Status</option>
                   <option value="under_qa">Under QA</option>
-                  <option value="100% [QA Passed]">100% [QA Passed]</option>
-                  <option value="MINOR [QA Passed]">MINOR Fixes</option>
-                  <option value="MAJOR [QA Passed]">MAJOR Fixes</option>
+                  <option value="passed">100% [QA Passed]</option>
+                  <option value="minor">MINOR Fixes</option>
+                  <option value="major">MAJOR Fixes</option>
                   <option value="rejected_nad">Rejected NAD</option>
                 </select>
 
@@ -302,7 +187,7 @@ const ExtractorQATable = (props) => {
               <th># SR</th>
               <th>Thumbnail</th>
               <th>Product ID</th>
-              <th>Varient ID</th>
+              <th>Variant ID</th>
               <th>Extraction Date & Time</th>
               <th>QA Status</th>
               <th>Earning</th>
@@ -321,10 +206,10 @@ const ExtractorQATable = (props) => {
                   <img src={item.thumbnail} alt="" height="52px" />
                 </td>
                 <td>{item.productID}</td>
-                <td>{item.varientID}</td>
-                <td>{formatDate(item.extractionTimeStamp)}</td>
-                <td>{item.QAStatus === 'under_qa' ? 'Under QA' : item.QAStatus === 'rejected_nad' ? 'Rejected NAD' : item.QAStatus === 'minor' ? 'MINOR Fixes' : item.QAStatus === 'major' ? 'MAJOR Fixes' : item.QAStatus === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
-                <td>{item.Earning}</td>
+                <td>{item.variantID}</td>
+                <td>{formatDate(item.lastModified)}</td>
+                <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'rejected_nad' ? 'Rejected NAD' : item.status === 'minor' ? 'MINOR Fixes' : item.status === 'major' ? 'MAJOR Fixes' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
+                <td>{item.earning}</td>
               </tr>
             ))}
           </tbody>

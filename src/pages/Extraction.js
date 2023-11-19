@@ -581,7 +581,7 @@ const Extraction = (props) => {
       thumbnails: [],
       unsorted: [],
       not_doable: true,
-      qaStatus: ''
+      change: 'rejected_nad',
     };
     structuredData.id = sku;
     structuredData.sku = showId;

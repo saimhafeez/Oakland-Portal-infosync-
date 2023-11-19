@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -32,6 +32,32 @@ function IronPipeTableRow({
     }
   };
 
+  const [ingredients, setIngredients] = useState([])
+
+  const fetchIngredients = async () => {
+    fetch('http://139.144.30.86:8000/api/ingredients').then((res) => res.json()).then((result) => {
+      console.log('result', result);
+      // setIngredients(result.data)
+      console.log(result.data);
+      const ing = []
+      Object.keys(result.data).map((type, index) => {
+        if (type.includes('Iron Pipe') && result.data[type].status === 'active') {
+          // setIngredients((pre) => ({
+          //   ...pre,
+
+          // }))
+          ing.push(type.split('[')[1].split(']')[0])
+        }
+      });
+      console.log('ing', ing);
+      setIngredients(ing)
+    })
+  }
+
+  useEffect(() => {
+    fetchIngredients()
+  }, [])
+
   return (
     <TableRow>
       <TableCell>
@@ -43,13 +69,20 @@ function IronPipeTableRow({
           name="pipeTypeNSize"
           disabled={!editable}
         >
-          {PipeTypeNSize.map((item, index) => {
+          {ingredients.map((item, index) => {
+            return (
+              <MenuItem key={index} value={item}>
+                {item}
+              </MenuItem>
+            );
+          })}
+          {/* {PipeTypeNSize.map((item, index) => {
             return (
               <MenuItem key={index} value={`${item.Type}  ${item.Size}`}>
                 {`${item.Type}  ${item.Size}`}
               </MenuItem>
             );
-          })}
+          })} */}
         </Select>
       </TableCell>
 

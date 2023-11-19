@@ -185,7 +185,24 @@ const ManagerExtractorTable = (props) => {
     const [searchByID, setSearchByID] = useState("");
     const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
 
+    useEffect(() => {
 
+        const lt = (new Date().getTime() / 1000).toFixed(0)
+        const apiURL = `http://139.144.30.86:8000/api/super_table?job=Extractor&lt=${lt}&gt=0&page=0`
+        fetch(apiURL).then(res => res.json()).then((result) => {
+            console.log(result);
+            setTableData(pre => ({
+                ...pre,
+                data: result.data
+            }))
+
+            setTableDataStats(pre => ({
+                ...pre,
+                data: result.data
+            }))
+        })
+
+    }, []);
 
     useEffect(() => {
         if (props.user) {
@@ -234,10 +251,10 @@ const ManagerExtractorTable = (props) => {
         const team = []
 
         tableDataStats.data.map((_item) => {
-            if (!team.includes(_item.extractor)) {
-                team.push(_item.extractor)
+            if (!team.includes(_item.Worker)) {
+                team.push(_item.Worker)
 
-                const memberProducts = tableDataStats.data.filter((product) => product.extractor === _item.extractor);
+                const memberProducts = tableDataStats.data.filter((product) => product.Worker === _item.Worker);
 
                 const attempted = memberProducts.length;
                 var rejected_nad = 0;
@@ -249,26 +266,26 @@ const ManagerExtractorTable = (props) => {
 
                 memberProducts.map((product) => {
 
-                    if (product.QAStatus === "under_qa") {
+                    if (!product.status || product.status === "under_qa") {
                         under_qa++;
-                    } else if (product.QAStatus === "passed") {
+                    } else if (product.status === "passed") {
                         passed++;
-                    } else if (product.QAStatus === "minor") {
+                    } else if (product.status === "minor") {
                         minor++;
-                    } else if (product.QAStatus === "major") {
+                    } else if (product.status === "major") {
                         major++;
-                    } else if (product.QAStatus === 'rejected_nad') {
+                    } else if (product.status === 'rejected_nad') {
                         rejected_nad++;
                     }
 
-                    if (product.Earning !== 'N/A') {
-                        earnings = earnings + parseInt(product.Earning)
+                    if (product.earning && product.earning !== 'N/A') {
+                        earnings = earnings + parseInt(product.earning)
                     }
                 })
 
                 teamStats.push(
                     [
-                        _item.extractor,
+                        _item.Worker,
                         attempted,
                         rejected_nad,
                         under_qa,
@@ -289,11 +306,11 @@ const ManagerExtractorTable = (props) => {
         var products = tableData.data;
 
         if (searchByID !== '') {
-            products = products.filter((item) => item.productID.includes(searchByID))
+            products = products.filter((item) => item.productID.toString().includes(searchByID))
         }
 
         if (filterByQAStatus !== 'qa-status') {
-            products = products.filter((item) => item.QAStatus === filterByQAStatus)
+            products = products.filter((item) => item.status === filterByQAStatus)
         }
 
         return products
@@ -416,14 +433,14 @@ const ManagerExtractorTable = (props) => {
                             <tr key={index}>
                                 <td>{index + 1}</td>
                                 <td>
-                                    <img src={item.thumbnail} alt="" height="52px" />
+                                    <img src={item.thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'} alt="" height="52px" />
                                 </td>
                                 <td>{item.productID}</td>
-                                <td>{item.varientID}</td>
-                                <td>{item.extractor}</td>
-                                <td>{formatDate(item.extractionTimeStamp)}</td>
-                                <td>{item.QAStatus === 'under_qa' ? 'Under QA' : item.QAStatus === 'not_understandable' ? 'Not Understandable' : item.QAStatus === 'minor' ? 'MINOR [QA Passed]' : item.QAStatus === 'major' ? 'MAJOR [QA Passed]' : item.QAStatus === 'passed' ? '100% [QA Passed]' : item.QAStatus === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td>
-                                <td>{item.Earning}</td>
+                                <td>{item.variantID}</td>
+                                <td>{item.Worker}</td>
+                                <td>{formatDate(item.lastModified)}</td>
+                                <td>{item.status === 'under_qa' || !item.status ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : item.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td>
+                                <td>{item.earning || 'N/A'}</td>
                             </tr>
                         ))}
                     </tbody>

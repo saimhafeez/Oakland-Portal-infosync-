@@ -134,7 +134,7 @@ const ExtractionQA = (props) => {
   const [jsonResult, setJsonResult] = useState(""); // Initialize as an empty string
 
   // SET SELECT OPTION
-  const [selectedOption, setSelectedOption] = useState("QA passed"); // Default value
+  const [selectedOption, setSelectedOption] = useState("passed"); // Default value
 
   const handleSelectChange = (event) => {
     setSelectedOption(event.target.value);
@@ -663,7 +663,7 @@ const ExtractionQA = (props) => {
       ordinary: [],
       discard: [],
       videos: [],
-      change: "",
+      change: "rejected_nad",
       not_doable: true,
     };
     structuredData.id = sku;
@@ -685,7 +685,7 @@ const ExtractionQA = (props) => {
     // if (videos.length > 0) {
     structuredData.videos = videos;
     // }
-    structuredData.change = selectedOption;
+    // structuredData.change = selectedOption;
 
     // Log the structured data as a JSON object.
     // console.log(JSON.stringify(structuredData, null, 2));
@@ -1645,10 +1645,9 @@ const ExtractionQA = (props) => {
         <div className="d-flex justify-content-center align-items-center text-end mt-4 mb-5">
           <div className="set-select-all me-3">
             <select value={selectedOption} onChange={handleSelectChange}>
-              <option value="QA passed">QA passed</option>
-              <option value="Minor changes">Minor changes</option>
-              <option value="Major changes">Major changes</option>
-              <option value="Extream changes">Extream changes</option>
+              <option value="passed">100% [QA passed]</option>
+              <option value="minor">Minor Fixes</option>
+              <option value="major">Major Fixes</option>
             </select>
           </div>
           {visibilityNotDoable === true && notDoable === true ? (
