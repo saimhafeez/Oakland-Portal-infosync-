@@ -37,10 +37,96 @@ function Ingredients(props) {
 
     const [newIngredient, setNewIngredient] = useState({
         name: '',
-        price: '',
+        price: 0,
         unit: '',
         totalQuantity: 0,
         status: 'active'
+    })
+
+    const [ing, setIng] = useState({
+        "Iron Pipe": {
+            material: 'Pipe Type & Size',
+            data: {
+                "Square  01'' x 01''": {
+                    price: 2000,
+                    unit: "ft",
+                    totalQuantity: 20,
+                    status: "active"
+                },
+                "Square  0.5'' x 0.5''": {
+                    price: 5000,
+                    unit: "ft",
+                    totalQuantity: 10,
+                    status: "active"
+                },
+                "Solid Wood  1.5'' x 1.5''": {
+                    price: 7000,
+                    unit: "ft",
+                    totalQuantity: 30,
+                    status: "active"
+                }
+            },
+            formula: 'length * qty * (price / totalQuantity)'
+        },
+        "Wooden Sheet": {
+            material: '',
+            data: {
+                price: 5000,
+                unit: "sq.ft",
+                totalQuantity: 32,
+                status: "active"
+            }
+        },
+        "Wood Tape": {
+            material: '',
+            data: {
+                price: 5000,
+                unit: "sq.ft",
+                totalQuantity: 32,
+                status: "active"
+            }
+        },
+        "Misc": {
+            material: 'Item, Size',
+            data: {
+                "Wheel, Small": {
+                    price: 1000,
+                    unit: "sq.ft",
+                    totalQuantity: 32,
+                    status: "active"
+                },
+                "Wheel, Big": {
+                    price: 5000,
+                    unit: "sq.ft",
+                    totalQuantity: 32,
+                    status: "active"
+                },
+                "Cross Rods, Small": {
+                    price: 5000,
+                    unit: "sq.ft",
+                    totalQuantity: 32,
+                    status: "active"
+                },
+                "Cross Rods, Big": {
+                    price: 5000,
+                    unit: "sq.ft",
+                    totalQuantity: 32,
+                    status: "active"
+                },
+                "Guaze, Small": {
+                    price: 5000,
+                    unit: "sq.ft",
+                    totalQuantity: 32,
+                    status: "active"
+                },
+                "Guaze, Big": {
+                    price: 5000,
+                    unit: "sq.ft",
+                    totalQuantity: 32,
+                    status: "active"
+                },
+            }
+        },
     })
 
     const [currentlyEditing, setCurrentlyEditing] = useState(null)

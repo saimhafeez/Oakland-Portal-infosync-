@@ -1,47 +1,79 @@
 import React, { useEffect, useState } from "react";
 import { formatDate } from "../../utils/formatDate";
+import { useRef } from "react";
 
 
 const ExtractorTable = (props) => {
   const [token, setToken] = useState("");
-
+  const lt = (new Date().getTime() / 1000).toFixed(0)
 
   const [tableDataStats, setTableDataStats] = useState({
     isLoading: true,
+    lessThanDate: lt,
+    greaterThanDate: 0,
+    currentPage: 0,
+    totalPages: 1,
+    reset: 0,
     data: []
   })
 
-  const apiExample = 'http://139.144.30.86:8000/api/stats?job=Extractor&uid=uiEZHND3DxfKMndj6iI2YSYiKZQ2'
-
   const [tableData, setTableData] = useState({
     isLoading: true,
+    lessThanDate: lt,
+    greaterThanDate: 0,
+    currentPage: 0,
+    totalPages: 1,
+    reset: 0,
     data: []
   })
 
   const [searchByID, setSearchByID] = useState("");
   const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
 
-
-
-  useEffect(() => {
-
-    const lt = (new Date().getTime() / 1000).toFixed(0)
-    const apiURL = `http://139.144.30.86:8000/api/super_table?job=Extractor&lt=${lt}&gt=0&page=0&uid=${props.user.uid}`
+  const fetchTableDataStats = () => {
+    setTableDataStats(pre => ({
+      ...pre,
+      isLoading: true
+    }))
+    const apiURL = `http://139.144.30.86:8000/api/super_table?job=Extractor&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}&page=${tableDataStats.currentPage}&uid=${props.user.uid}`
     fetch(apiURL).then(res => res.json()).then((result) => {
-      console.log(result);
-      setTableData(pre => ({
-        ...pre,
-        data: result.data
-      }))
-
       setTableDataStats(pre => ({
         ...pre,
+        isLoading: false,
         data: result.data
       }))
     })
+  }
 
+  const fetchTableData = () => {
+    setTableData(pre => ({
+      ...pre,
+      isLoading: true
+    }))
+    const apiURL = `http://139.144.30.86:8000/api/super_table?job=Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}`
+    fetch(apiURL).then(res => res.json()).then((result) => {
+      setTableData(pre => ({
+        ...pre,
+        isLoading: false,
+        data: result.data
+      }))
+    })
+    console.log(tableData.lessThanDate, tableData.greaterThanDate, tableData.currentPage);
+  }
 
+  useEffect(() => {
+
+    fetchTableDataStats()
+    fetchTableData()
   }, []);
+
+  useEffect(() => {
+    fetchTableData()
+  }, [tableData.currentPage, tableData.reset])
+
+  useEffect(() => {
+    fetchTableDataStats()
+  }, [tableDataStats.reset])
 
   const getStats = () => {
     const attempted = tableDataStats.data.length;
@@ -104,17 +136,46 @@ const ExtractorTable = (props) => {
       <div>
         <h2>Stats Overview</h2>
         <div className="d-flex flex-row justify-content-end gap-2">
-          <div className="d-flex flex-column justify-content-center align-items-center" style={{ border: "2px solid #e8e8e8" }}>
-            <h6 className="m-0 py-1">Starting Date</h6>
-            <input className="px-3" type="date" style={{ backgroundColor: "#e8e8e8" }} />
+          <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>
+            <h5 className="m-0 py-1">Starting Date</h5>
+            <input className="px-3" type="date" id="myDate1"
+              onChange={(e) => {
+                setTableDataStats(pre => ({
+                  ...pre,
+                  greaterThanDate: (new Date(e.target.value).getTime() / 1000).toFixed(0),
+                }))
+              }}
+              style={{ backgroundColor: "#e8e8e8" }} />
           </div>
-          <div className="d-flex flex-column justify-content-center align-items-center" style={{ border: "2px solid #e8e8e8" }}>
-            <h6 className="m-0 py-1">Ending Date</h6>
-            <input className="px-3" type="date" style={{ backgroundColor: "#e8e8e8" }} />
+          <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>
+            <h5 className="m-0 py-1">Ending Date</h5>
+            <input className="px-3" type="date" id="myDate2"
+              onChange={(e) => {
+                setTableDataStats(pre => ({
+                  ...pre,
+                  lessThanDate: (new Date(e.target.value).getTime() / 1000).toFixed(0)
+                }))
+              }}
+              style={{ backgroundColor: "#e8e8e8" }} />
           </div>
-          <button className="btn btn-fetch">Submit</button>
+          <div className="d-flex flex-column gap-1">
+            <button className="btn btn-fetch" onClick={fetchTableDataStats}>Submit</button>
+            <button className="btn btn-fetch bg-danger text-white" onClick={(e) => {
+              e.preventDefault()
+              document.getElementById("myDate1").value = "";
+              document.getElementById("myDate2").value = "";
+              setTableDataStats(pre => ({
+                ...pre,
+                greaterThanDate: 0,
+                lessThanDate: lt,
+                reset: pre.reset + 1
+              }))
+            }}>Clear</button>
+          </div>
         </div>
-        <table className="table mt-4 table-bordered table-striped align-middle text-center">
+        {tableDataStats.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div></div> : <table className="table mt-4 table-bordered table-striped align-middle text-center">
           <thead className="table-info">
             <tr>
               <th>Attempted</th>
@@ -133,22 +194,51 @@ const ExtractorTable = (props) => {
               })}
             </tr>
           </tbody>
-        </table>
+        </table>}
       </div >
       <div className="mt-5">
         <h2>All Products Overview</h2>
         <div className="d-flex flex-row justify-content-end gap-2">
-          <div className="d-flex flex-column justify-content-center align-items-center" style={{ border: "2px solid #e8e8e8" }}>
-            <h6 className="m-0 py-1">Starting Date</h6>
-            <input className="px-3" type="date" style={{ backgroundColor: "#e8e8e8" }} />
+          <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>
+            <h5 className="m-0 py-1">Starting Date</h5>
+            <input className="px-3" type="date" id="myDate3"
+              onChange={(e) => {
+                setTableData(pre => ({
+                  ...pre,
+                  greaterThanDate: (new Date(e.target.value).getTime() / 1000).toFixed(0)
+                }))
+              }}
+              style={{ backgroundColor: "#e8e8e8" }} />
           </div>
-          <div className="d-flex flex-column justify-content-center align-items-center" style={{ border: "2px solid #e8e8e8" }}>
-            <h6 className="m-0 py-1">Ending Date</h6>
-            <input className="px-3" type="date" style={{ backgroundColor: "#e8e8e8" }} />
+          <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>
+            <h5 className="m-0 py-1">Ending Date</h5>
+            <input className="px-3" type="date" id="myDate4"
+              onChange={(e) => {
+                setTableData(pre => ({
+                  ...pre,
+                  lessThanDate: (new Date(e.target.value).getTime() / 1000).toFixed(0)
+                }))
+              }}
+              style={{ backgroundColor: "#e8e8e8" }} />
           </div>
-          <button className="btn btn-fetch">Submit</button>
+          <div className="d-flex flex-column gap-1">
+            <button className="btn btn-fetch" onClick={fetchTableData}>Submit</button>
+            <button className="btn btn-fetch bg-danger text-white" onClick={(e) => {
+              e.preventDefault()
+              document.getElementById("myDate3").value = "";
+              document.getElementById("myDate4").value = "";
+              setTableData(pre => ({
+                ...pre,
+                greaterThanDate: 0,
+                lessThanDate: lt,
+                reset: pre.reset + 1
+              }))
+            }}>Clear</button>
+          </div>
         </div>
-        <table className="table mt-4 table-bordered table-striped align-middle text-center">
+        {tableData.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div></div> : <table className="table mt-4 table-bordered table-striped align-middle text-center">
           <thead className="table-dark">
             <tr className="border-0 bg-white">
               <th colSpan={2} className="bg-white text-dark border-0">
@@ -207,31 +297,47 @@ const ExtractorTable = (props) => {
               <tr key={index}>
                 <td>{index + 1}</td>
                 <td>
-                  <img src={item.thumbnail} alt="" height="52px" />
+                  <img src={item.thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'} alt="" height="52px" />
                 </td>
                 <td>{item.productID}</td>
-                <td>{item.variantID}</td>
+                <td>{item.variantID || 'N/A'}</td>
                 <td>{formatDate(item.lastModified)}</td>
                 <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
-                <td>{item.earning}</td>
+                <td>{item.earning || 'N/A'}</td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </table>}
       </div >
 
       <nav>
         <ul class="pagination">
-          <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1">Previous</a>
+          <li class={`page-item ${tableData.currentPage === 0 && "disabled"}`}>
+            <a class="page-link" href="#" tabindex="-1" onClick={() => {
+              setTableData(pre => ({
+                ...pre,
+                currentPage: pre.currentPage - 1
+              }))
+            }}>Previous</a>
           </li>
-          <li class="page-item"><a class="page-link" href="#">1</a></li>
-          <li class="page-item active">
-            <a class="page-link" href="#">2</a>
-          </li>
-          <li class="page-item"><a class="page-link" href="#">3</a></li>
-          <li class="page-item">
-            <a class="page-link" href="#">Next</a>
+          {Array(...Array(tableData.totalPages + 3)).map((_, index) => {
+            return <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
+              <a class="page-link" href="#" onClick={() => {
+                setTableData(pre => ({
+                  ...pre,
+                  currentPage: index
+                }))
+              }}>{index + 1}</a>
+            </li>
+          })}
+
+          <li class={`page-item ${tableData.currentPage === tableData.totalPages - 1 && "disabled"}`}>
+            <a class="page-link" href="#" onClick={() => {
+              setTableData(pre => ({
+                ...pre,
+                currentPage: pre.currentPage + 1
+              }))
+            }}>Next</a>
           </li>
         </ul>
       </nav>
