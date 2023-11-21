@@ -33,14 +33,291 @@ import Sidebar from "../components/sidebar/Sidebar";
 import Header from "../components/header/Header";
 import SuperAdminSidebar from "../components/sidebar/SuperAdminSidebar";
 import { formatDate } from "../utils/formatDate";
+import { sumArrays } from "../utils/sumArrays";
+
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 function SuperAdmin(props) {
 
     const [tableFilter, setTableFilter] = useState('Extractor')
+    const [hideManagersAndUsersOverview, setHideManagersAndUsersOverview] = useState(false)
+
+    const lt = (new Date().getTime() / 1000).toFixed(0)
+
     const [tableData, setTableData] = useState({
-        isLoading: false,
+        isLoading: true,
+        lessThanDate: lt,
+        greaterThanDate: 0,
+        currentPage: 0,
+        totalPages: 1,
+        reset: 0,
         data: []
     })
+
+    const [managersTableData, setManagersTableData] = useState({
+        isLoading: true,
+        lessThanDate: lt,
+        greaterThanDate: 0,
+        currentPage: 0,
+        totalPages: 1,
+        reset: 0,
+        data: []
+    })
+
+    const [usersTableData, setUsersTableData] = useState({
+        isLoading: true,
+        lessThanDate: lt,
+        greaterThanDate: 0,
+        currentPage: 0,
+        totalPages: 1,
+        reset: 0,
+        data: []
+    })
+
+    const fetchManagersTableData = async () => {
+        setManagersTableData((pre) => ({
+            ...pre,
+            isLoading: true
+        }))
+
+        const lt = (new Date().getTime() / 1000).toFixed(0)
+        const apiURL = `http://139.144.30.86:8000/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=0`
+
+        var extractorStats = []
+        var qaExtractorStats = []
+        var dimAnaStats = []
+        var qaDimAnaStats = []
+
+        getManagerStats('Extractor').then((extractorStats_result) => {
+            extractorStats = extractorStats_result;
+
+            getManagerStats('QA-Extractor').then((qaExtractorStats_result) => {
+                qaExtractorStats = qaExtractorStats_result;
+
+                getManagerStats('DimAna').then((dimAnaStats_result) => {
+                    dimAnaStats = dimAnaStats_result;
+
+                    getManagerStats('QA-DimAna').then((qaDimAnaStats_result) => {
+                        qaDimAnaStats = qaDimAnaStats_result;
+
+                        setManagersTableData((pre) => ({
+                            ...pre,
+                            isLoading: false,
+                            data: [
+                                ['Extractor', ...extractorStats],
+                                ['QA-Extractor', ...qaExtractorStats],
+                                ['DimAna', ...dimAnaStats],
+                                ['QA-DimAna', ...qaDimAnaStats_result],
+                            ]
+                        }))
+
+                    })
+                })
+            })
+        })
+
+    }
+
+    const getManagerStats = (job) => {
+
+        return new Promise((resolve, reject) => {
+            const teamStats = [];
+            const team = []
+
+            const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
+            fetch(apiURL).then((res) => res.json()).then((result) => {
+                result.data.map((_item) => {
+
+                    if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
+
+                        var memberProducts = [];
+
+                        if (job.includes("QA-")) {
+                            team.push(_item['QA-Worker'])
+                            console.log('saim');
+                            memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
+                        } else {
+                            team.push(_item.Worker)
+                            memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
+                        }
+
+                        const attempted = memberProducts.length;
+                        var rejected_nad = 0;
+                        var not_understandable = 0;
+                        var under_qa = 0;
+                        var minor = 0;
+                        var major = 0;
+                        var passed = 0;
+                        var earnings = 0;
+
+                        memberProducts.map((product) => {
+
+                            if (!product.status || product.status === "under_qa") {
+                                under_qa++;
+                            } else if (product.status === "passed") {
+                                passed++;
+                            } else if (product.status === "minor") {
+                                minor++;
+                            } else if (product.status === "major") {
+                                major++;
+                            } else if (product.status === 'rejected_nad') {
+                                rejected_nad++;
+                            } else if (product.status === 'not_understandable') {
+                                not_understandable++;
+                            }
+
+                            if (product.earning && product.earning !== 'N/A') {
+                                earnings = earnings + parseInt(product.earning)
+                            }
+                        })
+
+
+                        teamStats.push(
+                            [
+                                // job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
+                                attempted,
+                                rejected_nad,
+                                not_understandable,
+                                under_qa,
+                                minor,
+                                major,
+                                passed,
+                                // earnings
+                            ]
+                        )
+                    }
+                })
+
+                var stats = sumArrays(teamStats);
+                // console.log('teamStats', teamStats);
+                console.log('stats', stats);
+                resolve(stats)
+            })
+        })
+    }
+
+    const fetchUsersTableData = async () => {
+        setUsersTableData((pre) => ({
+            ...pre,
+            isLoading: true
+        }))
+
+        var extractorStats
+        var qaExtractorStats
+        var dimAnaStats
+        var qaDimAnaStats
+
+        getUserStats('Extractor').then((extractorStats_result) => {
+            extractorStats = extractorStats_result;
+
+            getUserStats('QA-Extractor').then((qaExtractorStats_result) => {
+                qaExtractorStats = qaExtractorStats_result;
+
+                getUserStats('DimAna').then((dimAnaStats_result) => {
+                    dimAnaStats = dimAnaStats_result;
+
+                    getUserStats('QA-DimAna').then((qaDimAnaStats_result) => {
+                        qaDimAnaStats = qaDimAnaStats_result;
+
+                        setUsersTableData((pre) => ({
+                            ...pre,
+                            isLoading: false,
+                            data: [
+                                ...extractorStats,
+                                ...qaExtractorStats,
+                                ...dimAnaStats,
+                                ...qaDimAnaStats_result,
+                            ]
+                        }))
+
+                        console.log('users', [
+                            ...extractorStats,
+                            ...qaExtractorStats,
+                            ...dimAnaStats,
+                            ...qaDimAnaStats_result,
+                        ]);
+
+                    })
+                })
+            })
+        })
+    }
+
+    const getUserStats = (job) => {
+
+        return new Promise((resolve, reject) => {
+            const teamStats = [];
+            const team = []
+
+            const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
+            fetch(apiURL).then((res) => res.json()).then((result) => {
+                result.data.map((_item) => {
+
+                    if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
+
+                        var memberProducts = [];
+
+                        if (job.includes("QA-")) {
+                            team.push(_item['QA-Worker'])
+                            console.log('saim');
+                            memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
+                        } else {
+                            team.push(_item.Worker)
+                            memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
+                        }
+
+                        const attempted = memberProducts.length;
+                        var rejected_nad = 0;
+                        var not_understandable = 0;
+                        var under_qa = 0;
+                        var minor = 0;
+                        var major = 0;
+                        var passed = 0;
+                        var earnings = 0;
+
+                        memberProducts.map((product) => {
+
+                            if (!product.status || product.status === "under_qa") {
+                                under_qa++;
+                            } else if (product.status === "passed") {
+                                passed++;
+                            } else if (product.status === "minor") {
+                                minor++;
+                            } else if (product.status === "major") {
+                                major++;
+                            } else if (product.status === 'rejected_nad') {
+                                rejected_nad++;
+                            } else if (product.status === 'not_understandable') {
+                                not_understandable++;
+                            }
+
+                            if (product.earning && product.earning !== 'N/A') {
+                                earnings = earnings + parseInt(product.earning)
+                            }
+                        })
+
+
+                        teamStats.push(
+                            [
+                                job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
+                                attempted,
+                                rejected_nad,
+                                not_understandable,
+                                under_qa,
+                                minor,
+                                major,
+                                passed,
+                                // earnings
+                            ]
+                        )
+                    }
+                })
+
+                resolve(teamStats)
+            })
+        })
+    }
 
     const fetchSuperAdminData = async () => {
         //http://139.144.30.86:8000/api/super_table?job=Extractor
@@ -64,12 +341,12 @@ function SuperAdmin(props) {
             }))
 
         })
-
-
     }
 
     useEffect(() => {
         fetchSuperAdminData()
+        fetchManagersTableData()
+        fetchUsersTableData()
         // fetchSuperTable()
 
     }, [tableFilter])
@@ -80,7 +357,7 @@ function SuperAdmin(props) {
     const getAllProductsByFilter = () => {
 
         var products = tableData.data;
-        console.log('pro', products);
+        // console.log('pro', products);
 
         if (searchByID !== '') {
             products = products.filter((item) => item.productID.toString().includes(searchByID))
@@ -113,6 +390,81 @@ function SuperAdmin(props) {
 
             <Wrapper>
                 <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
+
+                    <Stack direction='row' justifyContent='center'>
+                        <Button variant='outlined' color="error" onClick={() => {
+                            setHideManagersAndUsersOverview(pre => !pre)
+                        }}>
+                            {hideManagersAndUsersOverview ? 'Show Managers and Users Overview' : 'Hide Managers and Users Overview'}
+                        </Button>
+                    </Stack>
+
+                    <div style={{ display: hideManagersAndUsersOverview ? 'none' : 'block' }}>
+                        <h2>Managers Overview</h2>
+                        {managersTableData.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div></div> : <table className="table mt-4 table-bordered table-striped align-middle text-center">
+                            <thead className="table-info">
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Attempted</th>
+                                    <th>Rejected NAD</th>
+                                    <th>Not Understandable</th>
+                                    <th>Under QA</th>
+                                    <th>MINOR [QA Passed]</th>
+                                    <th>MAJOR [QA Passed]</th>
+                                    <th>[100%] QA Passed</th>
+                                    {/* <th>Earnings</th> */}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    managersTableData.data.map((_item, _index) => {
+                                        return <tr tr key={_index}>
+                                            {_item.map((item, index) => {
+                                                return <td key={_index + index}>{item}</td>
+                                            })}
+                                        </tr>
+                                    })
+
+                                }
+                            </tbody>
+                        </table>}
+                    </div >
+
+                    <div style={{ display: hideManagersAndUsersOverview ? 'none' : 'block' }}>
+                        <h2>Users Overview</h2>
+                        {usersTableData.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div></div> : <table className="table mt-4 table-bordered table-striped align-middle text-center">
+                            <thead className="table-info">
+                                <tr>
+                                    <th>Person</th>
+                                    <th>Attempted</th>
+                                    <th>Rejected NAD</th>
+                                    <th>Not Understandable</th>
+                                    <th>Under QA</th>
+                                    <th>MINOR [QA Passed]</th>
+                                    <th>MAJOR [QA Passed]</th>
+                                    <th>[100%] QA Passed</th>
+                                    {/* <th>Earnings</th> */}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    usersTableData.data.map((_item, _index) => {
+                                        return <tr tr key={_index}>
+                                            {_item.map((item, index) => {
+                                                return <td key={_index + index}>{item}</td>
+                                            })}
+                                        </tr>
+                                    })
+
+                                }
+                            </tbody>
+                        </table>}
+                    </div >
+
                     {tableData.isLoading ? <Stack marginTop={'4px'} marginBottom={'4px'} direction='row' justifyContent='center' alignItems='center' height='calc(100vh - 8px)'>
                         <CircularProgress size={56} color="info" />
                     </Stack> :
