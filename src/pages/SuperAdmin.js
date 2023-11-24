@@ -39,10 +39,12 @@ import { sumArrays } from "../utils/sumArrays";
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import { firestore } from "../firebase";
 
 function SuperAdmin(props) {
+
+    const sortOrder = ["Extractor", "QA-Extractor", "DimAna", "QA-DimAna"];
 
     const [tableFilter, setTableFilter] = useState('Extractor')
     const [hideManagersAndUsersOverview, setHideManagersAndUsersOverview] = useState(false)
@@ -87,338 +89,95 @@ function SuperAdmin(props) {
             isLoading: true
         }))
 
-        const lt = (new Date().getTime() / 1000).toFixed(0)
-        const apiURL = `http://139.144.30.86:8000/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=0`
-
-        var extractorStats = []
-        var qaExtractorStats = []
-        var dimAnaStats = []
-        var qaDimAnaStats = []
-
         const usersCollectionRef = collection(firestore, "users");
 
-        // Fetch data from the "users" collection
-        const snapshot = await getDocs(usersCollectionRef);
-        let items = [];
+        // Use a query to filter users with role=manager
+        const q = query(usersCollectionRef, where("role", "==", "manager"));
+
+        // Fetch data based on the query
+        const snapshot = await getDocs(q);
+
+        let managers = [];
         snapshot.forEach((doc) => {
-            items.push({ ...doc.data(), id: doc.id });
+            managers.push({ ...doc.data(), id: doc.id });
         });
-        var managers = {}
-        items.filter(item => item.role === 'manager').map((manager) => {
-            managers[manager.jdesc] = manager.name
-        })
-        setManagersTableData(pre => ({
-            ...pre,
-            managers
-        }))
 
-
-        getManagerStats('Extractor').then((extractorStats_result) => {
-            extractorStats = extractorStats_result;
-
-            getManagerStats('QA-Extractor').then((qaExtractorStats_result) => {
-                qaExtractorStats = qaExtractorStats_result;
-
-                getManagerStats('DimAna').then((dimAnaStats_result) => {
-                    dimAnaStats = dimAnaStats_result;
-
-                    getManagerStats('QA-DimAna').then((qaDimAnaStats_result) => {
-                        qaDimAnaStats = qaDimAnaStats_result;
-
-                        setManagersTableData((pre) => ({
-                            ...pre,
-                            isLoading: false,
-                            data: [
-                                [pre.managers['Extractor'], 'Extractor', ...extractorStats],
-                                [pre.managers['QA-Extractor'], 'QA-Extractor', ...qaExtractorStats],
-                                [pre.managers['DimAna'], 'DimAna', ...dimAnaStats],
-                                [pre.managers['QA-DimAna'], 'QA-DimAna', ...qaDimAnaStats_result],
-                            ]
-                        }))
-
-                    })
-                })
-            })
-        })
-
-    }
-
-    const getManagerStats = (job) => {
-
-        return new Promise((resolve, reject) => {
-
-
-            const apiURL = `http://139.144.30.86:8000/api/stats?job=${job}&lt=${lt}&gt=0`
-
-            fetch(apiURL).then((res) => res.json()).then((result) => {
-
-                console.log('result', result);
-
+        const managers_stats = await Promise.all(
+            managers.sort((a, b) => {
+                const indexA = sortOrder.indexOf(a.jdesc);
+                const indexB = sortOrder.indexOf(b.jdesc);
+                return indexA - indexB;
+            }).map(async (manager) => {
+                const result = await fetch(`http://139.144.30.86:8000/api/stats?job=${manager.jdesc}&lt=${lt}&gt=0`).then((res) => res.json())
                 const attempted = result.attempts;
                 var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
-                var not_understandable = job.includes('Extractor') ? result.rejects : 0
+                var not_understandable = manager.jdesc.includes('Extractor') ? result.rejects : 0
                 var under_qa = result.not_validated;
                 var minor = result.minor_changes;
                 var major = result.major_changes;
                 var passed = result.qa_passed
                 var earnings = result.earning;
-
-                resolve([attempted, rejected_nad, not_understandable, under_qa, minor, major, passed])
+                return [manager.name, manager.jdesc, attempted, rejected_nad, not_understandable, under_qa, minor, major, passed]
             })
+        )
 
+        setManagersTableData((pre) => ({
+            ...pre,
+            isLoading: false,
+            data: managers_stats
+        }))
 
-
-
-            // const teamStats = [];
-            // const team = []
-
-            // const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
-            // fetch(apiURL).then((res) => res.json()).then((result) => {
-            //     result.data.map((_item) => {
-
-            //         if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
-
-            //             var memberProducts = [];
-
-            //             if (job.includes("QA-")) {
-            //                 team.push(_item['QA-Worker'])
-            //                 console.log('saim');
-            //                 memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
-            //             } else {
-            //                 team.push(_item.Worker)
-            //                 memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
-            //             }
-
-            //             const attempted = memberProducts.length;
-            //             var rejected_nad = 0;
-            //             var not_understandable = 0;
-            //             var under_qa = 0;
-            //             var minor = 0;
-            //             var major = 0;
-            //             var passed = 0;
-            //             var earnings = 0;
-
-            //             memberProducts.map((product) => {
-
-            //                 if (!product.status || product.status === "under_qa") {
-            //                     under_qa++;
-            //                 } else if (product.status === "passed") {
-            //                     passed++;
-            //                 } else if (product.status === "minor") {
-            //                     minor++;
-            //                 } else if (product.status === "major") {
-            //                     major++;
-            //                 } else if (product.status === 'rejected_nad') {
-            //                     rejected_nad++;
-            //                 } else if (product.status === 'not_understandable') {
-            //                     not_understandable++;
-            //                 }
-
-            //                 if (product.earning && product.earning !== 'N/A') {
-            //                     earnings = earnings + parseInt(product.earning)
-            //                 }
-            //             })
-
-
-            //             teamStats.push(
-            //                 [
-            //                     // job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
-            //                     attempted,
-            //                     rejected_nad,
-            //                     not_understandable,
-            //                     under_qa,
-            //                     minor,
-            //                     major,
-            //                     passed,
-            //                     // earnings
-            //                 ]
-            //             )
-            //         }
-            //     })
-
-            //     console.log('teamStats', teamStats);
-
-            //     var stats = sumArrays(teamStats);
-            //     // console.log('teamStats', teamStats);
-            //     console.log('stats', stats);
-            //     resolve(stats)
-            // })
-        })
     }
 
     const fetchUsersTableData = async () => {
         setUsersTableData((pre) => ({
             ...pre,
-            isLoading: false
+            isLoading: true
         }))
 
         const usersCollectionRef = collection(firestore, "users");
 
-        // Fetch data from the "users" collection
-        const snapshot = await getDocs(usersCollectionRef);
-        let items = [];
+        // Use a query to filter users with role=manager
+        const q = query(usersCollectionRef, where("role", "==", "worker"));
+
+        // Fetch data based on the query
+        const snapshot = await getDocs(q);
+
+        let workers = [];
         snapshot.forEach((doc) => {
-            items.push({ ...doc.data(), id: doc.id });
+            workers.push({ ...doc.data(), id: doc.id });
         });
-        const workers = items.filter(item => item.role === 'worker')
 
         console.log('workers', workers);
 
-        const workers_stats = []
+        const workers_stats = await Promise.all(
+            workers.sort((a, b) => {
+                const indexA = sortOrder.indexOf(a.jdesc);
+                const indexB = sortOrder.indexOf(b.jdesc);
+                return indexA - indexB;
+            }).map(async (worker) => {
+                const result = await fetch(`http://139.144.30.86:8000/api/stats?job=${worker.jdesc}&uid=${worker.id}&lt=${lt}`).then((res) => res.json())
 
-        workers.map((worker, index) => {
-
-            getUserStats(worker.jdesc, worker.id).then((result) => {
-
-                // console.log(worker.name, result);
-                workers_stats.push([worker.name, ...result])
-
+                const attempted = result.attempts;
+                var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+                var not_understandable = worker.jdesc.includes('Extractor') ? result.rejects : 0
+                var under_qa = result.not_validated;
+                var minor = result.minor_changes;
+                var major = result.major_changes;
+                var passed = result.qa_passed
+                var earnings = result.earning;
+                return [worker.name, worker.jdesc, attempted, rejected_nad, not_understandable, under_qa, minor, major, passed, earnings]
             })
-
-        })
+        )
 
         setUsersTableData((pre) => ({
             ...pre,
             isLoading: false,
             data: workers_stats
         }))
-
-
-        // getUserStats('Extractor').then((extractorStats_result) => {
-        //     extractorStats = extractorStats_result;
-
-        //     getUserStats('QA-Extractor').then((qaExtractorStats_result) => {
-        //         qaExtractorStats = qaExtractorStats_result;
-
-        //         getUserStats('DimAna').then((dimAnaStats_result) => {
-        //             dimAnaStats = dimAnaStats_result;
-
-        //             getUserStats('QA-DimAna').then((qaDimAnaStats_result) => {
-        //                 qaDimAnaStats = qaDimAnaStats_result;
-
-        //                 setUsersTableData((pre) => ({
-        //                     ...pre,
-        //                     isLoading: false,
-        //                     data: [
-        //                         ...extractorStats,
-        //                         ...qaExtractorStats,
-        //                         ...dimAnaStats,
-        //                         ...qaDimAnaStats_result,
-        //                     ]
-        //                 }))
-
-        //                 console.log('users', [
-        //                     ...extractorStats,
-        //                     ...qaExtractorStats,
-        //                     ...dimAnaStats,
-        //                     ...qaDimAnaStats_result,
-        //                 ]);
-
-        //             })
-        //         })
-        //     })
-        // })
     }
 
-    const getUserStats = (job, uid) => {
-
-        return new Promise((resolve, reject) => {
-
-            const apiURL = `http://139.144.30.86:8000/api/stats?job=${job}&uid=${uid}&lt=${lt}`
-
-            fetch(apiURL).then((res) => res.json()).then((result) => {
-
-                const attempted = result.attempts;
-                var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
-                var not_understandable = job.includes('Extractor') ? result.rejects : 0
-                var under_qa = result.not_validated;
-                var minor = result.minor_changes;
-                var major = result.major_changes;
-                var passed = result.qa_passed
-                var earnings = result.earning;
-
-                resolve([attempted, rejected_nad, not_understandable, under_qa, minor, major, passed, earnings])
-            })
-
-
-
-
-
-
-
-            // const teamStats = [];
-            // const team = []
-
-            // const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
-            // fetch(apiURL).then((res) => res.json()).then((result) => {
-            //     result.data.map((_item) => {
-
-            //         if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
-
-            //             var memberProducts = [];
-
-            //             if (job.includes("QA-")) {
-            //                 team.push(_item['QA-Worker'])
-            //                 console.log('saim');
-            //                 memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
-            //             } else {
-            //                 team.push(_item.Worker)
-            //                 memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
-            //             }
-
-            //             const attempted = memberProducts.length;
-            //             var rejected_nad = 0;
-            //             var not_understandable = 0;
-            //             var under_qa = 0;
-            //             var minor = 0;
-            //             var major = 0;
-            //             var passed = 0;
-            //             var earnings = 0;
-
-            //             memberProducts.map((product) => {
-
-            //                 if (!product.status || product.status === "under_qa") {
-            //                     under_qa++;
-            //                 } else if (product.status === "passed") {
-            //                     passed++;
-            //                 } else if (product.status === "minor") {
-            //                     minor++;
-            //                 } else if (product.status === "major") {
-            //                     major++;
-            //                 } else if (product.status === 'rejected_nad') {
-            //                     rejected_nad++;
-            //                 } else if (product.status === 'not_understandable') {
-            //                     not_understandable++;
-            //                 }
-
-            //                 if (product.earning && product.earning !== 'N/A') {
-            //                     earnings = earnings + parseInt(product.earning)
-            //                 }
-            //             })
-
-
-            //             teamStats.push(
-            //                 [
-            //                     job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
-            //                     attempted,
-            //                     rejected_nad,
-            //                     not_understandable,
-            //                     under_qa,
-            //                     minor,
-            //                     major,
-            //                     passed,
-            //                     // earnings
-            //                 ]
-            //             )
-            //         }
-            //     })
-
-            //     resolve(teamStats)
-            // })
-        })
-    }
-
-    const fetchSuperAdminData = async () => {
+    const fetchSuperAdminData = async (currentPage = tableData.currentPage) => {
         //http://139.144.30.86:8000/api/super_table?job=Extractor
 
         setTableData((pre) => ({
@@ -427,7 +186,7 @@ function SuperAdmin(props) {
         }))
 
         const lt = (new Date().getTime() / 1000).toFixed(0)
-        const apiURL = `http://139.144.30.86:8000/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${tableData.currentPage}`
+        const apiURL = `http://139.144.30.86:8000/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}`
 
         fetch(apiURL).then((res) => res.json()).then((result) => {
 
@@ -450,14 +209,7 @@ function SuperAdmin(props) {
     }, [])
 
     useEffect(() => {
-        setTableData((pre) => ({
-            ...pre,
-            currentPage: 0,
-            totalPages: 1
-        }))
-        fetchSuperAdminData()
-        // fetchSuperTable()
-
+        fetchSuperAdminData(0)
     }, [tableFilter])
 
     useEffect(() => {
@@ -555,6 +307,7 @@ function SuperAdmin(props) {
                             <thead className="table-info">
                                 <tr>
                                     <th>Person</th>
+                                    <th>Role</th>
                                     <th>Attempted</th>
                                     <th>Rejected NAD</th>
                                     <th>Not Understandable</th>
