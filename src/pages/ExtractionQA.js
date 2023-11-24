@@ -180,6 +180,7 @@ const ExtractionQA = (props) => {
               setNotDoable(data.not_doable);
               // NOT DO ABLE BUTTON VISIBILITY
               setVisibilityNotDoable(true);
+              setSelectedOption(data.not_doable ? 'major' : 'passed')
             })
             .catch((error) => {
               console.error("Error:", error);
@@ -1645,8 +1646,8 @@ const ExtractionQA = (props) => {
         <div className="d-flex justify-content-center align-items-center text-end mt-4 mb-5">
           <div className="set-select-all me-3">
             <select value={selectedOption} onChange={handleSelectChange}>
-              <option value="passed">100% [QA passed]</option>
-              <option value="minor">Minor Fixes</option>
+              {(!notDoable || notDoable === false) && <option value="passed">100% [QA passed]</option>}
+              {(!notDoable || notDoable === false) && <option value="minor">Minor Fixes</option>}
               <option value="major">Major Fixes</option>
             </select>
           </div>

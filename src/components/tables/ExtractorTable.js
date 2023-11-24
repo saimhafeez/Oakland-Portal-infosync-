@@ -35,14 +35,29 @@ const ExtractorTable = (props) => {
       ...pre,
       isLoading: true
     }))
-    const apiURL = `http://139.144.30.86:8000/api/super_table?job=Extractor&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}&page=${tableDataStats.currentPage}&uid=${props.user.uid}`
-    fetch(apiURL).then(res => res.json()).then((result) => {
+
+    const apiURL = `http://139.144.30.86:8000/api/stats?job=Extractor&uid=${props.user.uid}&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}`
+
+    fetch(apiURL).then((res) => res.json()).then((result) => {
+
+      console.log('result', result);
+
+      const attempted = result.attempts;
+      var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+      var under_qa = result.not_validated;
+      var minor = result.minor_changes;
+      var major = result.major_changes;
+      var passed = result.qa_passed
+      var earnings = result.earning;
+
       setTableDataStats(pre => ({
         ...pre,
         isLoading: false,
-        data: result.data
+        data: [attempted, rejected_nad, under_qa, minor, major, passed, earnings]
       }))
+
     })
+
   }
 
   const fetchTableData = () => {
@@ -55,10 +70,13 @@ const ExtractorTable = (props) => {
       setTableData(pre => ({
         ...pre,
         isLoading: false,
-        data: result.data
+        data: result.data,
+        currentPage: result.curr_page,
+        totalPages: result.total_pages
       }))
+      console.log('result.data', result.data);
     })
-    console.log(tableData.lessThanDate, tableData.greaterThanDate, tableData.currentPage);
+    // console.log(tableData.lessThanDate, tableData.greaterThanDate, tableData.currentPage);
   }
 
   useEffect(() => {
@@ -74,47 +92,6 @@ const ExtractorTable = (props) => {
   useEffect(() => {
     fetchTableDataStats()
   }, [tableDataStats.reset])
-
-  const getStats = () => {
-    const attempted = tableDataStats.data.length;
-
-    var rejected_nad = 0;
-    var under_qa = 0;
-    var minor = 0;
-    var major = 0;
-    var passed = 0;
-    var earnings = 0;
-
-
-
-    tableDataStats.data.map((item) => {
-      if (item.status === "under_qa" || item.status === null) {
-        under_qa++;
-      } else if (item.status === "passed") {
-        passed++;
-      } else if (item.status === "minor") {
-        minor++;
-      } else if (item.status === "major") {
-        major++;
-      } else if (item.status === 'rejected_nad') {
-        rejected_nad++;
-      }
-
-      if (item.earning && item.earning !== 'N/A') {
-        earnings = earnings + parseInt(item.earning)
-      }
-    })
-
-    return [
-      attempted,
-      rejected_nad,
-      under_qa,
-      minor,
-      major,
-      passed,
-      earnings
-    ]
-  }
 
   const getAllProductsByFilter = () => {
 
@@ -189,7 +166,7 @@ const ExtractorTable = (props) => {
           </thead>
           <tbody>
             <tr tr>
-              {getStats().map((item, index) => {
+              {tableDataStats.data.map((item, index) => {
                 return <td>{item}</td>
               })}
             </tr>
@@ -302,7 +279,7 @@ const ExtractorTable = (props) => {
                 <td>{item.productID}</td>
                 <td>{item.variantID || 'N/A'}</td>
                 <td>{formatDate(item.lastModified)}</td>
-                <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
+                <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'rejected_nad' ? 'Not a Doable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
                 <td>{item.earning || 'N/A'}</td>
               </tr>
             ))}
@@ -320,7 +297,7 @@ const ExtractorTable = (props) => {
               }))
             }}>Previous</a>
           </li>
-          {Array(...Array(tableData.totalPages + 3)).map((_, index) => {
+          {Array(...Array(tableData.totalPages)).map((_, index) => {
             return <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
               <a class="page-link" href="#" onClick={() => {
                 setTableData(pre => ({

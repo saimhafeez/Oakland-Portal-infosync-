@@ -16,6 +16,7 @@ import {
     Card,
     CircularProgress,
     Grid,
+    Link,
     MenuItem,
     Pagination,
     Select,
@@ -37,6 +38,9 @@ import { sumArrays } from "../utils/sumArrays";
 
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+
+import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { firestore } from "../firebase";
 
 function SuperAdmin(props) {
 
@@ -62,7 +66,8 @@ function SuperAdmin(props) {
         currentPage: 0,
         totalPages: 1,
         reset: 0,
-        data: []
+        data: [],
+        managers: {}
     })
 
     const [usersTableData, setUsersTableData] = useState({
@@ -76,6 +81,7 @@ function SuperAdmin(props) {
     })
 
     const fetchManagersTableData = async () => {
+
         setManagersTableData((pre) => ({
             ...pre,
             isLoading: true
@@ -88,6 +94,24 @@ function SuperAdmin(props) {
         var qaExtractorStats = []
         var dimAnaStats = []
         var qaDimAnaStats = []
+
+        const usersCollectionRef = collection(firestore, "users");
+
+        // Fetch data from the "users" collection
+        const snapshot = await getDocs(usersCollectionRef);
+        let items = [];
+        snapshot.forEach((doc) => {
+            items.push({ ...doc.data(), id: doc.id });
+        });
+        var managers = {}
+        items.filter(item => item.role === 'manager').map((manager) => {
+            managers[manager.jdesc] = manager.name
+        })
+        setManagersTableData(pre => ({
+            ...pre,
+            managers
+        }))
+
 
         getManagerStats('Extractor').then((extractorStats_result) => {
             extractorStats = extractorStats_result;
@@ -105,10 +129,10 @@ function SuperAdmin(props) {
                             ...pre,
                             isLoading: false,
                             data: [
-                                ['Extractor', ...extractorStats],
-                                ['QA-Extractor', ...qaExtractorStats],
-                                ['DimAna', ...dimAnaStats],
-                                ['QA-DimAna', ...qaDimAnaStats_result],
+                                [pre.managers['Extractor'], 'Extractor', ...extractorStats],
+                                [pre.managers['QA-Extractor'], 'QA-Extractor', ...qaExtractorStats],
+                                [pre.managers['DimAna'], 'DimAna', ...dimAnaStats],
+                                [pre.managers['QA-DimAna'], 'QA-DimAna', ...qaDimAnaStats_result],
                             ]
                         }))
 
@@ -122,200 +146,275 @@ function SuperAdmin(props) {
     const getManagerStats = (job) => {
 
         return new Promise((resolve, reject) => {
-            const teamStats = [];
-            const team = []
 
-            const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
+
+            const apiURL = `http://139.144.30.86:8000/api/stats?job=${job}&lt=${lt}&gt=0`
+
             fetch(apiURL).then((res) => res.json()).then((result) => {
-                result.data.map((_item) => {
 
-                    if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
+                console.log('result', result);
 
-                        var memberProducts = [];
+                const attempted = result.attempts;
+                var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+                var not_understandable = job.includes('Extractor') ? result.rejects : 0
+                var under_qa = result.not_validated;
+                var minor = result.minor_changes;
+                var major = result.major_changes;
+                var passed = result.qa_passed
+                var earnings = result.earning;
 
-                        if (job.includes("QA-")) {
-                            team.push(_item['QA-Worker'])
-                            console.log('saim');
-                            memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
-                        } else {
-                            team.push(_item.Worker)
-                            memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
-                        }
-
-                        const attempted = memberProducts.length;
-                        var rejected_nad = 0;
-                        var not_understandable = 0;
-                        var under_qa = 0;
-                        var minor = 0;
-                        var major = 0;
-                        var passed = 0;
-                        var earnings = 0;
-
-                        memberProducts.map((product) => {
-
-                            if (!product.status || product.status === "under_qa") {
-                                under_qa++;
-                            } else if (product.status === "passed") {
-                                passed++;
-                            } else if (product.status === "minor") {
-                                minor++;
-                            } else if (product.status === "major") {
-                                major++;
-                            } else if (product.status === 'rejected_nad') {
-                                rejected_nad++;
-                            } else if (product.status === 'not_understandable') {
-                                not_understandable++;
-                            }
-
-                            if (product.earning && product.earning !== 'N/A') {
-                                earnings = earnings + parseInt(product.earning)
-                            }
-                        })
-
-
-                        teamStats.push(
-                            [
-                                // job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
-                                attempted,
-                                rejected_nad,
-                                not_understandable,
-                                under_qa,
-                                minor,
-                                major,
-                                passed,
-                                // earnings
-                            ]
-                        )
-                    }
-                })
-
-                var stats = sumArrays(teamStats);
-                // console.log('teamStats', teamStats);
-                console.log('stats', stats);
-                resolve(stats)
+                resolve([attempted, rejected_nad, not_understandable, under_qa, minor, major, passed])
             })
+
+
+
+
+            // const teamStats = [];
+            // const team = []
+
+            // const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
+            // fetch(apiURL).then((res) => res.json()).then((result) => {
+            //     result.data.map((_item) => {
+
+            //         if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
+
+            //             var memberProducts = [];
+
+            //             if (job.includes("QA-")) {
+            //                 team.push(_item['QA-Worker'])
+            //                 console.log('saim');
+            //                 memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
+            //             } else {
+            //                 team.push(_item.Worker)
+            //                 memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
+            //             }
+
+            //             const attempted = memberProducts.length;
+            //             var rejected_nad = 0;
+            //             var not_understandable = 0;
+            //             var under_qa = 0;
+            //             var minor = 0;
+            //             var major = 0;
+            //             var passed = 0;
+            //             var earnings = 0;
+
+            //             memberProducts.map((product) => {
+
+            //                 if (!product.status || product.status === "under_qa") {
+            //                     under_qa++;
+            //                 } else if (product.status === "passed") {
+            //                     passed++;
+            //                 } else if (product.status === "minor") {
+            //                     minor++;
+            //                 } else if (product.status === "major") {
+            //                     major++;
+            //                 } else if (product.status === 'rejected_nad') {
+            //                     rejected_nad++;
+            //                 } else if (product.status === 'not_understandable') {
+            //                     not_understandable++;
+            //                 }
+
+            //                 if (product.earning && product.earning !== 'N/A') {
+            //                     earnings = earnings + parseInt(product.earning)
+            //                 }
+            //             })
+
+
+            //             teamStats.push(
+            //                 [
+            //                     // job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
+            //                     attempted,
+            //                     rejected_nad,
+            //                     not_understandable,
+            //                     under_qa,
+            //                     minor,
+            //                     major,
+            //                     passed,
+            //                     // earnings
+            //                 ]
+            //             )
+            //         }
+            //     })
+
+            //     console.log('teamStats', teamStats);
+
+            //     var stats = sumArrays(teamStats);
+            //     // console.log('teamStats', teamStats);
+            //     console.log('stats', stats);
+            //     resolve(stats)
+            // })
         })
     }
 
     const fetchUsersTableData = async () => {
         setUsersTableData((pre) => ({
             ...pre,
-            isLoading: true
+            isLoading: false
         }))
 
-        var extractorStats
-        var qaExtractorStats
-        var dimAnaStats
-        var qaDimAnaStats
+        const usersCollectionRef = collection(firestore, "users");
 
-        getUserStats('Extractor').then((extractorStats_result) => {
-            extractorStats = extractorStats_result;
+        // Fetch data from the "users" collection
+        const snapshot = await getDocs(usersCollectionRef);
+        let items = [];
+        snapshot.forEach((doc) => {
+            items.push({ ...doc.data(), id: doc.id });
+        });
+        const workers = items.filter(item => item.role === 'worker')
 
-            getUserStats('QA-Extractor').then((qaExtractorStats_result) => {
-                qaExtractorStats = qaExtractorStats_result;
+        console.log('workers', workers);
 
-                getUserStats('DimAna').then((dimAnaStats_result) => {
-                    dimAnaStats = dimAnaStats_result;
+        const workers_stats = []
 
-                    getUserStats('QA-DimAna').then((qaDimAnaStats_result) => {
-                        qaDimAnaStats = qaDimAnaStats_result;
+        workers.map((worker, index) => {
 
-                        setUsersTableData((pre) => ({
-                            ...pre,
-                            isLoading: false,
-                            data: [
-                                ...extractorStats,
-                                ...qaExtractorStats,
-                                ...dimAnaStats,
-                                ...qaDimAnaStats_result,
-                            ]
-                        }))
+            getUserStats(worker.jdesc, worker.id).then((result) => {
 
-                        console.log('users', [
-                            ...extractorStats,
-                            ...qaExtractorStats,
-                            ...dimAnaStats,
-                            ...qaDimAnaStats_result,
-                        ]);
+                // console.log(worker.name, result);
+                workers_stats.push([worker.name, ...result])
 
-                    })
-                })
             })
+
         })
+
+        setUsersTableData((pre) => ({
+            ...pre,
+            isLoading: false,
+            data: workers_stats
+        }))
+
+
+        // getUserStats('Extractor').then((extractorStats_result) => {
+        //     extractorStats = extractorStats_result;
+
+        //     getUserStats('QA-Extractor').then((qaExtractorStats_result) => {
+        //         qaExtractorStats = qaExtractorStats_result;
+
+        //         getUserStats('DimAna').then((dimAnaStats_result) => {
+        //             dimAnaStats = dimAnaStats_result;
+
+        //             getUserStats('QA-DimAna').then((qaDimAnaStats_result) => {
+        //                 qaDimAnaStats = qaDimAnaStats_result;
+
+        //                 setUsersTableData((pre) => ({
+        //                     ...pre,
+        //                     isLoading: false,
+        //                     data: [
+        //                         ...extractorStats,
+        //                         ...qaExtractorStats,
+        //                         ...dimAnaStats,
+        //                         ...qaDimAnaStats_result,
+        //                     ]
+        //                 }))
+
+        //                 console.log('users', [
+        //                     ...extractorStats,
+        //                     ...qaExtractorStats,
+        //                     ...dimAnaStats,
+        //                     ...qaDimAnaStats_result,
+        //                 ]);
+
+        //             })
+        //         })
+        //     })
+        // })
     }
 
-    const getUserStats = (job) => {
+    const getUserStats = (job, uid) => {
 
         return new Promise((resolve, reject) => {
-            const teamStats = [];
-            const team = []
 
-            const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
+            const apiURL = `http://139.144.30.86:8000/api/stats?job=${job}&uid=${uid}&lt=${lt}`
+
             fetch(apiURL).then((res) => res.json()).then((result) => {
-                result.data.map((_item) => {
 
-                    if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
+                const attempted = result.attempts;
+                var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+                var not_understandable = job.includes('Extractor') ? result.rejects : 0
+                var under_qa = result.not_validated;
+                var minor = result.minor_changes;
+                var major = result.major_changes;
+                var passed = result.qa_passed
+                var earnings = result.earning;
 
-                        var memberProducts = [];
-
-                        if (job.includes("QA-")) {
-                            team.push(_item['QA-Worker'])
-                            console.log('saim');
-                            memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
-                        } else {
-                            team.push(_item.Worker)
-                            memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
-                        }
-
-                        const attempted = memberProducts.length;
-                        var rejected_nad = 0;
-                        var not_understandable = 0;
-                        var under_qa = 0;
-                        var minor = 0;
-                        var major = 0;
-                        var passed = 0;
-                        var earnings = 0;
-
-                        memberProducts.map((product) => {
-
-                            if (!product.status || product.status === "under_qa") {
-                                under_qa++;
-                            } else if (product.status === "passed") {
-                                passed++;
-                            } else if (product.status === "minor") {
-                                minor++;
-                            } else if (product.status === "major") {
-                                major++;
-                            } else if (product.status === 'rejected_nad') {
-                                rejected_nad++;
-                            } else if (product.status === 'not_understandable') {
-                                not_understandable++;
-                            }
-
-                            if (product.earning && product.earning !== 'N/A') {
-                                earnings = earnings + parseInt(product.earning)
-                            }
-                        })
-
-
-                        teamStats.push(
-                            [
-                                job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
-                                attempted,
-                                rejected_nad,
-                                not_understandable,
-                                under_qa,
-                                minor,
-                                major,
-                                passed,
-                                // earnings
-                            ]
-                        )
-                    }
-                })
-
-                resolve(teamStats)
+                resolve([attempted, rejected_nad, not_understandable, under_qa, minor, major, passed, earnings])
             })
+
+
+
+
+
+
+
+            // const teamStats = [];
+            // const team = []
+
+            // const apiURL = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0`
+            // fetch(apiURL).then((res) => res.json()).then((result) => {
+            //     result.data.map((_item) => {
+
+            //         if (((job === 'Extractor' || job === 'DimAna') && !team.includes(_item.Worker)) || ((job === 'QA-Extractor' || job === 'QA-DimAna') && !team.includes(_item['QA-Worker']))) {
+
+            //             var memberProducts = [];
+
+            //             if (job.includes("QA-")) {
+            //                 team.push(_item['QA-Worker'])
+            //                 console.log('saim');
+            //                 memberProducts = result.data.filter((product) => product['QA-Worker'] === _item['QA-Worker'])
+            //             } else {
+            //                 team.push(_item.Worker)
+            //                 memberProducts = result.data.filter((product) => product.Worker === _item.Worker)
+            //             }
+
+            //             const attempted = memberProducts.length;
+            //             var rejected_nad = 0;
+            //             var not_understandable = 0;
+            //             var under_qa = 0;
+            //             var minor = 0;
+            //             var major = 0;
+            //             var passed = 0;
+            //             var earnings = 0;
+
+            //             memberProducts.map((product) => {
+
+            //                 if (!product.status || product.status === "under_qa") {
+            //                     under_qa++;
+            //                 } else if (product.status === "passed") {
+            //                     passed++;
+            //                 } else if (product.status === "minor") {
+            //                     minor++;
+            //                 } else if (product.status === "major") {
+            //                     major++;
+            //                 } else if (product.status === 'rejected_nad') {
+            //                     rejected_nad++;
+            //                 } else if (product.status === 'not_understandable') {
+            //                     not_understandable++;
+            //                 }
+
+            //                 if (product.earning && product.earning !== 'N/A') {
+            //                     earnings = earnings + parseInt(product.earning)
+            //                 }
+            //             })
+
+
+            //             teamStats.push(
+            //                 [
+            //                     job.includes("QA-") ? _item['QA-Worker'] : _item.Worker,
+            //                     attempted,
+            //                     rejected_nad,
+            //                     not_understandable,
+            //                     under_qa,
+            //                     minor,
+            //                     major,
+            //                     passed,
+            //                     // earnings
+            //                 ]
+            //             )
+            //         }
+            //     })
+
+            //     resolve(teamStats)
+            // })
         })
     }
 
@@ -328,7 +427,7 @@ function SuperAdmin(props) {
         }))
 
         const lt = (new Date().getTime() / 1000).toFixed(0)
-        const apiURL = `http://139.144.30.86:8000/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=0`
+        const apiURL = `http://139.144.30.86:8000/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${tableData.currentPage}`
 
         fetch(apiURL).then((res) => res.json()).then((result) => {
 
@@ -337,19 +436,33 @@ function SuperAdmin(props) {
             setTableData((pre) => ({
                 ...pre,
                 isLoading: false,
-                data: result.data
+                data: result.data,
+                currentPage: result.curr_page,
+                totalPages: result.total_pages
             }))
 
         })
     }
 
     useEffect(() => {
-        fetchSuperAdminData()
         fetchManagersTableData()
         fetchUsersTableData()
+    }, [])
+
+    useEffect(() => {
+        setTableData((pre) => ({
+            ...pre,
+            currentPage: 0,
+            totalPages: 1
+        }))
+        fetchSuperAdminData()
         // fetchSuperTable()
 
     }, [tableFilter])
+
+    useEffect(() => {
+        fetchSuperAdminData()
+    }, [tableData.currentPage])
 
     const [searchByID, setSearchByID] = useState("");
     const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
@@ -376,20 +489,21 @@ function SuperAdmin(props) {
 
     const navigateToItem = (productID) => {
         if (tableFilter.includes('Extractor')) return
-        window.location.href = `/product-detail-info?job=${tableFilter}&pid=${productID}`
+        // window.location.href = `/product-detail-info?job=${tableFilter}&pid=${productID}`
+        window.open(`/product-detail-info?job=${tableFilter}&pid=${productID}`, "_blank", "noreferrer");
     }
 
     return (
         <>
-            <Header
+            {/* <Header
                 userEmail={props.userEmail}
                 userRole={props.userRole}
                 userJdesc={props.userJdesc}
             />
-            <SuperAdminSidebar />
+            <SuperAdminSidebar /> */}
 
             <Wrapper>
-                <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
+                <div style={{ height: 'calc(100vh - 135px)', overflow: 'auto' }}>
 
                     <Stack direction='row' justifyContent='center'>
                         <Button variant='outlined' color="error" onClick={() => {
@@ -406,6 +520,7 @@ function SuperAdmin(props) {
                         </div></div> : <table className="table mt-4 table-bordered table-striped align-middle text-center">
                             <thead className="table-info">
                                 <tr>
+                                    <th>Manager</th>
                                     <th>Role</th>
                                     <th>Attempted</th>
                                     <th>Rejected NAD</th>
@@ -447,7 +562,7 @@ function SuperAdmin(props) {
                                     <th>MINOR [QA Passed]</th>
                                     <th>MAJOR [QA Passed]</th>
                                     <th>[100%] QA Passed</th>
-                                    {/* <th>Earnings</th> */}
+                                    <th>Earnings</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -559,7 +674,13 @@ function SuperAdmin(props) {
                                                         height="52px"
                                                     />
                                                 </td>
-                                                <td onClick={() => { navigateToItem(item.productID) }}>{item.productID}</td>
+                                                <td>
+                                                    {tableFilter.includes('Extractor') ? item.productID
+                                                        : <Link href={`/product-detail-info?job=${tableFilter}&pid=${item.productID}`} underline="hover" target="_blank">
+                                                            {item.productID}
+                                                        </Link>}
+                                                </td>
+
                                                 <td>{item.variantID || 'N/A'}</td>
                                                 <td>{tableFilter === 'QA-Extractor' || tableFilter === 'QA-DimAna' ? item['QA-Worker'] : item.Worker}</td>
                                                 <td>{formatDate(item.lastModified)}</td>
@@ -572,14 +693,37 @@ function SuperAdmin(props) {
 
                             }
 
-                            <Stack direction='row' justifyContent='end' m={2}>
-                                <Pagination page={tableData.curr_page + 1} count={tableData.total_pages + 2} variant="outlined" shape="rounded" onChange={(e, value) => {
-                                    setTableData(pre => ({
-                                        ...pre,
-                                        curr_page: value - 1
-                                    }))
-                                }} />
-                            </Stack>
+                            <nav>
+                                <ul class="pagination">
+                                    <li class={`page-item ${tableData.currentPage === 0 && "disabled"}`}>
+                                        <a class="page-link" href="#" tabindex="-1" onClick={() => {
+                                            setTableData(pre => ({
+                                                ...pre,
+                                                currentPage: pre.currentPage - 1
+                                            }))
+                                        }}>Previous</a>
+                                    </li>
+                                    {Array(...Array(tableData.totalPages)).map((_, index) => {
+                                        return <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
+                                            <a class="page-link" href="#" onClick={() => {
+                                                setTableData(pre => ({
+                                                    ...pre,
+                                                    currentPage: index
+                                                }))
+                                            }}>{index + 1}</a>
+                                        </li>
+                                    })}
+
+                                    <li class={`page-item ${tableData.currentPage === tableData.totalPages - 1 && "disabled"}`}>
+                                        <a class="page-link" href="#" onClick={() => {
+                                            setTableData(pre => ({
+                                                ...pre,
+                                                currentPage: pre.currentPage + 1
+                                            }))
+                                        }}>Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
 
                         </Stack>
                     }

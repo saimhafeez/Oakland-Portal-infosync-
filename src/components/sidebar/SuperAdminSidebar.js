@@ -9,6 +9,7 @@ const SuperAdminSidebar = () => {
                     <li>Role Assigning</li>
                     <li>Rejected NADs</li>
                     <li>All QA Passed</li>
+                    <li>Ingredients Management</li>
                 </ul>
             </div>
         </>

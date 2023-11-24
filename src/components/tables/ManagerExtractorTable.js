@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { formatDate } from "../../utils/formatDate";
+import { collection, getDocs } from "firebase/firestore";
+import { firestore } from "../../firebase";
 
 
 const ManagerExtractorTable = (props) => {
@@ -30,18 +32,52 @@ const ManagerExtractorTable = (props) => {
     const [searchByID, setSearchByID] = useState("");
     const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
 
-    const fetchTableDataStats = () => {
+    const fetchTableDataStats = async () => {
         setTableDataStats(pre => ({
             ...pre,
             isLoading: true
         }))
-        const apiURL = `http://139.144.30.86:8000/api/super_table?job=Extractor&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}&page=${tableDataStats.currentPage}`
-        fetch(apiURL).then(res => res.json()).then((result) => {
-            setTableDataStats(pre => ({
-                ...pre,
-                isLoading: false,
-                data: result.data
-            }))
+
+        const usersCollectionRef = collection(firestore, "users");
+
+        // Fetch data from the "users" collection
+        const snapshot = await getDocs(usersCollectionRef);
+        let items = [];
+        snapshot.forEach((doc) => {
+            items.push({ ...doc.data(), id: doc.id });
+        });
+        const workers = items.filter(item => item.role === 'worker' && item.jdesc === 'Extractor')
+
+        const workers_stats = await Promise.all(
+            workers.map(async (worker) => {
+                const result = await getUserStats(worker.jdesc, worker.id);
+                return [worker.name, ...result];
+            })
+        );
+
+        setTableDataStats((pre) => ({
+            ...pre,
+            isLoading: false,
+            data: workers_stats
+        }))
+
+
+    }
+
+    const getUserStats = (job, uid) => {
+        return new Promise((resolve, reject) => {
+            const apiURL = `http://139.144.30.86:8000/api/stats?job=${job}&uid=${uid}&lt=${lt}`
+            fetch(apiURL).then((res) => res.json()).then((result) => {
+                const attempted = result.attempts;
+                var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+                var not_understandable = job.includes('Extractor') ? result.rejects : 0
+                var under_qa = result.not_validated;
+                var minor = result.minor_changes;
+                var major = result.major_changes;
+                var passed = result.qa_passed
+                var earnings = result.earning;
+                resolve([attempted, rejected_nad, under_qa, minor, major, passed, earnings])
+            })
         })
     }
 
@@ -55,7 +91,9 @@ const ManagerExtractorTable = (props) => {
             setTableData(pre => ({
                 ...pre,
                 isLoading: false,
-                data: result.data
+                data: result.data,
+                currentPage: result.curr_page,
+                totalPages: result.total_pages
             }))
         })
     }
@@ -107,63 +145,6 @@ const ManagerExtractorTable = (props) => {
     //     })
 
     // }, []);
-
-    const getStats = () => {
-
-        const teamStats = [];
-
-        const team = []
-
-        tableDataStats.data.map((_item) => {
-            if (!team.includes(_item.Worker)) {
-                team.push(_item.Worker)
-
-                const memberProducts = tableDataStats.data.filter((product) => product.Worker === _item.Worker);
-
-                const attempted = memberProducts.length;
-                var rejected_nad = 0;
-                var under_qa = 0;
-                var minor = 0;
-                var major = 0;
-                var passed = 0;
-                var earnings = 0;
-
-                memberProducts.map((product) => {
-
-                    if (!product.status || product.status === "under_qa") {
-                        under_qa++;
-                    } else if (product.status === "passed") {
-                        passed++;
-                    } else if (product.status === "minor") {
-                        minor++;
-                    } else if (product.status === "major") {
-                        major++;
-                    } else if (product.status === 'rejected_nad') {
-                        rejected_nad++;
-                    }
-
-                    if (product.earning && product.earning !== 'N/A') {
-                        earnings = earnings + parseInt(product.earning)
-                    }
-                })
-
-                teamStats.push(
-                    [
-                        _item.Worker,
-                        attempted,
-                        rejected_nad,
-                        under_qa,
-                        minor,
-                        major,
-                        passed,
-                        earnings
-                    ]
-                )
-            }
-        })
-        console.log(teamStats);
-        return teamStats
-    }
 
     const getAllProductsByFilter = () => {
 
@@ -239,7 +220,7 @@ const ManagerExtractorTable = (props) => {
                     </thead>
                     <tbody>
                         {
-                            getStats().map((_item, _index) => {
+                            tableDataStats.data.map((_item, _index) => {
                                 return <tr tr key={_index}>
                                     {_item.map((item, index) => {
                                         return <td key={_index + index}>{item}</td>
@@ -379,7 +360,7 @@ const ManagerExtractorTable = (props) => {
                             }))
                         }}>Previous</a>
                     </li>
-                    {Array(...Array(tableData.totalPages + 3)).map((_, index) => {
+                    {Array(...Array(tableData.totalPages)).map((_, index) => {
                         return <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
                             <a class="page-link" href="#" onClick={() => {
                                 setTableData(pre => ({

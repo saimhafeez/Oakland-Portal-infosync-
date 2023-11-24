@@ -50,8 +50,9 @@ function ProductVendorInformation(props) {
         data: null
     })
 
-    useEffect(() => {
+    const [unitSelector, setUnitSelector] = useState("Inch")
 
+    useEffect(() => {
 
         const apiURL_ingredients = `http://139.144.30.86:8000/api/ingredients`
 
@@ -76,7 +77,8 @@ function ProductVendorInformation(props) {
         fetch(apiURL_product).then(res => res.json()).then((result) => {
             // console.log(result);
 
-            const tableID = '65563f7f5004aca63257416a'
+            // const tableID = '65563f7f5004aca63257416a'
+            const tableID = result.data[0].tableID
 
             const apiURL_table = `http://139.144.30.86:8000/api/table/${tableID}`
 

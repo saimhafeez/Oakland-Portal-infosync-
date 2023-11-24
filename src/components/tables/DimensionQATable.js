@@ -34,14 +34,29 @@ const DimensionQATable = (props) => {
       ...pre,
       isLoading: true
     }))
-    const apiURL = `http://139.144.30.86:8000/api/super_table?job=QA-DimAna&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}&page=${tableDataStats.currentPage}&uid=${props.user.uid}`
-    fetch(apiURL).then(res => res.json()).then((result) => {
+
+    const apiURL = `http://139.144.30.86:8000/api/stats?job=QA-DimAna&uid=${props.user.uid}&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}`
+
+    fetch(apiURL).then((res) => res.json()).then((result) => {
+
+      console.log('result', result);
+
+      const attempted = result.attempts;
+      var not_understandable = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+      var under_qa = result.not_validated;
+      var minor = result.minor_changes;
+      var major = result.major_changes;
+      var passed = result.qa_passed
+      var earnings = result.earning;
+
       setTableDataStats(pre => ({
         ...pre,
         isLoading: false,
-        data: result.data
+        data: [attempted, not_understandable, minor, major, passed, earnings]
       }))
+
     })
+
   }
 
   const fetchTableData = () => {
@@ -54,7 +69,9 @@ const DimensionQATable = (props) => {
       setTableData(pre => ({
         ...pre,
         isLoading: false,
-        data: result.data
+        data: result.data,
+        currentPage: result.curr_page,
+        totalPages: result.total_pages
       }))
     })
     console.log(tableData.lessThanDate, tableData.greaterThanDate, tableData.currentPage);
@@ -73,47 +90,6 @@ const DimensionQATable = (props) => {
   useEffect(() => {
     fetchTableDataStats()
   }, [tableDataStats.reset])
-
-  const getStats = () => {
-    const attempted = tableDataStats.data.length;
-
-    var not_understandable = 0;
-    var under_qa = 0;
-    var passed = 0;
-    var minor = 0;
-    var major = 0;
-    var earnings = 0;
-
-
-
-    tableDataStats.data.map((item) => {
-      if (item.status === "passed") {
-        passed++;
-      } else if (item.status === "minor") {
-        minor++;
-      } else if (item.status === "major") {
-        major++;
-      } else if (item.status && item.status === 'under_qa') {
-        under_qa++
-      } else if (item.status === 'not_understandable') {
-        not_understandable++
-      }
-
-      if (item.earning && item.earning !== 'N/A') {
-        earnings = earnings + parseInt(item.earning)
-      }
-    })
-
-    return [
-      attempted,
-      not_understandable,
-      minor,
-      major,
-      passed,
-      earnings
-    ]
-
-  }
 
   const getAllProductsByFilter = () => {
 
@@ -187,7 +163,7 @@ const DimensionQATable = (props) => {
           </thead>
           <tbody>
             <tr tr>
-              {getStats().map((item, index) => {
+              {tableDataStats.data.map((item, index) => {
                 return <td>{item}</td>
               })}
             </tr>
@@ -318,7 +294,7 @@ const DimensionQATable = (props) => {
               }))
             }}>Previous</a>
           </li>
-          {Array(...Array(tableData.totalPages + 3)).map((_, index) => {
+          {Array(...Array(tableData.totalPages)).map((_, index) => {
             return <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
               <a class="page-link" href="#" onClick={() => {
                 setTableData(pre => ({

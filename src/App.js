@@ -149,18 +149,7 @@ function App() {
         <BrowserRouter>
           <Routes>
 
-            <Route
-              path="/super-admin"
-              element={
-                <SuperAdmin
-                  userEmail={userEmail}
-                  userRole={userRole}
-                  userJdesc={userJdesc}
-                  user={user}
-                />
-              }
-            />
-            <Route
+            {/* <Route
               path="/ingredients"
               element={
                 <Ingredients
@@ -170,9 +159,9 @@ function App() {
                   user={user}
                 />
               }
-            />
+            /> */}
 
-            <Route
+            {/* <Route
               path="/product-detail-info"
               element={
                 <ProductVendorInformation
@@ -182,7 +171,7 @@ function App() {
                   user={user}
                 />
               }
-            />
+            /> */}
 
             {/* SECURE LOGIN ROUTE */}
             <Route
@@ -338,6 +327,43 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="*" element={<p>Page Not found</p>} />
             {/* <Route path="/demo" element={<Demo />} /> */}
+
+            {/* Admin Routes START*/}
+            <Route
+              element={
+                <NestedRoutes
+                  isAllowedNested={
+                    !!userRole &&
+                    userRole === "admin"
+                  }
+                />
+              }
+            >
+              <Route
+                path="/ingredients"
+                element={
+                  <Ingredients
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/product-detail-info"
+                element={
+                  <ProductVendorInformation
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+            </Route>
+            {/* Admin Routes END */}
+
           </Routes>
         </BrowserRouter>
       </div>

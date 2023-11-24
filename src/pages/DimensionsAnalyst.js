@@ -11,6 +11,7 @@ import Paper from "@mui/material/Paper";
 import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
 import HeaderSignOut from "../components/header/HeaderSignOut";
 import {
+  Alert,
   Box,
   Button,
   ButtonGroup,
@@ -47,6 +48,7 @@ function DimensionsAnalyst(props) {
   const [displayProductDataType, setDisplayProductDataType] = useState('images');
 
   const [productID, setProductID] = useState("");
+  const [productSKU, setProductSKU] = useState("");
   const [images, setImages] = useState([]);
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
@@ -85,12 +87,16 @@ function DimensionsAnalyst(props) {
               setPreviewImage(data.images[0]);
               // setPreviewImage(images.dimen[0]);
               setProductID(data.id);
+              setProductSKU(data.sku);
               setDataLoaded(true);
               setDataLoading(false)
             })
             .catch((error) => {
               // Handle any errors
               console.error("Error:", error);
+              setDataLoaded(false);
+              setDataLoading(false)
+              window.alert('No Job Found');
             });
         })
         .catch((error) => {
@@ -138,6 +144,7 @@ function DimensionsAnalyst(props) {
               setImages([])
               setWeightAndDimentions({})
               setProductID("")
+              setProductSKU("")
               setPreviewImage("")
               setDataLoading(false);
               setDataLoaded(false);
@@ -236,6 +243,7 @@ function DimensionsAnalyst(props) {
               setImages([])
               setWeightAndDimentions({})
               setProductID("")
+              setProductSKU("")
               setPreviewImage("")
               setDataLoading(false);
               setDataLoaded(false);
@@ -822,6 +830,11 @@ function DimensionsAnalyst(props) {
 
             <Stack direction="column" gap={1}>
 
+              <Stack direction='column' justifyContent='center'>
+                <Typography fontWeight='bold' fontSize='small' textAlign='center'>Product SKU</Typography>
+                <Typography fontWeight='bold' fontSize='small' style={{ wordBreak: 'break-all' }} color='#d32f2f'>{productSKU}</Typography>
+              </Stack>
+
               <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
                 style={{ backgroundColor: '#ffeb9c', color: 'black', width: 'fit-content', alignSelf: 'end' }}
@@ -842,6 +855,7 @@ function DimensionsAnalyst(props) {
                   </Stack>
                 </Button>
               </Stack>
+
               <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
               <Button variant="contained"
                 onClick={executePythonScript}

@@ -36,13 +36,14 @@ import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
 
 function DimensionalQAAnalyst(props) {
-  const [pageLoading, setPageLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [dataSubmitting, setDataSubmitting] = useState(false);
   const [displayProductDataType, setDisplayProductDataType] = useState('images');
 
   const [productID, setProductID] = useState("");
+  const [productNotUnderstandable, setProductNotUnderstandable] = useState(false);
+  const [productSKU, setProductSKU] = useState("");
   const [productPropertiesOld, setProductPropertiesOld] = useState({
     ironPipeRows: [],
     woodenSheetRows: [],
@@ -96,7 +97,6 @@ function DimensionalQAAnalyst(props) {
 
               setImages(data.images);
               setWeightAndDimentions(data["weight and dimensions"]);
-              setPageLoading(false);
               setPreviewImage(data.images[0]);
               // setPreviewImage(images.dimen[0]);
               setProductProperties({
@@ -105,16 +105,24 @@ function DimensionalQAAnalyst(props) {
               });
               setProductPropertiesOld(data.productProperties);
               setProductID(data.id);
+              setProductSKU(data.sku);
+              setProductNotUnderstandable(data.change === 'not_understandable' ? true : false)
+
               setFilters((pre) => ({
                 ...pre,
                 buildMaterial: data.buildMaterial,
+                qaScorecard: data.change === 'not_understandable' ? 'major' : 'QA Scorecard'
               }));
+
               setDataLoaded(true);
               setDataLoading(false)
             })
             .catch((error) => {
               // Handle any errors
               console.error("Error:", error);
+              setDataLoaded(false);
+              setDataLoading(false)
+              window.alert('No Job Found');
             });
         })
         .catch((error) => {
@@ -160,12 +168,15 @@ function DimensionalQAAnalyst(props) {
               setImages([])
               setWeightAndDimentions({})
               setProductID("")
+              setProductSKU("")
               setPreviewImage("")
+              setProductNotUnderstandable(false)
               setDataLoading(false);
               setDataLoaded(false);
               setFilters((pre) => ({
                 ...pre,
-                buildMaterial: "IRON PIPE / MDF"
+                buildMaterial: "IRON PIPE / MDF",
+                qaScorecard: 'QA Scorecard'
               }))
               setProductProperties({
                 ironPipeRows: [
@@ -256,12 +267,15 @@ function DimensionalQAAnalyst(props) {
               setImages([])
               setWeightAndDimentions({})
               setProductID("")
+              setProductSKU("")
               setPreviewImage("")
+              setProductNotUnderstandable(false)
               setDataLoading(false);
               setDataLoaded(false);
               setFilters((pre) => ({
                 ...pre,
-                buildMaterial: "IRON PIPE / MDF"
+                buildMaterial: "IRON PIPE / MDF",
+                qaScorecard: 'QA Scorecard'
               }))
               setProductProperties({
                 ironPipeRows: [
@@ -687,6 +701,11 @@ function DimensionalQAAnalyst(props) {
 
             <Stack direction="column" gap={1}>
 
+              <Stack direction='column' justifyContent='center'>
+                <Typography fontWeight='bold' fontSize='small' textAlign='center'>Product SKU</Typography>
+                <Typography fontWeight='bold' fontSize='small' style={{ wordBreak: 'break-all' }} color='#d32f2f'>{productSKU}</Typography>
+              </Stack>
+
               <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
                 style={{ backgroundColor: '#ffeb9c', color: 'black', width: 'fit-content', alignSelf: 'end' }}
@@ -718,22 +737,6 @@ function DimensionalQAAnalyst(props) {
                   {dataLoading && <CircularProgress size={26} color="warning" />}
                 </Stack>
               </Button>
-
-              <Stack direction="column">
-                <Typography>Report Issue</Typography>
-
-                <Button variant="outlined"
-                  onClick={executePythonScriptSubmit_not_understandable}
-                  disabled={!dataLoaded}
-
-                  color="error"
-                >
-                  <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontWeight='bold'>Not Understandable</Typography>
-                    {dataSubmitting && <CircularProgress size={26} color="info" />}
-                  </Stack>
-                </Button>
-              </Stack>
 
               <Stack direction="column">
                 <Typography>Build Material</Typography>
@@ -789,32 +792,54 @@ function DimensionalQAAnalyst(props) {
             </Stack>
 
 
-            <Stack direction='column' alignSelf='end' width='100%' gap={1}>
-              <Select
-                size='small'
-                disabled={!dataLoaded}
-                value={filters.qaScorecard}
-                onChange={(e) => {
-                  setFilters(pre => ({
-                    ...pre,
-                    qaScorecard: e.target.value
-                  }))
-                }}
-                name='buildMaterial'
-              >
-                <MenuItem value="QA Scorecard">QA Scorecard</MenuItem>
-                <MenuItem value="minor">MINOR Fixes</MenuItem>
-                <MenuItem value="major">MAJOR Fixes</MenuItem>
-                <MenuItem value="passed">100% [QA Passed]</MenuItem>
-              </Select>
-              <Button variant='outlined' color="error" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded} onClick={executePythonScriptSubmit}>
-                submit
-              </Button>
+            <Stack direction='column' alignSelf='end' width='100%' gap={2}>
+
+
+              <Stack direction="column">
+                {productNotUnderstandable ? <Typography textAlign='center' fontWeight='bold' fontStyle='italic'>Product Decleared as Not Understandable</Typography> : <Typography >Report Issue</Typography>}
+
+                <Button variant="outlined"
+                  onClick={executePythonScriptSubmit_not_understandable}
+                  disabled={!dataLoaded}
+
+                  color="error"
+                >
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontSize='small' fontWeight='bold'>Mark as Not Understandable</Typography>
+                    {dataSubmitting && <CircularProgress size={26} color="info" />}
+                  </Stack>
+                </Button>
+              </Stack>
+
+              <Typography textAlign='center'>or</Typography>
+              <Stack direction='column' alignSelf='end' width='100%' gap={1}>
+                <Select
+                  size='small'
+                  disabled={!dataLoaded}
+                  value={filters.qaScorecard}
+                  onChange={(e) => {
+                    setFilters(pre => ({
+                      ...pre,
+                      qaScorecard: e.target.value
+                    }))
+                  }}
+                  name='buildMaterial'
+                >
+                  {productNotUnderstandable === false && <MenuItem MenuItem value="QA Scorecard">QA Scorecard</MenuItem>}
+                  {productNotUnderstandable === false && <MenuItem value="minor">MINOR Fixes</MenuItem>}
+                  <MenuItem value="major">MAJOR Fixes</MenuItem>
+                  {productNotUnderstandable === false && <MenuItem value="passed">100% [QA Passed]</MenuItem>}
+                </Select>
+                <Button variant='outlined' color="error" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded} onClick={executePythonScriptSubmit}>
+                  submit
+                </Button>
+              </Stack>
+
             </Stack>
           </Stack>
 
         </Stack>
-      </Wrapper>
+      </Wrapper >
     </>
   );
 }

@@ -15,6 +15,8 @@ import ManagerExtractorTable from "../tables/ManagerExtractorTable";
 import ManagerQAExtractorTable from "../tables/ManagerQAExtractorTable";
 import ManagerDimensionsTable from "../tables/ManagerDimensionsTable";
 import ManagerQADimensionsTable from "../tables/ManagerQADimensionsTable";
+import SuperAdmin from "../../pages/SuperAdmin";
+import SuperAdminSidebar from "../sidebar/SuperAdminSidebar";
 
 const DashboardPage = (props) => {
   const navigate = useNavigate();
@@ -37,7 +39,10 @@ const DashboardPage = (props) => {
         userRole={props.userRole}
         userJdesc={props.userJdesc}
       />
-      <Sidebar />
+
+
+      {props.userRole === "admin" ? <SuperAdminSidebar /> : <Sidebar />}
+
       <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
         <div className="row align-items-center">
           <div className="col-lg-6 text-center text-lg-start">
@@ -56,15 +61,27 @@ const DashboardPage = (props) => {
           </div>
         </div>
         {/* TABLES */}
-        {props.userJdesc === "Extractor" && (<ExtractorTable user={props.user} />)}
-        {props.userJdesc === "QA-Extractor" && (<ExtractorQATable user={props.user} />)}
-        {props.userJdesc === "DimAna" && <DimensionAnalystTable user={props.user} />}
-        {props.userJdesc === "QA-DimAna" && <DimensionQATable user={props.user} />}
-        {props.userRole === "admin" && <AdminTable />}
-        {props.userRole === "manager" && props.userJdesc === "Extractor-Manager" && <ManagerExtractorTable />}
-        {props.userRole === "manager" && props.userJdesc === "QA-Extractor-Manager" && <ManagerQAExtractorTable />}
-        {props.userRole === "manager" && props.userJdesc === "DimAna-Manager" && <ManagerDimensionsTable />}
-        {props.userRole === "manager" && props.userJdesc === "QA-DimAna-Manager" && <ManagerQADimensionsTable />}
+        {props.userRole === "worker" && props.userJdesc === "Extractor" && (<ExtractorTable user={props.user} />)}
+
+        {props.userRole === "worker" && props.userJdesc === "QA-Extractor" && (<ExtractorQATable user={props.user} />)}
+
+        {props.userRole === "worker" && props.userJdesc === "DimAna" && <DimensionAnalystTable user={props.user} />}
+
+        {props.userRole === "worker" && props.userJdesc === "QA-DimAna" && <DimensionQATable user={props.user} />}
+
+
+
+        {props.userRole === "admin" && <SuperAdmin />}
+
+
+        {props.userRole === "manager" && props.userJdesc === "Extractor" && <ManagerExtractorTable />}
+
+        {props.userRole === "manager" && props.userJdesc === "QA-Extractor" && <ManagerQAExtractorTable />}
+
+        {props.userRole === "manager" && props.userJdesc === "DimAna" && <ManagerDimensionsTable />}
+
+        {props.userRole === "manager" && props.userJdesc === "QA-DimAna" && <ManagerQADimensionsTable />}
+
       </div>
     </>
   );
