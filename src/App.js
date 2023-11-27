@@ -1,3 +1,6 @@
+import 'bootstrap/dist/css/bootstrap.css';
+
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Container from "@mui/material/Container";

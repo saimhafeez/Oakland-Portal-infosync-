@@ -366,7 +366,8 @@ function ProductVendorInformation(props) {
 
 
         productDetails.productProperties.ironPipeRows.map((pipe, index) => {
-            const ingredient = (ingredients.data[`Iron Pipe [${pipe.pipeTypeNSize}]`])
+
+            const ingredient = (ingredients.data[`Iron Pipe`])[pipe.pipeTypeNSize]
             console.log('ingredient - iron pipe', ingredient);
             const unitCost = parseInt(ingredient.price) / parseInt(ingredient.totalQuantity)
             console.log('unitCost', unitCost);

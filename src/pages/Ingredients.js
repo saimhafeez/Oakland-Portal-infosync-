@@ -35,6 +35,35 @@ function Ingredients(props) {
     const [activeFilter, setActiveFilter] = useState('active')
     const [isLoading, setIsLoading] = useState(true);
 
+
+    // =================================================
+    const [currentlyAdding, setCurrentlyAdding] = useState("");
+    const [currentlyEditing, setCurrentlyEditing] = useState("");
+    const [newIronPipe, setNewIronPipe] = useState({
+        type: '',
+        size: '',
+        price: 0,
+        unit: '',
+        totalQuantity: 0,
+        status: 'active'
+    })
+
+    const [newWoodSheet, setNewWoodSheet] = useState({
+        price: 0,
+        unit: '',
+        totalQuantity: 0,
+        status: 'active'
+    })
+
+    const [newWoodTape, setNewWoodTape] = useState({
+        price: 0,
+        unit: '',
+        totalQuantity: 0,
+        status: 'active'
+    })
+    // =================================================
+
+
     const [newIngredient, setNewIngredient] = useState({
         name: '',
         price: 0,
@@ -43,102 +72,7 @@ function Ingredients(props) {
         status: 'active'
     })
 
-    const [ing, setIng] = useState({
-        "Iron Pipe": {
-            material: 'Pipe Type & Size',
-            data: {
-                "Square  01'' x 01''": {
-                    price: 2000,
-                    unit: "ft",
-                    totalQuantity: 20,
-                    status: "active"
-                },
-                "Square  0.5'' x 0.5''": {
-                    price: 5000,
-                    unit: "ft",
-                    totalQuantity: 10,
-                    status: "active"
-                },
-                "Solid Wood  1.5'' x 1.5''": {
-                    price: 7000,
-                    unit: "ft",
-                    totalQuantity: 30,
-                    status: "active"
-                }
-            },
-            formula: 'length * qty * (price / totalQuantity)'
-        },
-        "Wooden Sheet": {
-            material: '',
-            data: {
-                price: 5000,
-                unit: "sq.ft",
-                totalQuantity: 32,
-                status: "active"
-            }
-        },
-        "Wood Tape": {
-            material: '',
-            data: {
-                price: 5000,
-                unit: "sq.ft",
-                totalQuantity: 32,
-                status: "active"
-            }
-        },
-        "Misc": {
-            material: 'Item, Size',
-            data: {
-                "Wheel, Small": {
-                    price: 1000,
-                    unit: "sq.ft",
-                    totalQuantity: 32,
-                    status: "active"
-                },
-                "Wheel, Big": {
-                    price: 5000,
-                    unit: "sq.ft",
-                    totalQuantity: 32,
-                    status: "active"
-                },
-                "Cross Rods, Small": {
-                    price: 5000,
-                    unit: "sq.ft",
-                    totalQuantity: 32,
-                    status: "active"
-                },
-                "Cross Rods, Big": {
-                    price: 5000,
-                    unit: "sq.ft",
-                    totalQuantity: 32,
-                    status: "active"
-                },
-                "Guaze, Small": {
-                    price: 5000,
-                    unit: "sq.ft",
-                    totalQuantity: 32,
-                    status: "active"
-                },
-                "Guaze, Big": {
-                    price: 5000,
-                    unit: "sq.ft",
-                    totalQuantity: 32,
-                    status: "active"
-                },
-            }
-        },
-    })
-
-    const [currentlyEditing, setCurrentlyEditing] = useState(null)
-
     const [ingredients, setIngredients] = useState()
-
-    function deleteItem(data, itemName) {
-        if (data.hasOwnProperty(itemName)) {
-            delete data[itemName];
-        }
-        return { ...data };
-    }
 
     const getIngredientsCount = () => {
         var count = 0;
@@ -148,92 +82,51 @@ function Ingredients(props) {
                 count++
             }
         })
-
         return count
-
     }
 
     const fetchIngredients = async () => {
         setIsLoading(true)
         fetch('http://139.144.30.86:8000/api/ingredients').then((res) => res.json()).then((result) => {
             console.log('result', result);
-            setIngredients(result.data)
-            setIsLoading(false)
+            // setIngredients(result.data)
+            // setIsLoading(false)
         })
+
+        const { data } = await fetch('http://139.144.30.86:8000/api/ingredients').then((res) => res.json());
+
+        console.log('result', data);
+        setIngredients(data)
+        setIsLoading(false)
     }
 
     useEffect(() => {
         fetchIngredients()
     }, [])
 
-    const addIngredient = () => {
-        if (currentlyEditing != null) {
-            const ingredient = {
-                ...ingredients,
-                [currentlyEditing.name]: {
-                    price: newIngredient.price,
-                    unit: newIngredient.unit,
-                    totalQuantity: newIngredient.totalQuantity,
-                    status: newIngredient.status
-                }
-            }
-            fetch('http://139.144.30.86:8000/api/ingredients', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(ingredient),
-            }).then((res) => res.json()).then((result) => {
-                console.log('submitted', result);
-                setNewIngredient({
-                    name: '',
-                    price: '',
-                    unit: '',
-                    totalQuantity: 0,
-                    status: 'active'
-                })
-                setOpen(false)
-                setCurrentlyEditing(null)
-                fetchIngredients()
-            })
-        } else {
-            const ingredient = {
-                ...ingredients,
-                [newIngredient.name]: {
-                    price: newIngredient.price,
-                    unit: newIngredient.unit,
-                    totalQuantity: newIngredient.totalQuantity,
-                    status: newIngredient.status
-                }
-            }
-            fetch('http://139.144.30.86:8000/api/ingredients', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(ingredient),
-            }).then((res) => res.json()).then((result) => {
-                console.log('submitted', result);
-                setNewIngredient({
-                    name: '',
-                    price: '',
-                    unit: '',
-                    totalQuantity: 0,
-                    status: 'active'
-                })
-                setOpen(false)
-                fetchIngredients()
-            })
-        }
+    const editIronPipeIngredient = (ironPipe) => {
+        setCurrentlyAdding("Iron Pipe")
+        setCurrentlyEditing(ironPipe.toString())
+        setNewIronPipe({
+            type: ironPipe.split('  ')[0],
+            size: ironPipe.split('  ')[1],
+            price: (ingredients['Iron Pipe'])[ironPipe].price,
+            unit: (ingredients['Iron Pipe'])[ironPipe].unit,
+            totalQuantity: (ingredients['Iron Pipe'])[ironPipe].totalQuantity
+        })
+        setOpen(true)
     }
 
-    const updateIngredientStatus = (_ingredient, status) => {
+    const changeActiveStatusIronPipeIngredient = (ironPipe, status) => {
 
-        const ingredient = {
+        const newData = {
             ...ingredients,
-            [_ingredient]: {
-                ...ingredients[_ingredient],
-                status: status
+            ['Iron Pipe']: {
+                ...(ingredients['Iron Pipe']),
+                [ironPipe]: {
+                    ...((ingredients['Iron Pipe'])[ironPipe]),
+                    status
+                }
             }
         }
 
@@ -242,17 +135,305 @@ function Ingredients(props) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(ingredient),
+            body: JSON.stringify(newData),
         }).then((res) => res.json()).then((result) => {
             console.log('submitted', result);
-            setNewIngredient({
-                name: '',
-                price: '',
-                unit: '',
-                totalQuantity: 0,
-                status: 'active'
-            })
-            setOpen(false)
+            fetchIngredients()
+        })
+        // console.log('original', (ingredients["Iron Pipe"])[currentlyEditing])
+        // console.log('changes', changes);
+    }
+
+    const saveIronPipeIngredient = () => {
+        const changes = {
+            [`${newIronPipe.type}  ${newIronPipe.size}`]: {
+                price: parseInt(newIronPipe.price),
+                status: currentlyEditing ? ((ingredients["Iron Pipe"])[currentlyEditing]).status : newIronPipe.status,
+                unit: newIronPipe.unit,
+                totalQuantity: parseInt(newIronPipe.totalQuantity)
+            }
+        }
+        console.log('original', (ingredients["Iron Pipe"])[currentlyEditing])
+        console.log('changes', changes);
+
+        const newData = {
+            ...ingredients,
+            ['Iron Pipe']: {
+                ...(ingredients['Iron Pipe']),
+                ...changes
+            }
+        }
+
+        setOpen(false)
+        setCurrentlyAdding(null)
+        setCurrentlyEditing(null)
+        setNewIronPipe({
+            type: '',
+            size: '',
+            price: 0,
+            unit: '',
+            totalQuantity: 0,
+            status: 'active'
+        })
+
+        fetch('http://139.144.30.86:8000/api/ingredients', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newData),
+        }).then((res) => res.json()).then((result) => {
+            console.log('submitted', result);
+            fetchIngredients()
+        })
+
+        // Object.keys(ingredients["Iron Pipe"]).map((ironPipe) => {
+        //     if ((ingredients["Iron Pipe"])[ironPipe] !== currentlyAdding) {
+        //         return (ingredients["Iron Pipe"])[ironPipe]
+        //     } else {
+        //         return {
+        //             [`${newIronPipe.type}  ${newIronPipe.size}`]: {
+        //                 price: newIronPipe.price,
+        //                 status: newIronPipe.status,
+        //                 unit: newIronPipe.unit,
+        //                 totalQuantity: newIronPipe.totalQuantity
+        //             }
+        //         }
+        //     }
+        // })
+
+        console.log('newData', newData);
+
+    }
+
+    // useEffect(() => {
+
+    //     const ingredient = {
+    //         "Iron Pipe": {
+    //             "Square  01'' x 01''": {
+    //                 "price": 2000,
+    //                 "unit": "ft",
+    //                 "totalQuantity": 20,
+    //                 "status": "active"
+    //             },
+    //             "Square  0.5'' x 0.5''": {
+    //                 "price": 5000,
+    //                 "unit": "ft",
+    //                 "totalQuantity": 10,
+    //                 "status": "active"
+    //             },
+    //             "Solid Wood  1.5'' x 1.5''": {
+    //                 "price": 7000,
+    //                 "unit": "ft",
+    //                 "totalQuantity": 30,
+    //                 "status": "active"
+    //             },
+    //         },
+    //         "Wooden Sheet": {
+    //             "price": 5000,
+    //             "unit": "sq.ft",
+    //             "totalQuantity": 32,
+    //             "status": "active"
+    //         },
+    //         "Wood Tape": {
+    //             "price": 2000,
+    //             "unit": "ft",
+    //             "totalQuantity": 10,
+    //             "status": "active"
+    //         }
+    //     }
+
+    //     fetch('http://139.144.30.86:8000/api/ingredients', {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json"
+    //         },
+    //         body: JSON.stringify(ingredient),
+    //     }).then((res) => res.json()).then((result) => {
+    //         console.log('submitted', result);
+    //     })
+    // })
+
+    const IronPipeModal = () => {
+        return <>
+            <Stack gap={2}>
+                <TextField
+                    label="Type"
+                    variant="outlined"
+                    value={newIronPipe.type}
+                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, type: e.target.value }))}
+                />
+                <TextField
+                    label="Size"
+                    variant="outlined"
+                    value={newIronPipe.size}
+                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, size: e.target.value }))}
+                />
+                <TextField
+                    label="Price"
+                    variant="outlined"
+                    type="number"
+                    value={newIronPipe.price}
+                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, price: e.target.value }))}
+                />
+                <TextField
+                    label="Unit"
+                    variant="outlined"
+                    type="text"
+                    value={newIronPipe.unit}
+                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, unit: e.target.value }))}
+                />
+                <TextField
+                    label="Total Quantity"
+                    variant="outlined"
+                    type="number"
+                    value={newIronPipe.totalQuantity}
+                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, totalQuantity: e.target.value }))}
+                />
+                <Button
+                    onClick={saveIronPipeIngredient}
+                    variant="contained"
+                    style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
+                >
+                    Save
+                </Button>
+            </Stack>
+        </>
+    }
+
+    const editWoodenSheetIngredient = (woodenSheet) => {
+        setCurrentlyAdding("Wooden Sheet")
+        // setCurrentlyEditing(ironPipe.toString())
+        setNewWoodSheet({
+            ...woodenSheet
+        })
+        setOpen(true)
+    }
+
+    const editWoodenTapeIngredient = (woodenTape) => {
+        setCurrentlyAdding("Wood Tape")
+        // setCurrentlyEditing(ironPipe.toString())
+        setNewWoodTape({
+            ...woodenTape
+        })
+        setOpen(true)
+    }
+
+    const saveWoodenSheetIngredient = () => {
+
+        const newData = {
+            ...ingredients,
+            ['Wooden Sheet']: {
+                ...newWoodSheet
+            }
+        }
+
+        setOpen(false)
+        setCurrentlyAdding(null)
+        setCurrentlyEditing(null)
+        setNewWoodSheet({
+            price: 0,
+            unit: '',
+            totalQuantity: 0,
+            status: 'active'
+        })
+
+        fetch('http://139.144.30.86:8000/api/ingredients', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newData),
+        }).then((res) => res.json()).then((result) => {
+            console.log('submitted', result);
+            fetchIngredients()
+        })
+    }
+
+    const saveWoodenTapeIngredient = () => {
+        const newData = {
+            ...ingredients,
+            ['Wood Tape']: {
+                ...newWoodTape
+            }
+        }
+
+        console.log('newData', newData);
+
+        setOpen(false)
+        setCurrentlyAdding(null)
+        setCurrentlyEditing(null)
+        setNewWoodTape({
+            price: 0,
+            unit: '',
+            totalQuantity: 0,
+            status: 'active'
+        })
+
+        fetch('http://139.144.30.86:8000/api/ingredients', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newData),
+        }).then((res) => res.json()).then((result) => {
+            console.log('submitted', result);
+            fetchIngredients()
+        })
+    }
+
+    const WoodenSheetNTapeModal = () => {
+        return <>
+            <Stack gap={2}>
+                <TextField
+                    label="Price"
+                    variant="outlined"
+                    type="number"
+                    value={currentlyAdding === "Wooden Sheet" ? newWoodSheet.price : newWoodTape.price}
+                    onChange={(e) => currentlyAdding === "Wooden Sheet" ? setNewWoodSheet((pre) => ({ ...pre, price: e.target.value })) : setNewWoodTape((pre) => ({ ...pre, price: e.target.value }))}
+                />
+                <TextField
+                    label="Unit"
+                    variant="outlined"
+                    type="text"
+                    value={currentlyAdding === "Wooden Sheet" ? newWoodSheet.unit : newWoodTape.unit}
+                    onChange={(e) => currentlyAdding === "Wooden Sheet" ? setNewWoodSheet((pre) => ({ ...pre, unit: e.target.value })) : setNewWoodTape((pre) => ({ ...pre, unit: e.target.value }))}
+                />
+                <TextField
+                    label="Total Quantity"
+                    variant="outlined"
+                    type="number"
+                    value={currentlyAdding === "Wooden Sheet" ? newWoodSheet.totalQuantity : newWoodTape.totalQuantity}
+                    onChange={(e) => currentlyAdding === "Wooden Sheet" ? setNewWoodSheet((pre) => ({ ...pre, totalQuantity: e.target.value })) : setNewWoodTape((pre) => ({ ...pre, totalQuantity: e.target.value }))}
+                />
+                <Button
+                    onClick={currentlyAdding === "Wooden Sheet" ? saveWoodenSheetIngredient : saveWoodenTapeIngredient}
+                    variant="contained"
+                    style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
+                >
+                    Save
+                </Button>
+            </Stack>
+        </>
+    }
+
+    const changeActiveStatusWoodenSheetNTapeIngredient = (ing, status) => {
+        const newData = {
+            ...ingredients,
+            [ing]: {
+                ...(ingredients[ing]),
+                status,
+            }
+        }
+
+        fetch('http://139.144.30.86:8000/api/ingredients', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newData),
+        }).then((res) => res.json()).then((result) => {
+            console.log('submitted', result);
             fetchIngredients()
         })
     }
@@ -277,6 +458,14 @@ function Ingredients(props) {
                         totalQuantity: 0,
                         status: 'active'
                     })
+                    setNewIronPipe({
+                        name: '',
+                        price: 0,
+                        unit: '',
+                        totalQuantity: 0,
+                        status: 'active'
+                    })
+                    setCurrentlyAdding(null)
                 }}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
@@ -292,233 +481,260 @@ function Ingredients(props) {
                     boxShadow: 24,
                     p: 4,
                 }}>
-                    <Stack gap={2}>
-                        <TextField
-                            label="Name"
-                            variant="outlined"
-                            value={newIngredient.name}
-                            onChange={(e) => setNewIngredient((pre) => ({ ...pre, name: e.target.value }))}
-                        />
-                        <TextField
-                            label="Price"
-                            variant="outlined"
-                            type="number"
-                            value={newIngredient.price}
-                            onChange={(e) => setNewIngredient((pre) => ({ ...pre, price: e.target.value }))}
-                        />
-                        <TextField
-                            label="Unit"
-                            variant="outlined"
-                            type="text"
-                            value={newIngredient.unit}
-                            onChange={(e) => setNewIngredient((pre) => ({ ...pre, unit: e.target.value }))}
-                        />
-                        <TextField
-                            label="Total Quantity"
-                            variant="outlined"
-                            type="number"
-                            value={newIngredient.totalQuantity}
-                            onChange={(e) => setNewIngredient((pre) => ({ ...pre, totalQuantity: e.target.value }))}
-                        />
-                        <Button
-                            onClick={addIngredient}
-                            variant="contained"
-                            style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
-                        >
-                            Save
-                        </Button>
-                    </Stack>
+                    {currentlyAdding === 'Iron Pipe' && IronPipeModal()}
+                    {(currentlyAdding === 'Wooden Sheet' || currentlyAdding === 'Wood Tape') && WoodenSheetNTapeModal()}
                 </Box>
             </Modal>
 
-            <Wrapper>
+            <Stack direction='row' justifyContent='center'>
+                <Stack direction='row' margin='10px' gap={1}>
+                    <Button
+                        onClick={() => setActiveFilter('active')}
+                        variant={activeFilter === 'active' ? "contained" : "outlined"}
 
-                {
-                    isLoading && <CircularProgress />
-                }
+                    >
+                        <Typography>Active</Typography>
+                    </Button>
+                    <Button
+                        onClick={() => setActiveFilter('inactive')}
+                        variant={activeFilter === 'inactive' ? "contained" : "outlined"}
 
-                {
-                    !isLoading && <Stack>
-                        <Stack direction='row' justifyContent='space-between'>
-                            <div></div>
-                            <Stack direction='row' margin='10px' gap={1}>
+                    >
+                        <Typography>Inactive</Typography>
+                    </Button>
+                    <Button
+                        onClick={() => setActiveFilter('trash')}
+                        variant={activeFilter === 'trash' ? "contained" : "outlined"}
+
+                    >
+                        <Typography>Trash</Typography>
+                    </Button>
+                </Stack>
+            </Stack>
+            {
+                isLoading ? <CircularProgress /> :
+                    <>
+                        <div className="px-5">
+                            <h2>Iron Pipe</h2>
+                            {/* <div className=" d-flex flex-row justify-content-center">
+
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div> */}
+                            <div className="mt-1">
                                 <Button
-                                    onClick={() => setActiveFilter('active')}
-                                    variant={activeFilter === 'active' ? "contained" : "outlined"}
-
+                                    onClick={() => {
+                                        setCurrentlyAdding("Iron Pipe")
+                                        setOpen(true)
+                                    }}
+                                    variant="contained"
+                                    style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
                                 >
-                                    <Typography>Active</Typography>
+                                    <AddCircleOutlineIcon />
+                                    <Typography>Add New Iron Pipe Material</Typography>
                                 </Button>
-                                <Button
-                                    onClick={() => setActiveFilter('inactive')}
-                                    variant={activeFilter === 'inactive' ? "contained" : "outlined"}
-
-                                >
-                                    <Typography>Inactive</Typography>
-                                </Button>
-                                <Button
-                                    onClick={() => setActiveFilter('trash')}
-                                    variant={activeFilter === 'trash' ? "contained" : "outlined"}
-
-                                >
-                                    <Typography>Trash</Typography>
-                                </Button>
-                            </Stack>
-
-                            <Button
-                                onClick={() => setOpen(true)}
-                                variant="contained"
-                                style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
-                            >
-                                <AddCircleOutlineIcon />
-                                <Typography>Add New Ingredient</Typography>
-                            </Button>
-                        </Stack>
-
-                        {getIngredientsCount() === 0 ?
-                            <Stack style={{ textAlign: 'center' }}>
-
-                                <Typography style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Not Record Found</Typography>
-
-                            </Stack>
-                            :
-                            <TableContainer TableContainer className="cost-table" component={Paper} variant="outlined" style={{ width: '80%', alignSelf: 'center' }}>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow className="cell-head">
-                                            <TableCell>Raw Material</TableCell>
-                                            <TableCell>Total Quantity</TableCell>
-                                            <TableCell>Price</TableCell>
-                                            <TableCell>Unit Cost</TableCell>
-                                            <TableCell>Actions</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {Object.keys(ingredients).map((ingredient, index) => {
-                                            console.log(ingredient);
-                                            if (ingredients[ingredient].status === activeFilter) {
-                                                return (
-                                                    <TableRow>
-                                                        <TableCell width='30%'>
-                                                            <TextField
-                                                                size="small"
+                                <table className="table table-bordered table-striped align-middle text-center">
+                                    <thead className="table-info">
+                                        <tr>
+                                            <th>Pipe Type & Size</th>
+                                            <th>Total Quantity</th>
+                                            <th>Price</th>
+                                            <th>Unit Cost</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {ingredients && Object.keys(ingredients["Iron Pipe"]).map((ironPipe, index) => {
+                                            if (activeFilter === (ingredients["Iron Pipe"])[ironPipe].status) {
+                                                return <tr tr key={index}>
+                                                    <td>{ironPipe}</td>
+                                                    <td>
+                                                        {(ingredients["Iron Pipe"])[ironPipe].totalQuantity} {(ingredients["Iron Pipe"])[ironPipe].unit}
+                                                    </td>
+                                                    <td>
+                                                        {(ingredients["Iron Pipe"])[ironPipe].price}
+                                                    </td>
+                                                    <td>{((ingredients["Iron Pipe"])[ironPipe].price / (ingredients["Iron Pipe"])[ironPipe].totalQuantity).toFixed(2)}</td>
+                                                    <td>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            {activeFilter !== 'trash' && <Button
+                                                                // style={{ width: '75px', height: '100%' }}
+                                                                color="secondary"
                                                                 variant="outlined"
-                                                                value={ingredient}
-                                                                className="cell-disabled"
-                                                                disabled
-                                                                fullWidth
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell width='14%'>
-                                                            <TextField
-                                                                size="small"
+                                                                style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                                onClick={() => editIronPipeIngredient(ironPipe)}
+                                                            >
+                                                                Edit
+                                                            </Button>}
+                                                            {activeFilter !== 'trash' && <Button
+                                                                // style={{ width: '75px', height: '100%' }}
+                                                                color="info"
                                                                 variant="outlined"
-                                                                value={
-                                                                    `${ingredients[ingredient].totalQuantity} ${ingredients[ingredient].unit}`
-                                                                }
-                                                                className="cell-disabled"
-                                                                disabled
-                                                                fullWidth
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell width='14%'>
-                                                            <TextField
-                                                                size="small"
+                                                                onClick={() => changeActiveStatusIronPipeIngredient(ironPipe, activeFilter === 'inactive' ? "active" : "inactive")}
+                                                                style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}>
+                                                                {activeFilter === 'inactive' ? 'Set Active' : 'Set Inactive'}
+                                                            </Button>}
+                                                            <Button
+                                                                // style={{ width: '75px', height: '100%' }}
+                                                                color="error"
                                                                 variant="outlined"
-                                                                value={ingredients[ingredient].price}
-                                                                className="cell-disabled"
-                                                                disabled
-                                                                fullWidth
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell width='14%'>
-                                                            <TextField
-                                                                size="small"
-                                                                variant="outlined"
-                                                                value={(ingredients[ingredient].price / ingredients[ingredient].totalQuantity).toFixed(2)}
-                                                                className="cell-disabled"
-                                                                disabled
-                                                                fullWidth
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell width='14%'>
-                                                            <Stack direction='row' justifyContent='center'>
-                                                                {activeFilter !== 'trash' && <Button
-                                                                    // style={{ width: '75px', height: '100%' }}
-                                                                    color="secondary"
-                                                                    variant="outlined"
-                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
-                                                                    onClick={() => {
-                                                                        setCurrentlyEditing({
-                                                                            name: ingredient,
-                                                                            ...ingredients[ingredient]
-                                                                        })
-                                                                        setNewIngredient({
-                                                                            name: ingredient,
-                                                                            ...ingredients[ingredient]
-                                                                        })
-                                                                        setOpen(true)
-                                                                    }}>Edit</Button>}
-                                                                {activeFilter !== 'trash' && <Button
-                                                                    // style={{ width: '75px', height: '100%' }}
-                                                                    color="info"
-                                                                    variant="outlined"
-                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
-                                                                    onClick={() => {
-                                                                        updateIngredientStatus(ingredient, activeFilter === 'inactive' ? 'active' : 'inactive')
-                                                                        // setIngredients(pre => ({
-                                                                        //     ...pre,
-                                                                        //     [ingredient]: {
-                                                                        //         ...ingredients[ingredient],
-                                                                        //         status: activeFilter === 'inactive' ? 'active' : 'inactive'
-                                                                        //     }
-                                                                        // }))
-                                                                    }}>
-                                                                    {activeFilter === 'inactive' ? 'Set Active' : 'Set Inactive'}
-                                                                </Button>}
-                                                                <Button
-                                                                    // style={{ width: '75px', height: '100%' }}
-                                                                    color="error"
-                                                                    variant="outlined"
-                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
-                                                                    onClick={() => {
-                                                                        // setIngredients(deleteItem(ingredients, ingredient))
-                                                                        updateIngredientStatus(ingredient, activeFilter !== 'trash' ?
-                                                                            'trash' : 'active')
-
-                                                                        // activeFilter !== 'trash' ? setIngredients(pre => ({
-                                                                        //     ...pre,
-                                                                        //     [ingredient]: {
-                                                                        //         ...ingredients[ingredient],
-                                                                        //         status: 'trash'
-                                                                        //     }
-                                                                        // })) : setIngredients(pre => ({
-                                                                        //     ...pre,
-                                                                        //     [ingredient]: {
-                                                                        //         ...ingredients[ingredient],
-                                                                        //         status: 'active'
-                                                                        //     }
-                                                                        // }))
-
-                                                                        // console.log(deleteItem(ingredients, ingredient));
-                                                                    }}>
-                                                                    {activeFilter !== 'trash' ? 'Remove' : 'Restore'}
-                                                                </Button>
-                                                            </Stack>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
+                                                                onClick={() => activeFilter !== 'trash' ? changeActiveStatusIronPipeIngredient(ironPipe, "trash") : changeActiveStatusIronPipeIngredient(ironPipe, "active")}
+                                                                style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                            >
+                                                                {activeFilter !== 'trash' ? 'Remove' : 'Restore'}
+                                                            </Button>
+                                                        </Stack>
+                                                    </td>
+                                                </tr>
                                             }
                                         })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div >
 
-                        }
+                        <div className="px-5">
+                            <h2>Wooden Sheet</h2>
+                            {/* <div className=" d-flex flex-row justify-content-center">
 
-                    </Stack>
-                }
-            </Wrapper >
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div> */}
+                            <div className="mt-1">
+                                {/* <Button
+                        onClick={() => setOpen(true)}
+                        variant="contained"
+                        style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
+                    >
+                        <AddCircleOutlineIcon />
+                        <Typography>Add New Ingredient</Typography>
+                    </Button> */}
+                                <table className="table table-bordered table-striped align-middle text-center">
+                                    <thead className="table-info">
+                                        <tr>
+                                            <th>Total Quantity</th>
+                                            <th>Price</th>
+                                            <th>Unit Cost</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {ingredients && ingredients["Wooden Sheet"].status === activeFilter && <tr tr>
+                                            <td>
+                                                {ingredients["Wooden Sheet"].totalQuantity} {ingredients["Wooden Sheet"].unit}
+                                            </td>
+                                            <td>
+                                                {ingredients["Wooden Sheet"].price}
+                                            </td>
+                                            <td>{(ingredients["Wooden Sheet"].price / ingredients["Wooden Sheet"].totalQuantity).toFixed(2)}</td>
+                                            <td>
+                                                <Stack direction='row' justifyContent='center'>
+                                                    {activeFilter !== 'trash' && <Button
+                                                        // style={{ width: '75px', height: '100%' }}
+                                                        color="secondary"
+                                                        variant="outlined"
+                                                        onClick={() => editWoodenSheetIngredient(ingredients["Wooden Sheet"])}
+                                                        style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                    >Edit</Button>}
+                                                    {activeFilter !== 'trash' && <Button
+                                                        // style={{ width: '75px', height: '100%' }}
+                                                        color="info"
+                                                        variant="outlined"
+                                                        onClick={() => changeActiveStatusWoodenSheetNTapeIngredient('Wooden Sheet', activeFilter === 'inactive' ? "active" : "inactive")}
+                                                        style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}>
+                                                        {activeFilter === 'inactive' ? 'Set Active' : 'Set Inactive'}
+                                                    </Button>}
+                                                    <Button
+                                                        // style={{ width: '75px', height: '100%' }}
+                                                        color="error"
+                                                        variant="outlined"
+                                                        onClick={() => changeActiveStatusWoodenSheetNTapeIngredient('Wooden Sheet', activeFilter === 'trash' ? "active" : "trash")}
+                                                        style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {activeFilter !== 'trash' ? 'Remove' : 'Restore'}
+                                                    </Button>
+                                                </Stack>
+                                            </td>
+                                        </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div >
+
+                        <div className="px-5">
+                            <h2>Wood Tape</h2>
+                            {/* <div className=" d-flex flex-row justify-content-center">
+
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div> */}
+                            <div className="mt-1">
+                                {/* <Button
+                        onClick={() => setOpen(true)}
+                        variant="contained"
+                        style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
+                    >
+                        <AddCircleOutlineIcon />
+                        <Typography>Add New Ingredient</Typography>
+                    </Button> */}
+                                <table className="table table-bordered table-striped align-middle text-center">
+                                    <thead className="table-info">
+                                        <tr>
+                                            <th>Total Quantity</th>
+                                            <th>Price</th>
+                                            <th>Unit Cost</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {ingredients && ingredients["Wood Tape"].status === activeFilter && <tr tr>
+                                            <td>
+                                                {ingredients["Wood Tape"].totalQuantity} {ingredients["Wood Tape"].unit}
+                                            </td>
+                                            <td>
+                                                {ingredients["Wood Tape"].price}
+                                            </td>
+                                            <td>{(ingredients["Wood Tape"].price / ingredients["Wood Tape"].totalQuantity).toFixed(2)}</td>
+                                            <td>
+                                                <Stack direction='row' justifyContent='center'>
+                                                    {activeFilter !== 'trash' && <Button
+                                                        // style={{ width: '75px', height: '100%' }}
+                                                        color="secondary"
+                                                        variant="outlined"
+                                                        onClick={() => editWoodenTapeIngredient(ingredients["Wood Tape"])}
+                                                        style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                    >Edit</Button>}
+                                                    {activeFilter !== 'trash' && <Button
+                                                        // style={{ width: '75px', height: '100%' }}
+                                                        color="info"
+                                                        variant="outlined"
+                                                        onClick={() => changeActiveStatusWoodenSheetNTapeIngredient('Wood Tape', activeFilter === 'inactive' ? "active" : "inactive")}
+                                                        style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}>
+                                                        {activeFilter === 'inactive' ? 'Set Active' : 'Set Inactive'}
+                                                    </Button>}
+                                                    <Button
+                                                        // style={{ width: '75px', height: '100%' }}
+                                                        color="error"
+                                                        variant="outlined"
+                                                        onClick={() => changeActiveStatusWoodenSheetNTapeIngredient('Wood Tape', activeFilter === 'trash' ? "active" : "trash")}
+                                                        style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {activeFilter !== 'trash' ? 'Remove' : 'Restore'}
+                                                    </Button>
+                                                </Stack>
+                                            </td>
+                                        </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div >
+                    </>
+            }
 
         </>
     );
@@ -632,3 +848,77 @@ export default Ingredients
 //         status: 'trash'
 //     }
 // }
+
+// {
+//     "Iron Pipe [Square  01'' x 01'']": {
+//       "price": "4000",
+//       "unit": "ft",
+//       "totalQuantity": 20,
+//       "status": "active"
+//     },
+//     "Iron Pipe [Square  0.5'' x 0.5'']": {
+//       "price": "5000",
+//       "unit": "ft",
+//       "totalQuantity": "10",
+//       "status": "active"
+//     },
+//     "Iron Pipe [Solid Wood  1.5'' x 1.5'']": {
+//       "price": "7000",
+//       "unit": "ft",
+//       "totalQuantity": "30",
+//       "status": "active"
+//     },
+//     "Wooden Sheet": {
+//       "price": "5000",
+//       "unit": "sq.ft",
+//       "totalQuantity": "32",
+//       "status": "active"
+//     },
+//     "Wood Tape": {
+//       "price": "2000",
+//       "unit": "ft",
+//       "totalQuantity": "10",
+//       "status": "active"
+//     },
+//     "Iron Pipe [Square  2'' x 2'']": {
+//       "price": "500",
+//       "unit": "ft",
+//       "totalQuantity": "5000",
+//       "status": "active"
+//     }
+//   }
+
+const newFor = {
+    "Iron Pipe": {
+        "Square  01'' x 01''": {
+            "price": 2000,
+            "unit": "ft",
+            "totalQuantity": 20,
+            "status": "active"
+        },
+        "Square  0.5'' x 0.5''": {
+            "price": 5000,
+            "unit": "ft",
+            "totalQuantity": 10,
+            "status": "active"
+        },
+        "Solid Wood  1.5'' x 1.5''": {
+            "price": 7000,
+            "unit": "ft",
+            "totalQuantity": 30,
+            "status": "active"
+        },
+    },
+    "Wooden Sheet": {
+        "price": 5000,
+        "unit": "sq.ft",
+        "totalQuantity": 32,
+        "status": "active"
+    },
+    "Wood Tape": {
+        "price": 2000,
+        "unit": "ft",
+        "totalQuantity": 10,
+        "status": "active"
+    }
+}

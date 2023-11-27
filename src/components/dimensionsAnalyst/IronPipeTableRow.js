@@ -37,19 +37,15 @@ function IronPipeTableRow({
   const fetchIngredients = async () => {
     fetch('http://139.144.30.86:8000/api/ingredients').then((res) => res.json()).then((result) => {
       console.log('result', result);
-      // setIngredients(result.data)
-      console.log(result.data);
+      // // setIngredients(result.data)
+      // console.log(result.data);
       const ing = []
-      Object.keys(result.data).map((type, index) => {
-        if (type.includes('Iron Pipe') && result.data[type].status === 'active') {
-          // setIngredients((pre) => ({
-          //   ...pre,
-
-          // }))
-          ing.push(type.split('[')[1].split(']')[0])
+      Object.keys(result.data["Iron Pipe"]).map((type, index) => {
+        console.log(type);
+        if ((result.data["Iron Pipe"])[type].status === 'active') {
+          ing.push(type)
         }
       });
-      console.log('ing', ing);
       setIngredients(ing)
     })
   }

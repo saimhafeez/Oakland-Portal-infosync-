@@ -819,7 +819,7 @@ const ExtractionQA = (props) => {
         </div>
 
         {/* radio selector  */}
-        <div className="container mt-5 set-fixed-bar">
+        <div className="mt-5 set-fixed-bar">
           {/* <div>
             <h2>JSON Result:</h2>
             <pre>{jsonResult}</pre>
