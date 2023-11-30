@@ -1,3 +1,4 @@
+import { Link } from "@mui/material";
 import React from "react";
 
 const SuperAdminSidebar = () => {
@@ -5,11 +6,20 @@ const SuperAdminSidebar = () => {
         <>
             <div className="set-max-width-252">
                 <ul>
+                    <li>
+                        <Link href="/dashboard" color='white' underline="hover">
+                            Dashboard
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="/ingredients" color='white' underline="hover">
+                            Ingredients Management
+                        </Link>
+                    </li>
                     <li>User Management</li>
                     <li>Role Assigning</li>
                     <li>Rejected NADs</li>
                     <li>All QA Passed</li>
-                    <li>Ingredients Management</li>
                 </ul>
             </div>
         </>

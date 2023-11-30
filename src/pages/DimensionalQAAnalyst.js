@@ -63,7 +63,7 @@ function DimensionalQAAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://139.144.30.86:8000/api/get_job";
+          const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`;
           console.log(token);
           // Make an authenticated API request
 
@@ -144,7 +144,7 @@ function DimensionalQAAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://139.144.30.86:8000/api/submit";
+          const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
           console.log(token);
           // Make an authenticated API request
           fetch(apiUrl, {
@@ -243,7 +243,7 @@ function DimensionalQAAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = "http://139.144.30.86:8000/api/submit";
+          const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
           console.log(token);
           // Make an authenticated API request
           fetch(apiUrl, {

@@ -54,7 +54,7 @@ function ProductVendorInformation(props) {
 
     useEffect(() => {
 
-        const apiURL_ingredients = `http://139.144.30.86:8000/api/ingredients`
+        const apiURL_ingredients = `${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`
 
         // getIngredients
         fetch(apiURL_ingredients).then(res => res.json()).then((result) => {
@@ -64,7 +64,7 @@ function ProductVendorInformation(props) {
                 isLoading: false,
                 data: result.data
             })
-        })
+        }).catch((e) => console.log('error occured', e))
 
         const urlParams = new URLSearchParams(window.location.search);
         const pid = urlParams.get('pid');
@@ -72,7 +72,7 @@ function ProductVendorInformation(props) {
         const lt = (new Date().getTime() / 1000).toFixed(0)
 
 
-        const apiURL_product = `http://139.144.30.86:8000/api/super_table?job=${job}&lt=${lt}&gt=0&page=0&productID=${pid}`
+        const apiURL_product = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${job}&lt=${lt}&gt=0&page=0&productID=${pid}`
 
         fetch(apiURL_product).then(res => res.json()).then((result) => {
             // console.log(result);
@@ -80,7 +80,7 @@ function ProductVendorInformation(props) {
             // const tableID = '65563f7f5004aca63257416a'
             const tableID = result.data[0].tableID
 
-            const apiURL_table = `http://139.144.30.86:8000/api/table/${tableID}`
+            const apiURL_table = `${process.env.REACT_APP_SERVER_ADDRESS}/api/table/${tableID}`
 
             fetch(apiURL_table).then(res => res.json()).then((result) => {
                 // console.log(result);
@@ -96,8 +96,8 @@ function ProductVendorInformation(props) {
                     ...productDetails,
                     ...result.data.final
                 });
-            })
-        })
+            }).catch((e) => console.log('error occured', e))
+        }).catch((e) => console.log('error occured', e))
 
     }, []);
 

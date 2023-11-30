@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./extraction.css";
 // import extractImages from "../res/Extraction.json";
 
@@ -152,7 +152,7 @@ const ExtractionQA = (props) => {
         .then((token) => {
           console.log(token);
           // Define the API endpoint URL
-          var apiUrl = 'http://139.144.30.86:8000/api/get_job'
+          var apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`
           if (e.target.id === 'btn-go' && searchQuery !== '') {
             apiUrl = apiUrl + `?url=${encodeURIComponent(searchQuery)}`
           }
@@ -355,34 +355,34 @@ const ExtractionQA = (props) => {
 
   // Enable/disable buttons based on the selected button
   const handleButtonClick = (buttonName) => {
-    if (buttonName === "Thumbnail") {
-      setIsThumbnailButtonDisabled(hasThumbnailImagesMapped);
-    } else if (buttonName === "Dimensional") {
-      setIsDimensionalButtonDisabled(hasDimensionalImagesMapped);
-    } else if (buttonName === "WhiteBg") {
-      setIsWhiteBgButtonDisabled(hasWhiteBgImagesMapped);
-    } else if (buttonName === "Ordinary") {
-      setIsOrdinaryButtonDisabled(hasOrdinaryImagesMapped);
-    } else if (buttonName === "Discard") {
-      setIsDiscardButtonDisabled(hasDiscardImagesMapped);
-    }
+    // if (buttonName === "Thumbnail") {
+    //   setIsThumbnailButtonDisabled(hasThumbnailImagesMapped);
+    // } else if (buttonName === "Dimensional") {
+    //   setIsDimensionalButtonDisabled(hasDimensionalImagesMapped);
+    // } else if (buttonName === "WhiteBg") {
+    //   setIsWhiteBgButtonDisabled(hasWhiteBgImagesMapped);
+    // } else if (buttonName === "Ordinary") {
+    //   setIsOrdinaryButtonDisabled(hasOrdinaryImagesMapped);
+    // } else if (buttonName === "Discard") {
+    //   setIsDiscardButtonDisabled(hasDiscardImagesMapped);
+    // }
 
     setSelectedButton(buttonName);
-    setIsThumbnailButtonDisabled(
-      buttonName === "Thumbnail" || selectedThumbnail.length > 0
-    );
-    setIsDimensionalButtonDisabled(
-      buttonName === "Dimensional" || selectedDimentional.length > 0
-    );
-    setIsWhiteBgButtonDisabled(
-      buttonName === "WhiteBg" || selectedWhiteBg.length > 0
-    );
-    setIsOrdinaryButtonDisabled(
-      buttonName === "Ordinary" || selectedOrdinary.length > 0
-    );
-    setIsDiscardButtonDisabled(
-      buttonName === "Discard" || selectedDiscard.length > 0
-    );
+    // setIsThumbnailButtonDisabled(
+    //   buttonName === "Thumbnail" || selectedThumbnail.length > 0
+    // );
+    // setIsDimensionalButtonDisabled(
+    //   buttonName === "Dimensional" || selectedDimentional.length > 0
+    // );
+    // setIsWhiteBgButtonDisabled(
+    //   buttonName === "WhiteBg" || selectedWhiteBg.length > 0
+    // );
+    // setIsOrdinaryButtonDisabled(
+    //   buttonName === "Ordinary" || selectedOrdinary.length > 0
+    // );
+    // setIsDiscardButtonDisabled(
+    //   buttonName === "Discard" || selectedDiscard.length > 0
+    // );
   };
 
   // reset all state in edit button logic
@@ -449,83 +449,109 @@ const ExtractionQA = (props) => {
   };
   const selectMyItem = (item) => {
     setSelectedImage(item);
-    if (selectedButton === "Thumbnail") {
-      if (!hasThumbnailImagesMapped) {
-        // Allow selection of thumbnail images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          setImageSelectedIds([item]);
-        }
-      }
-    } else if (selectedButton === "Dimensional") {
-      if (!hasDimensionalImagesMapped) {
-        // Allow selection of dimensional images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          // setImageSelectedIds([item]);
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
-    } else if (selectedButton === "WhiteBg") {
-      if (!hasWhiteBgImagesMapped) {
-        // Allow selection of dimensional images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          // setImageSelectedIds([item]);
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
-    } else if (selectedButton === "Ordinary") {
-      if (!hasOrdinaryImagesMapped) {
-        // Allow selection of ordinary images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          // setImageSelectedIds([item]);
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
-    } else if (selectedButton === "Discard") {
-      if (!hasDiscardImagesMapped) {
-        // Allow selection of discard images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
+    if (imageSelectedIds.includes(item)) {
+      setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    } else {
+      // setImageSelectedIds([item]);
+      setImageSelectedIds([...imageSelectedIds, item]);
     }
+
+
+    // if (selectedButton === "Thumbnail") {
+    //   if (!hasThumbnailImagesMapped) {
+    //     // Allow selection of thumbnail images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       setImageSelectedIds([item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "Dimensional") {
+    //   if (!hasDimensionalImagesMapped) {
+    //     // Allow selection of dimensional images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       // setImageSelectedIds([item]);
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "WhiteBg") {
+    //   if (!hasWhiteBgImagesMapped) {
+    //     // Allow selection of dimensional images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       // setImageSelectedIds([item]);
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "Ordinary") {
+    //   if (!hasOrdinaryImagesMapped) {
+    //     // Allow selection of ordinary images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       // setImageSelectedIds([item]);
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "Discard") {
+    //   if (!hasDiscardImagesMapped) {
+    //     // Allow selection of discard images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // }
   };
 
   // logic of submit button for show and delete images
 
   const submitData = () => {
-    if (selectedButton === "Thumbnail") {
-      setHasThumbnailImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "Dimensional") {
-      setHasDimensionalImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "WhiteBg") {
-      setHasWhiteBgImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "Ordinary") {
-      setHasOrdinaryImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "Discard") {
-      setHasDiscardImagesMapped(true);
-      setImageSelectedIds([]);
+    // if (selectedButton === "Thumbnail") {
+    //   setHasThumbnailImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "Dimensional") {
+    //   setHasDimensionalImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "WhiteBg") {
+    //   setHasWhiteBgImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "Ordinary") {
+    //   setHasOrdinaryImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "Discard") {
+    //   setHasDiscardImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // }
+
+    if (imageSelectedIds.length === 0) {
+      return
     }
+
     if (selectedButton === "") {
       return;
     }
 
+    if (selectedButton === "Thumbnail") {
+      setHasThumbnailImagesMapped(true);
+    } else if (selectedButton === "Dimensional") {
+      setHasDimensionalImagesMapped(true);
+    } else if (selectedButton === "WhiteBg") {
+      setHasWhiteBgImagesMapped(true);
+    } else if (selectedButton === "Ordinary") {
+      setHasOrdinaryImagesMapped(true);
+    } else if (selectedButton === "Discard") {
+      setHasDiscardImagesMapped(true);
+    }
+
     if (selectedButton === "Thumbnail" && selectedThumbnail.length == 0) {
-      setImageSelectedIds(imageSelectedIds.filter((id) => id == id));
-      setSelectedThumbnail(imageSelectedIds);
+      // setImageSelectedIds(imageSelectedIds.filter((id) => id == id));
+      // setSelectedThumbnail(imageSelectedIds);
+      setSelectedThumbnail([imageSelectedIds[0]]);
     } else if (selectedButton === "Dimensional") {
       setSelectedDimentional([...selectedDimentional, ...imageSelectedIds]);
     } else if (selectedButton === "WhiteBg") {
@@ -536,9 +562,31 @@ const ExtractionQA = (props) => {
       setSelectedDiscard([...selectedDiscard, ...imageSelectedIds]);
     }
 
-    setAllImages(allImages.filter((itm) => !imageSelectedIds.includes(itm)));
-
+    if (selectedButton === "Thumbnail") {
+      if (selectedThumbnail.length > 0) {
+        console.log('saim', allImages, selectedThumbnail);
+        const newOne = allImages.filter((itm) => imageSelectedIds[0].id !== itm.id)
+        setAllImages([...newOne, ...selectedThumbnail])
+      } else {
+        setAllImages(allImages.filter((itm) => imageSelectedIds[0].id !== itm.id));
+      }
+    } else {
+      setAllImages(allImages.filter((itm) => !imageSelectedIds.includes(itm)));
+    }
     setImageSelectedIds([]);
+    if (selectedButton === "Thumbnail") {
+      setIsThumbnailButtonDisabled(true);
+    } else if (selectedButton === "Dimensional") {
+      setIsDimensionalButtonDisabled(true);
+    } else if (selectedButton === "WhiteBg") {
+      setIsWhiteBgButtonDisabled(true);
+    } else if (selectedButton === "Ordinary") {
+      setIsOrdinaryButtonDisabled(true);
+    } else if (selectedButton === "Discard") {
+      setIsDiscardButtonDisabled(true);
+    }
+    setSelectedButton("")
+
   };
 
   // convert sorted data into json form
@@ -601,7 +649,7 @@ const ExtractionQA = (props) => {
     // console.log(JSON.stringify(structuredData, null, 2));
 
     // Define the API endpoint and data payload
-    const apiUrl = "http://139.144.30.86:8000/api/submit";
+    const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
     // Send the POST request
     fetch(apiUrl, {
       method: "POST",
@@ -692,7 +740,7 @@ const ExtractionQA = (props) => {
     // console.log(JSON.stringify(structuredData, null, 2));
 
     // Define the API endpoint and data payload
-    const apiUrl = "http://139.144.30.86:8000/api/submit";
+    const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
     // Send the POST request
     fetch(apiUrl, {
       method: "POST",
@@ -748,6 +796,36 @@ const ExtractionQA = (props) => {
       });
   };
 
+  useEffect(() => {
+    if (selectedThumbnail.length === 0) {
+      setIsThumbnailButtonDisabled(false)
+    }
+  }, [selectedThumbnail])
+
+  useEffect(() => {
+    if (selectedDimentional.length === 0) {
+      setIsDimensionalButtonDisabled(false)
+    }
+  }, [selectedDimentional])
+
+  useEffect(() => {
+    if (selectedWhiteBg.length === 0) {
+      setIsWhiteBgButtonDisabled(false)
+    }
+  }, [selectedWhiteBg])
+
+  useEffect(() => {
+    if (selectedOrdinary.length === 0) {
+      setIsOrdinaryButtonDisabled(false)
+    }
+  }, [selectedOrdinary])
+
+  useEffect(() => {
+    if (selectedDiscard.length === 0) {
+      setIsDiscardButtonDisabled(false)
+    }
+  }, [selectedDiscard])
+
   return (
     <>
       {/* {console.log("updated data", );} */}
@@ -761,16 +839,16 @@ const ExtractionQA = (props) => {
         {/* header section  */}
         <div className="header">
           <div className="set-container">
-            <div className="row d-flex align-items-center justify-content-between">
-              <div className="col-lg-2 col-md-4">
+            <div className="d-flex align-items-center justify-content-between">
+              {/* <div className="col-lg-2 col-md-4">
                 <h3>QA Extraction</h3>
-              </div>
-              <div className="col-lg-3 col-md-4 text-center">
+              </div> */}
+              <div className="">
                 <h6>
                   Product ID: <strong>{showId}</strong>
                 </h6>
               </div>
-              <div className="col-lg-4 col-md-4 text-end">
+              <div className="">
                 {notDoable === true ? (
                   <button className="set-btn-red d-block w-100">
                     Sorter declare as a Not A Doable Product!!!
@@ -788,7 +866,7 @@ const ExtractionQA = (props) => {
                   Fetch Data
                 </button>
               </div> */}
-              <div className="col-lg-3 col-md-4 text-end d-flex flex-column gap-0">
+              <div className="d-flex flex-row align-items-center gap-1">
                 <div className="d-flex">
                   <input className="w-100 px-3" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
                   <button
@@ -804,7 +882,7 @@ const ExtractionQA = (props) => {
                 <h5 className="m-0" style={{ textAlign: 'center' }}>or</h5>
                 <button
                   id="btn-fetch"
-                  className="btn d-block w-100 btn-fetch"
+                  className="btn d-block btn-fetch"
                   onClick={executePythonScript}
                   disabled={isFetchButtonDisabled}
                 >
@@ -820,59 +898,98 @@ const ExtractionQA = (props) => {
 
         {/* radio selector  */}
         <div className="mt-5 set-fixed-bar">
-          {/* <div>
+          <div className="inside-div">
+            {/* <div>
             <h2>JSON Result:</h2>
             <pre>{jsonResult}</pre>
           </div> */}
-          <button
-            onClick={() => handleButtonClick("Thumbnail")}
-            className={`select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
-              }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
-            disabled={isThumbnailButtonDisabled}
-          >
-            Thumbnail
-          </button>
+            <button
+              onClick={() => handleButtonClick("Thumbnail")}
+              className={`fw-bold select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
+                }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
+              disabled={isThumbnailButtonDisabled}
+            >
+              Thumbnail
+            </button>
 
-          <button
-            onClick={() => handleButtonClick("Dimensional")}
-            className={`select-btn btn ${selectedButton === "Dimensional" ? "active-button" : ""
-              }${isDimensionalButtonDisabled ? " button-disable" : ""}`}
-            disabled={isDimensionalButtonDisabled}
-          >
-            Dimensional
-          </button>
-          <button
-            onClick={() => handleButtonClick("WhiteBg")}
-            className={`select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
-              }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
-            disabled={isWhiteBgButtonDisabled}
-          >
-            WhiteBg
-          </button>
-          <button
-            onClick={() => handleButtonClick("Ordinary")}
-            className={`select-btn btn btn-equ ${selectedButton === "Ordinary" ? "active-button" : ""
-              }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
-            disabled={isOrdinaryButtonDisabled}
-          >
-            Ordinary
-          </button>
+            <button
+              onClick={() => handleButtonClick("Dimensional")}
+              className={`fw-bold select-btn btn ${selectedButton === "Dimensional" ? "active-button" : ""
+                }${isDimensionalButtonDisabled ? " button-disable" : ""}`}
+              disabled={isDimensionalButtonDisabled}
+            >
+              Dimensional
+            </button>
+            <button
+              onClick={() => handleButtonClick("WhiteBg")}
+              className={`fw-bold select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
+                }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
+              disabled={isWhiteBgButtonDisabled}
+            >
+              WhiteBg
+            </button>
+            <button
+              onClick={() => handleButtonClick("Ordinary")}
+              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Ordinary" ? "active-button" : ""
+                }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
+              disabled={isOrdinaryButtonDisabled}
+            >
+              Ordinary
+            </button>
 
-          <button
-            onClick={() => handleButtonClick("Discard")}
-            className={`select-btn btn btn-equ ${selectedButton === "Discard" ? "active-button" : ""
-              }${isDiscardButtonDisabled ? " button-disable" : ""}`}
-            disabled={isDiscardButtonDisabled}
-          >
-            Discard
-          </button>
-          <button
-            onClick={submitData}
-            className="submit mt-3"
-            id="set-btn-submit"
-          >
-            Submit
-          </button>
+            <button
+              onClick={() => handleButtonClick("Discard")}
+              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Discard" ? "active-button" : ""
+                }${isDiscardButtonDisabled ? " button-disable" : ""}`}
+              disabled={isDiscardButtonDisabled}
+            >
+              Discard
+            </button>
+            <button
+              onClick={submitData}
+              className="submit mt-3"
+              id="set-btn-submit"
+            >
+              Submit
+            </button>
+          </div>
+
+          <div className="d-flex flex-column justify-content-center align-items-center mt-4 mb-5">
+            <div className="set-select-all me-3">
+              <select value={selectedOption} onChange={handleSelectChange}>
+                {(!notDoable || notDoable === false) && <option value="passed">100% [QA passed]</option>}
+                {(!notDoable || notDoable === false) && <option value="minor">Minor Fixes</option>}
+                <option value="major">Major Fixes</option>
+              </select>
+            </div>
+            {visibilityNotDoable === true && notDoable === true ? (
+              <>
+                <button className="set-btn-red" onClick={executeNoDoAbleScript}>
+                  Not Doable
+                </button>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+              </>
+            ) : (
+              ""
+            )}
+            {mergeSelectedDefaultThumbnail.length > 0 ||
+              mergeSelectedDefaultDimension.length > 0 ||
+              selectedWhiteBg.length > 0 ||
+              selectedOrdinary.length > 0 ||
+              selectedDiscard.length > 0 ? (
+              <button
+                onClick={jsonData}
+                className={`w-100 btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}
+                disabled={!areAllImagesSorted()}
+              >
+                COMPLETED
+              </button>
+            ) : (
+              <button className={`w-100 btn-danger disabled}`} disabled>
+                COMPLETED
+              </button>
+            )}
+          </div>
         </div>
 
         {/* all images map in ui  */}
@@ -880,7 +997,7 @@ const ExtractionQA = (props) => {
         <div className="container">
           <div className="row">
             {allImages.map((item) => (
-              <div className="col-md-3 mt-4" key={item.id}>
+              <div className="mt-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
                 <div
                   className={`card img-fluid ${imageSelectedIds.includes(item) ? "selected-image" : ""
                     }`}
@@ -1643,7 +1760,7 @@ const ExtractionQA = (props) => {
           </div>
         </div> */}
 
-        <div className="d-flex justify-content-center align-items-center text-end mt-4 mb-5">
+        {/* <div className="d-flex justify-content-center align-items-center text-end mt-4 mb-5">
           <div className="set-select-all me-3">
             <select value={selectedOption} onChange={handleSelectChange}>
               {(!notDoable || notDoable === false) && <option value="passed">100% [QA passed]</option>}
@@ -1678,7 +1795,7 @@ const ExtractionQA = (props) => {
               Sorted Data in Json
             </button>
           )}
-        </div>
+        </div> */}
         <footer>
           <div className="col-lg-12">
             <div className="footer-left">

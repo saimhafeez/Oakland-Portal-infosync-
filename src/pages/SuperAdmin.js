@@ -108,7 +108,8 @@ function SuperAdmin(props) {
                 const indexB = sortOrder.indexOf(b.jdesc);
                 return indexA - indexB;
             }).map(async (manager) => {
-                const result = await fetch(`http://139.144.30.86:8000/api/stats?job=${manager.jdesc}&lt=${lt}&gt=0`).then((res) => res.json())
+                const result = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/stats?job=${manager.jdesc}&lt=${lt}&gt=0`).then((res) => res.json()).catch((e) => console.log('error occured', e))
+
                 const attempted = result.attempts;
                 var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
                 var not_understandable = manager.jdesc.includes('Extractor') ? result.rejects : 0
@@ -156,7 +157,7 @@ function SuperAdmin(props) {
                 const indexB = sortOrder.indexOf(b.jdesc);
                 return indexA - indexB;
             }).map(async (worker) => {
-                const result = await fetch(`http://139.144.30.86:8000/api/stats?job=${worker.jdesc}&uid=${worker.id}&lt=${lt}`).then((res) => res.json())
+                const result = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/stats?job=${worker.jdesc}&uid=${worker.id}&lt=${lt}`).then((res) => res.json()).catch((e) => console.log('error occured', e))
 
                 const attempted = result.attempts;
                 var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
@@ -186,7 +187,7 @@ function SuperAdmin(props) {
         }))
 
         const lt = (new Date().getTime() / 1000).toFixed(0)
-        const apiURL = `http://139.144.30.86:8000/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}`
+        const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}`
 
         fetch(apiURL).then((res) => res.json()).then((result) => {
 
@@ -200,7 +201,7 @@ function SuperAdmin(props) {
                 totalPages: result.total_pages
             }))
 
-        })
+        }).catch((e) => console.log('error occured', e))
     }
 
     useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./extraction.css";
 // import extractImages from "../res/Extraction.json";
 
@@ -95,7 +95,7 @@ const Extraction = (props) => {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          var apiUrl = 'http://139.144.30.86:8000/api/get_job'
+          var apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`
           if (e.target.id === 'btn-go' && searchQuery !== '') {
             apiUrl = apiUrl + `?url=${encodeURIComponent(searchQuery)}`
           }
@@ -249,34 +249,9 @@ const Extraction = (props) => {
 
   // Enable/disable buttons based on the selected button
   const handleButtonClick = (buttonName) => {
-    if (buttonName === "Thumbnail") {
-      setIsThumbnailButtonDisabled(hasThumbnailImagesMapped);
-    } else if (buttonName === "Dimensional") {
-      setIsDimensionalButtonDisabled(hasDimensionalImagesMapped);
-    } else if (buttonName === "WhiteBg") {
-      setIsWhiteBgButtonDisabled(hasWhiteBgImagesMapped);
-    } else if (buttonName === "Ordinary") {
-      setIsOrdinaryButtonDisabled(hasOrdinaryImagesMapped);
-    } else if (buttonName === "Discard") {
-      setIsDiscardButtonDisabled(hasDiscardImagesMapped);
-    }
 
     setSelectedButton(buttonName);
-    setIsThumbnailButtonDisabled(
-      buttonName === "Thumbnail" || selectedThumbnail.length > 0
-    );
-    setIsDimensionalButtonDisabled(
-      buttonName === "Dimensional" || selectedDimentional.length > 0
-    );
-    setIsWhiteBgButtonDisabled(
-      buttonName === "WhiteBg" || selectedWhiteBg.length > 0
-    );
-    setIsOrdinaryButtonDisabled(
-      buttonName === "Ordinary" || selectedOrdinary.length > 0
-    );
-    setIsDiscardButtonDisabled(
-      buttonName === "Discard" || selectedDiscard.length > 0
-    );
+
   };
 
   // reset all state in edit button logic
@@ -365,83 +340,110 @@ const Extraction = (props) => {
   };
   const selectMyItem = (item) => {
     setSelectedImage(item);
-    if (selectedButton === "Thumbnail") {
-      if (!hasThumbnailImagesMapped) {
-        // Allow selection of thumbnail images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          setImageSelectedIds([item]);
-        }
-      }
-    } else if (selectedButton === "Dimensional") {
-      if (!hasDimensionalImagesMapped) {
-        // Allow selection of dimensional images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          // setImageSelectedIds([item]);
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
-    } else if (selectedButton === "WhiteBg") {
-      if (!hasWhiteBgImagesMapped) {
-        // Allow selection of dimensional images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          // setImageSelectedIds([item]);
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
-    } else if (selectedButton === "Ordinary") {
-      if (!hasOrdinaryImagesMapped) {
-        // Allow selection of ordinary images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          // setImageSelectedIds([item]);
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
-    } else if (selectedButton === "Discard") {
-      if (!hasDiscardImagesMapped) {
-        // Allow selection of discard images only if they haven't been mapped
-        if (imageSelectedIds.includes(item)) {
-          setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-        } else {
-          setImageSelectedIds([...imageSelectedIds, item]);
-        }
-      }
+
+    if (imageSelectedIds.includes(item)) {
+      setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    } else {
+      // setImageSelectedIds([item]);
+      setImageSelectedIds([...imageSelectedIds, item]);
     }
+
+    // if (selectedButton === "Thumbnail") {
+    //   if (!hasThumbnailImagesMapped) {
+    //     // Allow selection of thumbnail images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       setImageSelectedIds([item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "Dimensional") {
+    //   if (!hasDimensionalImagesMapped) {
+    //     // Allow selection of dimensional images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       // setImageSelectedIds([item]);
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "WhiteBg") {
+    //   if (!hasWhiteBgImagesMapped) {
+    //     // Allow selection of dimensional images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       // setImageSelectedIds([item]);
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "Ordinary") {
+    //   if (!hasOrdinaryImagesMapped) {
+    //     // Allow selection of ordinary images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       // setImageSelectedIds([item]);
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // } else if (selectedButton === "Discard") {
+    //   if (!hasDiscardImagesMapped) {
+    //     // Allow selection of discard images only if they haven't been mapped
+    //     if (imageSelectedIds.includes(item)) {
+    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
+    //     } else {
+    //       setImageSelectedIds([...imageSelectedIds, item]);
+    //     }
+    //   }
+    // }
   };
 
   // logic of submit button for show and delete images
 
   const submitData = () => {
-    if (selectedButton === "Thumbnail") {
-      setHasThumbnailImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "Dimensional") {
-      setHasDimensionalImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "WhiteBg") {
-      setHasWhiteBgImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "Ordinary") {
-      setHasOrdinaryImagesMapped(true);
-      setImageSelectedIds([]);
-    } else if (selectedButton === "Discard") {
-      setHasDiscardImagesMapped(true);
-      setImageSelectedIds([]);
+
+    // if (selectedButton === "Thumbnail") {
+    //   setHasThumbnailImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "Dimensional") {
+    //   setHasDimensionalImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "WhiteBg") {
+    //   setHasWhiteBgImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "Ordinary") {
+    //   setHasOrdinaryImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // } else if (selectedButton === "Discard") {
+    //   setHasDiscardImagesMapped(true);
+    //   setImageSelectedIds([]);
+    // }
+
+    if (imageSelectedIds.length === 0) {
+      return
     }
+    setImageSelectedIds([])
     if (selectedButton === "") {
       return;
     }
 
-    if (selectedButton === "Thumbnail" && selectedThumbnail.length == 0) {
-      setImageSelectedIds(imageSelectedIds.filter((id) => id == id));
-      setSelectedThumbnail(imageSelectedIds);
+    if (selectedButton === "Thumbnail") {
+      setHasThumbnailImagesMapped(true);
+    } else if (selectedButton === "Dimensional") {
+      setHasDimensionalImagesMapped(true);
+    } else if (selectedButton === "WhiteBg") {
+      setHasWhiteBgImagesMapped(true);
+    } else if (selectedButton === "Ordinary") {
+      setHasOrdinaryImagesMapped(true);
+    } else if (selectedButton === "Discard") {
+      setHasDiscardImagesMapped(true);
+    }
+
+    if (selectedButton === "Thumbnail") {
+      // setImageSelectedIds(imageSelectedIds.filter((id) => id == id));
+      setSelectedThumbnail([imageSelectedIds[0]]);
+      console.log('imageSelectedIds', imageSelectedIds, imageSelectedIds[0]);
     } else if (selectedButton === "Dimensional") {
       setSelectedDimentional([...selectedDimentional, ...imageSelectedIds]);
     } else if (selectedButton === "WhiteBg") {
@@ -452,8 +454,47 @@ const Extraction = (props) => {
       setSelectedDiscard([...selectedDiscard, ...imageSelectedIds]);
     }
 
-    setAllImages(allImages.filter((itm) => !imageSelectedIds.includes(itm)));
+    if (selectedButton === "Thumbnail") {
+      if (selectedThumbnail.length > 0) {
+        console.log('saim', allImages, selectedThumbnail);
+        const newOne = allImages.filter((itm) => imageSelectedIds[0].id !== itm.id)
+        setAllImages([...newOne, ...selectedThumbnail])
+      } else {
+        setAllImages(allImages.filter((itm) => imageSelectedIds[0].id !== itm.id));
+      }
+    } else {
+      setAllImages(allImages.filter((itm) => !imageSelectedIds.includes(itm)));
+    }
+
+    setIsThumbnailButtonDisabled(
+      selectedButton === "Thumbnail" || selectedThumbnail.length > 0
+    );
+    setIsDimensionalButtonDisabled(
+      selectedButton === "Dimensional" || selectedDimentional.length > 0
+    );
+    setIsWhiteBgButtonDisabled(
+      selectedButton === "WhiteBg" || selectedWhiteBg.length > 0
+    );
+    setIsOrdinaryButtonDisabled(
+      selectedButton === "Ordinary" || selectedOrdinary.length > 0
+    );
+    setIsDiscardButtonDisabled(
+      selectedButton === "Discard" || selectedDiscard.length > 0
+    );
+
     setImageSelectedIds([]);
+    if (selectedButton === "Thumbnail") {
+      setIsThumbnailButtonDisabled(true);
+    } else if (selectedButton === "Dimensional") {
+      setIsDimensionalButtonDisabled(true);
+    } else if (selectedButton === "WhiteBg") {
+      setIsWhiteBgButtonDisabled(true);
+    } else if (selectedButton === "Ordinary") {
+      setIsOrdinaryButtonDisabled(true);
+    } else if (selectedButton === "Discard") {
+      setIsDiscardButtonDisabled(true);
+    }
+    setSelectedButton("")
   };
 
   // convert sorted data into json form
@@ -513,7 +554,7 @@ const Extraction = (props) => {
     // console.log(JSON.stringify(structuredData, null, 2));
 
     // Define the API endpoint and data payload
-    const apiUrl = "http://139.144.30.86:8000/api/submit";
+    const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
     // const data = {
     //     key1: 'value1',
     //     key2: 'value2'
@@ -590,7 +631,7 @@ const Extraction = (props) => {
     structuredData.unsorted = allImages;
 
     // Define the API endpoint and data payload
-    const apiUrl = "http://139.144.30.86:8000/api/submit";
+    const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
 
     // Send the POST request
     fetch(apiUrl, {
@@ -641,6 +682,43 @@ const Extraction = (props) => {
       });
   };
 
+
+  // const [selectedThumbnail, setSelectedThumbnail] = useState([]);
+  // const [selectedDimentional, setSelectedDimentional] = useState([]);
+  // const [selectedWhiteBg, setSelectedWhiteBg] = useState([]);
+  // const [selectedOrdinary, setSelectedOrdinary] = useState([]);
+
+  useEffect(() => {
+    if (selectedThumbnail.length === 0) {
+      setIsThumbnailButtonDisabled(false)
+    }
+  }, [selectedThumbnail])
+
+  useEffect(() => {
+    if (selectedDimentional.length === 0) {
+      setIsDimensionalButtonDisabled(false)
+    }
+  }, [selectedDimentional])
+
+  useEffect(() => {
+    if (selectedWhiteBg.length === 0) {
+      setIsWhiteBgButtonDisabled(false)
+    }
+  }, [selectedWhiteBg])
+
+  useEffect(() => {
+    if (selectedOrdinary.length === 0) {
+      setIsOrdinaryButtonDisabled(false)
+    }
+  }, [selectedOrdinary])
+
+  useEffect(() => {
+    if (selectedDiscard.length === 0) {
+      setIsDiscardButtonDisabled(false)
+    }
+  }, [selectedDiscard])
+
+
   return (
     <>
       {/* {console.log("updated data", );} */}
@@ -648,16 +726,14 @@ const Extraction = (props) => {
         userEmail={props.userEmail}
         userRole={props.userRole}
         userJdesc={props.userJdesc}
+        user={props.user}
       />
       {/* <Sidebar /> */}
-      <div className="set-right-container">
+      <div className="set-right-container" style={{ position: 'relative' }}>
         {/* header section  */}
         <div className="header">
           <div className="set-container">
-            <div className="row d-flex align-items-center justify-content-between">
-              <div className="col-lg-2 col-md-4">
-                <h3>Extraction</h3>
-              </div>
+            <div className="d-flex flex-row align-items-center justify-content-between">
               {/* <div className="col-lg-4 col-md-4 offset-1 offset-md-0">
                 <div className="search-box d-flex align-items-center justify-content-between">
                   <i className="fa fa-search"></i>
@@ -669,18 +745,18 @@ const Extraction = (props) => {
                   />
                 </div>
               </div> */}
-              <div className="col-lg-4 col-md-4 text-center">
+              <div className="">
                 <h6>
                   Product ID: <strong>{showId}</strong>
                 </h6>
               </div>
-              <div className="col-lg-3 col-md-4 text-end">
+              <div className="">
                 {visibilityNotDoable === true ? (
                   <button
                     className="set-btn-red d-block w-100"
                     onClick={executeNoDoAbleScript}
                   >
-                    Not Doable
+                    Mark as Not Doable and Skip
                   </button>
                 ) : (
                   ""
@@ -695,7 +771,7 @@ const Extraction = (props) => {
                   Fetch Data
                 </button>
               </div> */}
-              <div className="col-lg-3 col-md-4 text-end d-flex flex-column gap-0">
+              <div className="d-flex flex-row align-items-center gap-1">
                 <div className="d-flex">
                   <input className="w-100 px-3" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
                   <button
@@ -711,7 +787,7 @@ const Extraction = (props) => {
                 <h5 className="m-0" style={{ textAlign: 'center' }}>or</h5>
                 <button
                   id="btn-fetch"
-                  className="btn d-block w-100 btn-fetch"
+                  className="btn d-block btn-fetch"
                   onClick={executePythonScript}
                   disabled={isFetchButtonDisabled}
                 >
@@ -727,71 +803,94 @@ const Extraction = (props) => {
 
         {/* radio selector  */}
         <div className="mt-5 set-fixed-bar">
-          {/* <div>
+          <div className="inside-div">
+            {/* <div>
             <h2>JSON Result:</h2>
             <pre>{jsonResult}</pre>
           </div> */}
-          <button
-            onClick={() => handleButtonClick("Thumbnail")}
-            className={`select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
-              }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
-            disabled={isThumbnailButtonDisabled}
-          >
-            Thumbnail
-          </button>
+            <button
+              onClick={() => handleButtonClick("Thumbnail")}
+              className={`fw-bold select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
+                }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
+              disabled={isThumbnailButtonDisabled}
+            >
+              Thumbnail
+            </button>
 
-          <button
-            onClick={() => handleButtonClick("Dimensional")}
-            className={`select-btn btn ${selectedButton === "Dimensional" ? "active-button" : ""
-              }
+            <button
+              onClick={() => handleButtonClick("Dimensional")}
+              className={`fw-bold select-btn btn ${selectedButton === "Dimensional" ? "active-button" : ""
+                }
               ${isDimensionalButtonDisabled ? " button-disable" : ""}`}
-            disabled={isDimensionalButtonDisabled}
-          >
-            Dimensional
-          </button>
-          <button
-            onClick={() => handleButtonClick("WhiteBg")}
-            className={`select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
-              }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
-            disabled={isWhiteBgButtonDisabled}
-          >
-            WhiteBg
-          </button>
-          <button
-            onClick={() => handleButtonClick("Ordinary")}
-            className={`select-btn btn btn-equ ${selectedButton === "Ordinary" ? "active-button" : ""
-              }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
-            disabled={isOrdinaryButtonDisabled}
-          >
-            Ordinary
-          </button>
+              disabled={isDimensionalButtonDisabled}
+            >
+              Dimensional
+            </button>
+            <button
+              onClick={() => handleButtonClick("WhiteBg")}
+              className={`fw-bold select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
+                }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
+              disabled={isWhiteBgButtonDisabled}
+            >
+              WhiteBg
+            </button>
+            <button
+              onClick={() => handleButtonClick("Ordinary")}
+              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Ordinary" ? "active-button" : ""
+                }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
+              disabled={isOrdinaryButtonDisabled}
+            >
+              Ordinary
+            </button>
 
-          <button
-            onClick={() => handleButtonClick("Discard")}
-            className={`select-btn btn btn-equ ${selectedButton === "Discard" ? "active-button" : ""
-              }${isDiscardButtonDisabled ? " button-disable" : ""}`}
-            disabled={isDiscardButtonDisabled}
-          >
-            Discard
-          </button>
-          <button
-            onClick={submitData}
-            className="submit mt-3"
-            id="set-btn-submit"
-          >
-            Submit
-          </button>
+            <button
+              onClick={() => handleButtonClick("Discard")}
+              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Discard" ? "active-button" : ""
+                }${isDiscardButtonDisabled ? " button-disable" : ""}`}
+              disabled={isDiscardButtonDisabled}
+            >
+              Discard
+            </button>
+            <button
+              onClick={submitData}
+              className="submit mt-3"
+              id="set-btn-submit"
+            >
+              Submit
+            </button>
+
+          </div>
+
+          <div className="w-100 mt-5">
+            {mergeSelectedDefaultThumbnail.length > 0 ||
+              mergeSelectedDefaultDimension.length > 0 ||
+              selectedWhiteBg.length > 0 ||
+              selectedOrdinary.length > 0 ||
+              selectedDiscard.length > 0 ? (
+              <button
+                onClick={jsonData}
+                className={`w-100 btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}
+
+                disabled={!areAllImagesSorted()}
+              >
+                COMPLETED
+              </button>
+            ) : (
+              <button className={`btn-danger disabled`} disabled>
+                COMPLETED
+              </button>
+            )}
+          </div>
         </div>
 
         {/* all images map in ui  */}
 
-        <div className="container">
-          <div className="row">
+        <div className="container-fluid">
+          <div className="d-flex gap-2 flex-wrap" style={{ marginRight: "152px" }}>
             {allImages.map((item) => (
-              <div className="col-md-3 mt-4" key={item.id}>
+              <div className="mt-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
                 <div
-                  className={`card img-fluid ${imageSelectedIds.includes(item) ? "selected-image" : ""
-                    }`}
+                  className={`card img-fluid ${imageSelectedIds.includes(item) ? "selected-image" : ""}`}
                   onClick={() => selectMyItem(item)}
                 >
                   <img src={item.src} id={`img-${item.id}`} />
@@ -810,136 +909,140 @@ const Extraction = (props) => {
 
         {/* <h2 className="text-center mb-5">Sorted Data</h2> */}
         {/* thumbnai section images  */}
-        <div className="container-fluid py-3 thumbnail-bg mt-4">
+        <div className="container-fluid py-2 thumbnail-bg mt-4">
           <div className="container">
             <div className="main-div">
               <div className=" row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3">Thumbnail</h2>
+                  <h3 className="m-0 p-0">Thumbnail</h3>
                 </div>
-                <div className="col-12 all-btns">
-                  {selectedThumbnail.length > 0 && selectedImage && (
+                <div className="">
+                  <div>
+                    <div className="all-btns">
+                      {selectedThumbnail.length > 0 && selectedImage && (
+                        <div className="d-flex">
+                          <div>
+                            <h4 className="set-f4">My Selection</h4>
+                          </div>
+                          <div className="ms-3">
+                            <div className="mb btn-click all-btn ">
+                              {isThumbnailEditMode ? (
+                                <>
+                                  <button
+                                    onClick={saveImages}
+                                    className="btn me-3 save"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={() => editImages("Thumbnail")}
+                                    className="btn edit"
+                                  >
+                                    Edit
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => editImages("Thumbnail")}
+                                  className="btn edit"
+                                >
+                                  Edit
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="">
+                      <div className="row">
+                        {selectedThumbnail.map((item) => (
+                          <div className="col-md-2 mb-2" key={item.id}>
+                            <div
+                              className={`card ${isThumbnailEditMode ? "edit-mode" : ""
+                                }`}
+                              onClick={() => selectMyItem(item)}
+                            >
+                              {isThumbnailEditMode && (
+                                <div
+                                  className="cross"
+                                  onClick={() => resetThumbnailImage(item)}
+                                >
+                                  <CancelIcon />
+                                </div>
+                              )}
+                              <img
+                                className="card-img-top img-fluid"
+                                src={item.src}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="">
                     <div className="d-flex">
                       <div>
-                        <h4 className="set-f4">My Selection</h4>
+                        <h4 className="set-f4">Default</h4>
                       </div>
                       <div className="ms-3">
-                        <div className="mb btn-click all-btn ">
-                          {isThumbnailEditMode ? (
+                        {/*  // ! &&&&&&&&&&&&&&&&&&&&&&&&&& ! DEFAULT THUMBNAIL IMAGES METHOS START ******************************************************************* */}
+                        {!isDefaultThumbnailEditMode && (
+                          <button
+                            onClick={() => handleDefaultThumbnailEdit(true)}
+                            className="btn edit d btn-width-auto"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {isDefaultThumbnailEditMode && (
+                          <>
                             <>
                               <button
                                 onClick={saveImages}
-                                className="btn me-3 save"
+                                className="btn me-3 save btn-width-auto"
                               >
                                 Save
                               </button>
                               <button
-                                onClick={() => editImages("Thumbnail")}
-                                className="btn edit"
+                                onClick={() => handleDefaultThumbnailEdit(false)}
+                                className="btn edit btn-width-auto"
                               >
-                                Edit
+                                Cancel
                               </button>
                             </>
-                          ) : (
-                            <button
-                              onClick={() => editImages("Thumbnail")}
-                              className="btn edit"
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-lg-12">
-                  <div className="row">
-                    {selectedThumbnail.map((item) => (
-                      <div className="col-md-3 mb-4" key={item.id}>
-                        <div
-                          className={`card ${isThumbnailEditMode ? "edit-mode" : ""
-                            }`}
-                          onClick={() => selectMyItem(item)}
-                        >
-                          {isThumbnailEditMode && (
-                            <div
-                              className="cross"
-                              onClick={() => resetThumbnailImage(item)}
-                            >
-                              <CancelIcon />
-                            </div>
-                          )}
-                          <img
-                            className="card-img-top img-fluid"
-                            src={item.src}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="col-12">
-                  <div className="d-flex">
-                    <div>
-                      <h4 className="set-f4">Default</h4>
-                    </div>
-                    <div className="ms-3">
-                      {/*  // ! &&&&&&&&&&&&&&&&&&&&&&&&&& ! DEFAULT THUMBNAIL IMAGES METHOS START ******************************************************************* */}
-                      {!isDefaultThumbnailEditMode && (
-                        <button
-                          onClick={() => handleDefaultThumbnailEdit(true)}
-                          className="btn edit d btn-width-auto"
-                        >
-                          Edit
-                        </button>
-                      )}
-                      {isDefaultThumbnailEditMode && (
-                        <>
-                          <>
-                            <button
-                              onClick={saveImages}
-                              className="btn me-3 save btn-width-auto"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => handleDefaultThumbnailEdit(false)}
-                              className="btn edit btn-width-auto"
-                            >
-                              Cancel
-                            </button>
                           </>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/*  // ! &&&&&&&&&&&&&&&&&&&&&&&&&& ! DEFAULT THUMBNAIL IMAGES METHOS END ******************************************************************* */}
-                  <div className="row">
-                    {defaultThumbnail.map((item) => (
-                      <div className="col-md-3 mb-4" key={item.id}>
-                        <div
-                          className={`card ${isDefaultThumbnailEditMode ? "edit-mode" : ""
-                            }`}
-                          onClick={() => selectMyItem(item)}
-                        >
-                          {isDefaultThumbnailEditMode && (
-                            <div
-                              className="cross"
-                              onClick={() => resetDefaultThumbnail(item)}
-                            >
-                              <CancelIcon />
-                            </div>
-                          )}
-                          <img
-                            className="card-img-top img-fluid"
-                            src={item.src}
-                            alt=""
-                          />
-                        </div>
+                        )}
                       </div>
-                    ))}
+                    </div>
+
+                    {/*  // ! &&&&&&&&&&&&&&&&&&&&&&&&&& ! DEFAULT THUMBNAIL IMAGES METHOS END ******************************************************************* */}
+                    <div className="row">
+                      {defaultThumbnail.map((item) => (
+                        <div className="col-md-2 mb-2" key={item.id}>
+                          <div
+                            className={`card ${isDefaultThumbnailEditMode ? "edit-mode" : ""
+                              }`}
+                            onClick={() => selectMyItem(item)}
+                          >
+                            {isDefaultThumbnailEditMode && (
+                              <div
+                                className="cross"
+                                onClick={() => resetDefaultThumbnail(item)}
+                              >
+                                <CancelIcon />
+                              </div>
+                            )}
+                            <img
+                              className="card-img-top img-fluid"
+                              src={item.src}
+                              alt=""
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -947,12 +1050,12 @@ const Extraction = (props) => {
           </div>
         </div>
         {/* dimentional images section  */}
-        <div className="container-fluid py-3 dimensnal-bg">
+        <div className="container-fluid py-1 dimensnal-bg">
           <div className="container">
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3 ">Dimentional</h2>
+                  <h3 className="m-0 p-0">Dimentional</h3>
                 </div>
                 <div className="col-lg-12 all-btns">
                   {selectedDimentional.length > 0 && selectedImage && (
@@ -991,7 +1094,7 @@ const Extraction = (props) => {
                 <div className="col-lg-12">
                   <div className="row">
                     {selectedDimentional.map((item) => (
-                      <div className="col-md-3 mb-4" key={item.id}>
+                      <div className="col-md-2 mb-2" key={item.id}>
                         <div
                           className={`card ${isDimensionalEditMode ? "edit-mode" : ""
                             }`}
@@ -1049,7 +1152,7 @@ const Extraction = (props) => {
                   <div className="row">
                     {defaultDimension
                       ? defaultDimension.map((item) => (
-                        <div className="col-md-3 mb-4" key={item.id}>
+                        <div className="col-md-2 mb-2" key={item.id}>
                           <div
                             className={`card ${isDefaultDimensionEditMode ? "edit-mode" : ""
                               }`}
@@ -1078,12 +1181,12 @@ const Extraction = (props) => {
           </div>
         </div>
         {/* white bg section  */}
-        <div className="container-fluid py-3 white-bg">
+        <div className="container-fluid py-1 white-bg">
           <div className="container">
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3 ">White BG</h2>
+                  <h3 className="m-0 p-0">White BG</h3>
                 </div>
                 <div className="col-lg-12 all-btns">
                   {selectedWhiteBg.length > 0 && selectedImage && (
@@ -1122,7 +1225,7 @@ const Extraction = (props) => {
                 <div className="col-lg-12">
                   <div className="row">
                     {selectedWhiteBg.map((item) => (
-                      <div className="col-md-3 mb-4" key={item.id}>
+                      <div className="col-md-2 mb-2" key={item.id}>
                         <div
                           className={`card ${isWhiteBgEditMode ? "edit-mode" : ""
                             }`}
@@ -1150,12 +1253,12 @@ const Extraction = (props) => {
           </div>
         </div>
         {/* ordinary images section  */}
-        <div className="container-fluid py-3 ordinary-b">
+        <div className="container-fluid py-1 ordinary-b">
           <div className="container">
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3">Supportive</h2>
+                  <h3 className="m-0 p-0">Supportive</h3>
                 </div>
                 <div className="col-lg-12 all-btns">
                   {selectedOrdinary.length > 0 && selectedImage && (
@@ -1194,7 +1297,7 @@ const Extraction = (props) => {
                 <div className="col-lg-12">
                   <div className="row">
                     {selectedOrdinary.map((item) => (
-                      <div className="col-md-3 mb-4" key={item.id}>
+                      <div className="col-md-2 mb-2" key={item.id}>
                         <div
                           className={`card ${isOrdinarylEditMode ? "edit-mode" : ""
                             }`}
@@ -1222,12 +1325,12 @@ const Extraction = (props) => {
           </div>
         </div>
 
-        <div className="container-fluid py-3 discard-bg">
+        <div className="container-fluid py-1 discard-bg">
           <div className="container">
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h2 className="mb-3">Discard</h2>
+                  <h3 className="m-0 p-0">Discard</h3>
                 </div>
                 <div className="col-lg-12 all-btns">
                   {selectedDiscard.length > 0 && selectedImage && (
@@ -1266,7 +1369,7 @@ const Extraction = (props) => {
                 <div className="col-lg-12">
                   <div className="row">
                     {selectedDiscard.map((item) => (
-                      <div className="col-md-3 mb-4" key={item.id}>
+                      <div className="col-md-2 mb-2" key={item.id}>
                         <div
                           className={`card ${isDiscardlEditMode ? "edit-mode" : ""
                             }`}
@@ -1312,7 +1415,7 @@ const Extraction = (props) => {
                                 <h4 className="set-f4">Default</h4>
                               </div>
                             </div>
-                            <div className="col-md-3 mb-4" key={item.id}>
+                            <div className="col-md-2 mb-2" key={item.id}>
                               <div
                                 className={`card ${
                                   isDiscardlEditMode ? "edit-mode" : ""
@@ -1344,7 +1447,7 @@ const Extraction = (props) => {
         </div> */}
         {/* sorted data into json form  */}
 
-        <div className="col-lg-10 col-md-4 text-end mt-4 mb-5">
+        {/* <div className="col-lg-10 col-md-4 text-end mt-4 mb-5 infosync-skicky-button">
           {mergeSelectedDefaultThumbnail.length > 0 ||
             mergeSelectedDefaultDimension.length > 0 ||
             selectedWhiteBg.length > 0 ||
@@ -1355,15 +1458,15 @@ const Extraction = (props) => {
               className={`btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}
               disabled={!areAllImagesSorted()}
             >
-              Sorted Data in Json
+              COMPLETED
             </button>
           ) : (
             <button className={`btn-danger disabled}`} disabled>
-              Sorted Data in Json
+              COMPLETED
             </button>
           )}
-        </div>
-      </div>
+        </div> */}
+      </div >
       <footer>
         <div className="col-lg-12">
           <div className="footer-left">

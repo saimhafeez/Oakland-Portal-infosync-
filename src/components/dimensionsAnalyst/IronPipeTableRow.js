@@ -35,7 +35,7 @@ function IronPipeTableRow({
   const [ingredients, setIngredients] = useState([])
 
   const fetchIngredients = async () => {
-    fetch('http://139.144.30.86:8000/api/ingredients').then((res) => res.json()).then((result) => {
+    fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).then((result) => {
       console.log('result', result);
       // // setIngredients(result.data)
       // console.log(result.data);
@@ -47,7 +47,7 @@ function IronPipeTableRow({
         }
       });
       setIngredients(ing)
-    })
+    }).catch((e) => console.log('error occured', e))
   }
 
   useEffect(() => {

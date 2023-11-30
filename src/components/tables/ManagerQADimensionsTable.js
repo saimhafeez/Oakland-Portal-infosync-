@@ -65,7 +65,7 @@ const ManagerQADimensionsTable = (props) => {
 
     const getUserStats = (job, uid) => {
         return new Promise((resolve, reject) => {
-            const apiURL = `http://139.144.30.86:8000/api/stats?job=${job}&uid=${uid}&lt=${lt}`
+            const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/stats?job=${job}&uid=${uid}&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}`
             fetch(apiURL).then((res) => res.json()).then((result) => {
                 const attempted = result.attempts;
                 // var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
@@ -77,7 +77,7 @@ const ManagerQADimensionsTable = (props) => {
                 var passed = result.qa_passed
                 var earnings = result.earning;
                 resolve([attempted, not_understandable, minor, major, passed, earnings])
-            })
+            }).catch((e) => console.log('error occured', e))
         })
     }
 
@@ -86,7 +86,7 @@ const ManagerQADimensionsTable = (props) => {
             ...pre,
             isLoading: true
         }))
-        const apiURL = `http://139.144.30.86:8000/api/super_table?job=QA-DimAna&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}`
+        const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=QA-DimAna&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}`
         fetch(apiURL).then(res => res.json()).then((result) => {
             setTableData(pre => ({
                 ...pre,
@@ -95,7 +95,7 @@ const ManagerQADimensionsTable = (props) => {
                 currentPage: result.curr_page,
                 totalPages: result.total_pages
             }))
-        })
+        }).catch((e) => console.log('error occured', e))
     }
 
     useEffect(() => {
@@ -292,7 +292,7 @@ const ManagerQADimensionsTable = (props) => {
                     </thead>
                     <tbody>
                         {getAllProductsByFilter().length === 0 && <tr>
-                            <td colSpan={6}>
+                            <td colSpan={8}>
                                 <h4 className="text-center p-2 w-100">0 Results</h4>
                             </td>
                         </tr>}

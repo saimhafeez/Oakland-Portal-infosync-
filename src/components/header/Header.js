@@ -30,12 +30,12 @@ const Header = (props) => {
               </span>
             </strong>
           </li>
-          <li>
+          {/* <li>
             <strong className="h6">
               Job Role:
               <span className="set-underline-span">&nbsp;{props.userRole}</span>
             </strong>
-          </li>
+          </li> */}
           <li>
             <strong className="h6">
               Job Description:

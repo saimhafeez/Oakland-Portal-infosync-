@@ -61,7 +61,6 @@ import Ingredients from "./pages/Ingredients";
 import ProductVendorInformation from "./pages/ProductVendorInformation";
 
 function App() {
-  const notify = () => toast("Wow so easy!");
   const [userName, setUserName] = useState("");
   // useEffect(() => {
   //   auth.onAuthStateChanged((user) => {
@@ -90,6 +89,7 @@ function App() {
               setUserRole(docSnapshot.data().role);
               setUserJdesc(docSnapshot.data().jdesc);
               setUserEmail(docSnapshot.data().email);
+              setUser(docSnapshot.data());
               setLoading(false);
               localStorage.setItem("userEmail", JSON.stringify(userEmail));
             } else {
@@ -107,6 +107,7 @@ function App() {
         setUserRole(null);
         setUserEmail(null);
         setUserJdesc(null);
+        setUserName(null);
         setLoading(false);
         // localStorage.removeItem("userEmail");
       }

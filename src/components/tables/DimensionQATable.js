@@ -35,7 +35,7 @@ const DimensionQATable = (props) => {
       isLoading: true
     }))
 
-    const apiURL = `http://139.144.30.86:8000/api/stats?job=QA-DimAna&uid=${props.user.uid}&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}`
+    const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/stats?job=QA-DimAna&uid=${props.user.uid}&lt=${tableDataStats.lessThanDate}&gt=${tableDataStats.greaterThanDate}`
 
     fetch(apiURL).then((res) => res.json()).then((result) => {
 
@@ -52,10 +52,10 @@ const DimensionQATable = (props) => {
       setTableDataStats(pre => ({
         ...pre,
         isLoading: false,
-        data: [attempted, not_understandable, minor, major, passed, earnings]
+        data: [attempted, not_understandable, minor, major, passed]
       }))
 
-    })
+    }).catch((e) => console.log('error occured', e))
 
   }
 
@@ -64,7 +64,7 @@ const DimensionQATable = (props) => {
       ...pre,
       isLoading: true
     }))
-    const apiURL = `http://139.144.30.86:8000/api/super_table?job=QA-DimAna&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}`
+    const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=QA-DimAna&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}`
     fetch(apiURL).then(res => res.json()).then((result) => {
       setTableData(pre => ({
         ...pre,
@@ -73,7 +73,7 @@ const DimensionQATable = (props) => {
         currentPage: result.curr_page,
         totalPages: result.total_pages
       }))
-    })
+    }).catch((e) => console.log('error occured', e))
     console.log(tableData.lessThanDate, tableData.greaterThanDate, tableData.currentPage);
   }
 
@@ -158,7 +158,7 @@ const DimensionQATable = (props) => {
               <th>MINOR Fixes</th>
               <th>MAJOR Fixes</th>
               <th>100% [QA Passed]</th>
-              <th>Earnings</th>
+              {/* <th>Earnings</th> */}
             </tr>
           </thead>
           <tbody>
@@ -258,7 +258,7 @@ const DimensionQATable = (props) => {
               <th>Variant ID</th>
               <th>Extraction Date & Time</th>
               <th>QA Status</th>
-              <th>Earning</th>
+              {/* <th>Earning</th> */}
             </tr>
           </thead>
           <tbody>
@@ -277,7 +277,7 @@ const DimensionQATable = (props) => {
                 <td>{item.variantID || 'N/A'}</td>
                 <td>{formatDate(item.lastModified)}</td>
                 <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'minor' ? 'MINOR Fixes' : item.status === 'major' ? 'MAJOR Fixes' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
-                <td>{item.earning || 'N/A'}</td>
+                {/* <td>{item.earning || 'N/A'}</td> */}
               </tr>
             ))}
           </tbody>

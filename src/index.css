@@ -172,14 +172,23 @@ header.MuiPaper-root.MuiPaper-elevation.MuiPaper-elevation4.MuiAppBar-root.MuiAp
 .set-fixed-bar {
   position: fixed;
   right: 0px;
-  width: 152px;
-  background-color: #ececec;
-  padding: 12px 12px 20px;
-  border-radius: 12px 0px 0px 12px;
   z-index: 1000;
 }
 
+.set-fixed-bar .inside-div {
+  background-color: #ececec;
+  padding: 12px 12px 20px;
+  border-radius: 12px 0px 0px 12px;
+  width: 152px;
+}
+
 .set-fixed-bar .select-btn.btn {
+  display: block;
+  margin-top: 12px;
+  width: 126px;
+}
+
+.set-fixed-bar button {
   display: block;
   margin-top: 12px;
   width: 126px;

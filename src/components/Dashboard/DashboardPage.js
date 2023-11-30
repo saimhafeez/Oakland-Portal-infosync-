@@ -38,8 +38,8 @@ const DashboardPage = (props) => {
         userEmail={props.userEmail}
         userRole={props.userRole}
         userJdesc={props.userJdesc}
+        user={props.user}
       />
-
 
       {props.userRole === "admin" ? <SuperAdminSidebar /> : <Sidebar />}
 
