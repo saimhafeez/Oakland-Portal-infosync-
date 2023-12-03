@@ -42,8 +42,8 @@ import DashboardPage from "./components/Dashboard/DashboardPage";
 import Extraction from "./pages/Extraction";
 import Login from "./components/Login/Login";
 import Signup from "./components/Signup/Signup";
-import { auth, firestore } from "./firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { firestore } from "./firebase";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import ExtractionQA from "./pages/ExtractionQA";
 // import ExtractionQA from "./pages/ExtractionQA";
@@ -59,6 +59,11 @@ import DimensionalQAAnalyst from "./pages/DimensionalQAAnalyst";
 import SuperAdmin from "./pages/SuperAdmin";
 import Ingredients from "./pages/Ingredients";
 import ProductVendorInformation from "./pages/ProductVendorInformation";
+import UserManagement from './pages/admin/UserManagement';
+
+
+const auth = getAuth();
+
 
 function App() {
   const [userName, setUserName] = useState("");
@@ -76,6 +81,49 @@ function App() {
   const [userJdesc, setUserJdesc] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+  //     if (authUser) {
+  //       // User is signed in
+  //       setUser(authUser);
+  //       // Fetch the user's role from Firestore
+  //       const userRef = doc(firestore, "users", authUser.uid);
+  //       getDoc(userRef)
+  //         .then((docSnapshot) => {
+  //           if (docSnapshot.exists()) {
+  //             setUserRole(docSnapshot.data().role);
+  //             setUserJdesc(docSnapshot.data().jdesc);
+  //             setUserEmail(docSnapshot.data().email);
+  //             // setUser(docSnapshot.data());
+  //             setLoading(false);
+  //             localStorage.setItem("userEmail", JSON.stringify(userEmail));
+  //           } else {
+  //             console.log("User role not found.");
+  //             setLoading(false);
+  //           }
+  //         })
+  //         .catch((error) => {
+  //           console.error("Error getting user role:", error);
+  //           setLoading(false);
+  //         });
+  //     } else {
+  //       // User is signed out
+  //       setUser(null);
+  //       setUserRole(null);
+  //       setUserEmail(null);
+  //       setUserJdesc(null);
+  //       setUserName(null);
+  //       setLoading(false);
+  //       // localStorage.removeItem("userEmail");
+  //     }
+  //   });
+
+  //   return () => {
+  //     unsubscribe();
+  //   };
+  // }, []);
+
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       if (authUser) {
@@ -89,7 +137,7 @@ function App() {
               setUserRole(docSnapshot.data().role);
               setUserJdesc(docSnapshot.data().jdesc);
               setUserEmail(docSnapshot.data().email);
-              setUser(docSnapshot.data());
+              // setUser(docSnapshot.data());
               setLoading(false);
               localStorage.setItem("userEmail", JSON.stringify(userEmail));
             } else {
@@ -116,7 +164,8 @@ function App() {
     return () => {
       unsubscribe();
     };
-  }, [user, userRole]);
+  }, []);
+
 
   if (loading) {
     return (
@@ -358,6 +407,17 @@ function App() {
                 path="/product-detail-info"
                 element={
                   <ProductVendorInformation
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/user-management"
+                element={
+                  <UserManagement
                     userEmail={userEmail}
                     userRole={userRole}
                     userJdesc={userJdesc}

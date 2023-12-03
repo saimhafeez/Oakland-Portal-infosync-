@@ -840,7 +840,7 @@ const Extraction = (props) => {
                 }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
               disabled={isOrdinaryButtonDisabled}
             >
-              Ordinary
+              Supportive
             </button>
 
             <button
@@ -910,13 +910,13 @@ const Extraction = (props) => {
         {/* <h2 className="text-center mb-5">Sorted Data</h2> */}
         {/* thumbnai section images  */}
         <div className="container-fluid py-2 thumbnail-bg mt-4">
-          <div className="container">
+          <div className="" style={{ marginRight: "152px" }}>
             <div className="main-div">
               <div className=" row">
                 <div className="col-lg-12">
                   <h3 className="m-0 p-0">Thumbnail</h3>
                 </div>
-                <div className="">
+                <div className="d-flex align-items-start flex-wrap">
                   <div>
                     <div className="all-btns">
                       {selectedThumbnail.length > 0 && selectedImage && (
@@ -954,34 +954,32 @@ const Extraction = (props) => {
                         </div>
                       )}
                     </div>
-                    <div className="">
-                      <div className="row">
-                        {selectedThumbnail.map((item) => (
-                          <div className="col-md-2 mb-2" key={item.id}>
-                            <div
-                              className={`card ${isThumbnailEditMode ? "edit-mode" : ""
-                                }`}
-                              onClick={() => selectMyItem(item)}
-                            >
-                              {isThumbnailEditMode && (
-                                <div
-                                  className="cross"
-                                  onClick={() => resetThumbnailImage(item)}
-                                >
-                                  <CancelIcon />
-                                </div>
-                              )}
-                              <img
-                                className="card-img-top img-fluid"
-                                src={item.src}
-                              />
-                            </div>
+                    <div className="row">
+                      {selectedThumbnail.map((item) => (
+                        <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
+                          <div
+                            className={`card ${isThumbnailEditMode ? "edit-mode" : ""
+                              }`}
+                            onClick={() => selectMyItem(item)}
+                          >
+                            {isThumbnailEditMode && (
+                              <div
+                                className="cross"
+                                onClick={() => resetThumbnailImage(item)}
+                              >
+                                <CancelIcon />
+                              </div>
+                            )}
+                            <img
+                              className="card-img-top img-fluid"
+                              src={item.src}
+                            />
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="">
+                  <div>
                     <div className="d-flex">
                       <div>
                         <h4 className="set-f4">Default</h4>
@@ -1020,7 +1018,7 @@ const Extraction = (props) => {
                     {/*  // ! &&&&&&&&&&&&&&&&&&&&&&&&&& ! DEFAULT THUMBNAIL IMAGES METHOS END ******************************************************************* */}
                     <div className="row">
                       {defaultThumbnail.map((item) => (
-                        <div className="col-md-2 mb-2" key={item.id}>
+                        <div className="col-md-2 mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
                           <div
                             className={`card ${isDefaultThumbnailEditMode ? "edit-mode" : ""
                               }`}
@@ -1051,117 +1049,195 @@ const Extraction = (props) => {
         </div>
         {/* dimentional images section  */}
         <div className="container-fluid py-1 dimensnal-bg">
-          <div className="container">
+          <div style={{ marginRight: "152px" }}>
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
                   <h3 className="m-0 p-0">Dimentional</h3>
                 </div>
-                <div className="col-lg-12 all-btns">
-                  {selectedDimentional.length > 0 && selectedImage && (
+                <div className="d-flex align-align-items-start flex-wrap">
+                  <div>
+                    <div className="all-btns">
+                      {selectedDimentional.length > 0 && selectedImage && (
+                        <div className="d-flex">
+                          <div>
+                            <h4 className="set-f4">My Selection</h4>
+                          </div>
+                          <div className="ms-3 mb btn-click all-btn ">
+                            {isDimensionalEditMode ? (
+                              <>
+                                <button
+                                  onClick={saveImages}
+                                  className="btn me-3 save"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => editImages("Dimensional")}
+                                  className="btn edit"
+                                >
+                                  Edit
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => editImages("Dimensional")}
+                                className="btn edit"
+                              >
+                                Edit
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="row">
+                        {selectedDimentional.map((item) => (
+                          <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
+                            <div
+                              className={`card ${isDimensionalEditMode ? "edit-mode" : ""
+                                }`}
+                              onClick={() => selectMyItem(item)}
+                            >
+                              {isDimensionalEditMode && (
+                                <div
+                                  className="cross"
+                                  onClick={() => resetDimensionalImage(item)}
+                                >
+                                  <CancelIcon />
+                                </div>
+                              )}
+                              <img
+                                className="card-img-top img-fluid"
+                                src={item.src}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
                     <div className="d-flex">
                       <div>
-                        <h4 className="set-f4">My Selection</h4>
+                        <h4 className="set-f4">Default</h4>
                       </div>
-                      <div className="ms-3 mb btn-click all-btn ">
-                        {isDimensionalEditMode ? (
+                      <div className="ms-3">
+                        {/* ! DIMESNIONAL DEFAULT IMAGES METHOD START   */}
+                        {!isDefaultDimensionEditMode ? (
+                          <button
+                            onClick={() => handleDefaultDimensionEdit(true)}
+                            className="btn btn-block edit btn-width-auto"
+                          >
+                            Edit
+                          </button>
+                        ) : (
                           <>
                             <button
                               onClick={saveImages}
-                              className="btn me-3 save"
+                              className="btn btn-block me-3 save btn-width-auto"
                             >
                               Save
                             </button>
                             <button
-                              onClick={() => editImages("Dimensional")}
+                              onClick={() => handleDefaultDimensionEdit(false)}
+                              className="btn btn-block edit btn-width-auto"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="row">
+                      {defaultDimension
+                        ? defaultDimension.map((item) => (
+                          <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
+                            <div
+                              className={`card ${isDefaultDimensionEditMode ? "edit-mode" : ""
+                                }`}
+                              onClick={() => selectMyItem(item)}
+                            >
+                              {isDefaultDimensionEditMode && (
+                                <div
+                                  className="cross"
+                                  onClick={() => resetDefaultDimension(item)}
+                                >
+                                  <CancelIcon />
+                                </div>
+                              )}
+                              <img
+                                className="card-img-top img-fluid"
+                                src={item.src}
+                              />
+                            </div>
+                          </div>
+                        ))
+                        : ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* white bg section  */}
+        <div className="container-fluid py-1 white-bg">
+          <div style={{ marginRight: "152px" }}>
+            <div className="main-div">
+              <div className="row">
+                <div className="col-lg-12">
+                  <h3 className="m-0 p-0">White BG</h3>
+                </div>
+                <div>
+                  <div className="all-btns">
+                    {selectedWhiteBg.length > 0 && selectedImage && (
+                      <div className="d-flex">
+                        <div>
+                          <h4 className="set-f4">My Selection</h4>
+                        </div>
+                        <div className="mb btn-click all-btn ms-3">
+                          {isWhiteBgEditMode ? (
+                            <>
+                              <button
+                                onClick={saveImages}
+                                className="btn me-3 save"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => editImages("WhiteBg")}
+                                className="btn edit"
+                              >
+                                Edit
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => editImages("WhiteBg")}
                               className="btn edit"
                             >
                               Edit
                             </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => editImages("Dimensional")}
-                            className="btn edit"
-                          >
-                            Edit
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-lg-12">
-                  <div className="row">
-                    {selectedDimentional.map((item) => (
-                      <div className="col-md-2 mb-2" key={item.id}>
-                        <div
-                          className={`card ${isDimensionalEditMode ? "edit-mode" : ""
-                            }`}
-                          onClick={() => selectMyItem(item)}
-                        >
-                          {isDimensionalEditMode && (
-                            <div
-                              className="cross"
-                              onClick={() => resetDimensionalImage(item)}
-                            >
-                              <CancelIcon />
-                            </div>
                           )}
-                          <img
-                            className="card-img-top img-fluid"
-                            src={item.src}
-                          />
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
-                <div className="col-12">
-                  <div className="d-flex">
-                    <div>
-                      <h4 className="set-f4">Default</h4>
-                    </div>
-                    <div className="ms-3">
-                      {/* ! DIMESNIONAL DEFAULT IMAGES METHOD START   */}
-                      {!isDefaultDimensionEditMode ? (
-                        <button
-                          onClick={() => handleDefaultDimensionEdit(true)}
-                          className="btn btn-block edit btn-width-auto"
-                        >
-                          Edit
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={saveImages}
-                            className="btn btn-block me-3 save btn-width-auto"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => handleDefaultDimensionEdit(false)}
-                            className="btn btn-block edit btn-width-auto"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="row">
-                    {defaultDimension
-                      ? defaultDimension.map((item) => (
-                        <div className="col-md-2 mb-2" key={item.id}>
+                  <div>
+                    <div className="row">
+                      {selectedWhiteBg.map((item) => (
+                        <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
                           <div
-                            className={`card ${isDefaultDimensionEditMode ? "edit-mode" : ""
+                            className={`card ${isWhiteBgEditMode ? "edit-mode" : ""
                               }`}
                             onClick={() => selectMyItem(item)}
                           >
-                            {isDefaultDimensionEditMode && (
+                            {isWhiteBgEditMode && (
                               <div
                                 className="cross"
-                                onClick={() => resetDefaultDimension(item)}
+                                onClick={() => resetWhiteBg(item)}
                               >
                                 <CancelIcon />
                               </div>
@@ -1172,80 +1248,8 @@ const Extraction = (props) => {
                             />
                           </div>
                         </div>
-                      ))
-                      : ""}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* white bg section  */}
-        <div className="container-fluid py-1 white-bg">
-          <div className="container">
-            <div className="main-div">
-              <div className="row">
-                <div className="col-lg-12">
-                  <h3 className="m-0 p-0">White BG</h3>
-                </div>
-                <div className="col-lg-12 all-btns">
-                  {selectedWhiteBg.length > 0 && selectedImage && (
-                    <div className="d-flex">
-                      <div>
-                        <h4 className="set-f4">My Selection</h4>
-                      </div>
-                      <div className="mb btn-click all-btn ms-3">
-                        {isWhiteBgEditMode ? (
-                          <>
-                            <button
-                              onClick={saveImages}
-                              className="btn me-3 save"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => editImages("WhiteBg")}
-                              className="btn edit"
-                            >
-                              Edit
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => editImages("WhiteBg")}
-                            className="btn edit"
-                          >
-                            Edit
-                          </button>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  )}
-                </div>
-                <div className="col-lg-12">
-                  <div className="row">
-                    {selectedWhiteBg.map((item) => (
-                      <div className="col-md-2 mb-2" key={item.id}>
-                        <div
-                          className={`card ${isWhiteBgEditMode ? "edit-mode" : ""
-                            }`}
-                          onClick={() => selectMyItem(item)}
-                        >
-                          {isWhiteBgEditMode && (
-                            <div
-                              className="cross"
-                              onClick={() => resetWhiteBg(item)}
-                            >
-                              <CancelIcon />
-                            </div>
-                          )}
-                          <img
-                            className="card-img-top img-fluid"
-                            src={item.src}
-                          />
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -1254,13 +1258,13 @@ const Extraction = (props) => {
         </div>
         {/* ordinary images section  */}
         <div className="container-fluid py-1 ordinary-b">
-          <div className="container">
+          <div style={{ marginRight: "152px" }}>
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
                   <h3 className="m-0 p-0">Supportive</h3>
                 </div>
-                <div className="col-lg-12 all-btns">
+                <div className="all-btns">
                   {selectedOrdinary.length > 0 && selectedImage && (
                     <div className="d-flex">
                       <div>
@@ -1294,10 +1298,10 @@ const Extraction = (props) => {
                     </div>
                   )}
                 </div>
-                <div className="col-lg-12">
+                <div>
                   <div className="row">
                     {selectedOrdinary.map((item) => (
-                      <div className="col-md-2 mb-2" key={item.id}>
+                      <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
                         <div
                           className={`card ${isOrdinarylEditMode ? "edit-mode" : ""
                             }`}
@@ -1326,13 +1330,13 @@ const Extraction = (props) => {
         </div>
 
         <div className="container-fluid py-1 discard-bg">
-          <div className="container">
+          <div style={{ marginRight: "152px" }}>
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
                   <h3 className="m-0 p-0">Discard</h3>
                 </div>
-                <div className="col-lg-12 all-btns">
+                <div className="all-btns">
                   {selectedDiscard.length > 0 && selectedImage && (
                     <div className="d-flex">
                       <div>
@@ -1366,10 +1370,10 @@ const Extraction = (props) => {
                     </div>
                   )}
                 </div>
-                <div className="col-lg-12">
+                <div>
                   <div className="row">
                     {selectedDiscard.map((item) => (
-                      <div className="col-md-2 mb-2" key={item.id}>
+                      <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
                         <div
                           className={`card ${isDiscardlEditMode ? "edit-mode" : ""
                             }`}

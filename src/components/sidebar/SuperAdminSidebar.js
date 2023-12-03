@@ -16,7 +16,11 @@ const SuperAdminSidebar = () => {
                             Ingredients Management
                         </Link>
                     </li>
-                    <li>User Management</li>
+                    <li>
+                        <Link href="/user-management" color='white' underline="hover">
+                            User Management
+                        </Link>
+                    </li>
                     <li>Role Assigning</li>
                     <li>Rejected NADs</li>
                     <li>All QA Passed</li>
