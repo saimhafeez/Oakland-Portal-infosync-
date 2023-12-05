@@ -1,15 +1,26 @@
 import React from 'react'
 import HeaderSignOut from '../../components/header/HeaderSignOut'
 import SuperAdminSidebar from '../../components/sidebar/SuperAdminSidebar'
-import { firestore } from '../../firebase';
-import { collection, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { firestore, secondaryApp } from '../../firebase';
+import { collection, doc, getDocs, getFirestore, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { CircularProgress, Stack, Typography, Button } from '@mui/material';
+import { CircularProgress, Stack, Typography, Button, Box, TextField, Select, MenuItem, Modal, FormControl, InputLabel } from '@mui/material';
+import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 
 function UserManagement(props) {
 
+
     const sortOrderForJobdesc = ["Extractor", "QA-Extractor", "DimAna", "QA-DimAna"];
+    const [newEmployee, setNewEmployee] = useState({
+        name: '',
+        email: '',
+        password: '',
+        jdesc: 'Extractor',
+        role: 'worker',
+        status: 'active'
+    })
+    const [open, setOpen] = useState(false);
 
     const [filter, setFilter] = useState({
         status: 'active',
@@ -132,6 +143,56 @@ function UserManagement(props) {
         getAllUsers()
     };
 
+
+    const createUserAndAddToFirestore = async (userInfo) => {
+        try {
+            // Create user in Authentication
+            const auth = getAuth(secondaryApp);
+            const { email, password } = userInfo;
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userId = userCredential.user.uid;
+
+            // Add user data to Firestore
+            const firestore = getFirestore();
+            const usersCollectionRef = collection(firestore, 'users');
+            const userDocRef = doc(usersCollectionRef, userId);
+
+            // Extract relevant data from userInfo
+            const { name, jdesc, role, status } = userInfo;
+
+            // Create data object for Firestore document
+            const userData = {
+                name,
+                email,
+                jdesc,
+                role,
+                status
+            };
+
+            // Set the document data
+            await setDoc(userDocRef, userData);
+            console.log('User created and added to Firestore successfully');
+            setOpen(false)
+            setNewEmployee({
+                name: '',
+                email: '',
+                password: '',
+                jdesc: 'Extractor',
+                role: 'worker',
+                status: 'active'
+            })
+            getAllUsers()
+        } catch (error) {
+            console.error('Error creating user and adding to Firestore:', error.message);
+        }
+    };
+
+    const addNewEmployee = () => {
+        if (newEmployee.email !== "" && newEmployee.password !== "" && newEmployee.name !== "") {
+            createUserAndAddToFirestore(newEmployee)
+        }
+    }
+
     return (
         <>
             <HeaderSignOut
@@ -142,9 +203,115 @@ function UserManagement(props) {
 
             <SuperAdminSidebar />
 
+            <Modal
+                open={open}
+                onClose={() => {
+                    setOpen(false)
+                    setNewEmployee({
+                        name: '',
+                        email: '',
+                        password: '',
+                        jdesc: 'Extractor',
+                        role: 'worker',
+                        status: 'active'
+                    })
+                }}
+            >
+                <Box sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    border: '2px solid #000',
+                    boxShadow: 24,
+                    p: 4,
+                }}>
+                    <Stack gap={2}>
+
+                        <TextField
+                            label="Name"
+                            variant="outlined"
+                            type="text"
+                            value={newEmployee.name}
+                            onChange={(e) => setNewEmployee(pre => ({
+                                ...pre,
+                                name: e.target.value
+                            }))}
+                        />
+
+                        <TextField
+                            label="Email"
+                            variant="outlined"
+                            type="text"
+                            value={newEmployee.email}
+                            onChange={(e) => setNewEmployee(pre => ({
+                                ...pre,
+                                email: e.target.value
+                            }))}
+                        />
+
+                        <TextField
+                            label="password"
+                            variant="outlined"
+                            type={'password'}
+                            value={newEmployee.password}
+                            onChange={(e) => setNewEmployee(pre => ({
+                                ...pre,
+                                password: e.target.value
+                            }))}
+                        />
+
+                        <FormControl fullWidth>
+                            <InputLabel id="jdesc-select-label">Job Description</InputLabel>
+                            <Select
+                                value={newEmployee.jdesc}
+                                label="Job Description"
+                                onChange={(e) => setNewEmployee(pre => ({
+                                    ...pre,
+                                    jdesc: e.target.value
+                                }))}
+                            >
+                                <MenuItem value='Extractor'>Extractor</MenuItem>
+                                <MenuItem value='QA-Extractor'>QA-Extractor</MenuItem>
+                                <MenuItem value='DimAna'>DimAna</MenuItem>
+                                <MenuItem value='QA-DimAna'>QA-DimAna</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth>
+                            <InputLabel id="role-select-label">Role</InputLabel>
+                            <Select
+                                labelId='role-select-label'
+                                id='role-select-label'
+                                value={newEmployee.role}
+                                label="Role"
+                                onChange={(e) => setNewEmployee(pre => ({
+                                    ...pre,
+                                    role: e.target.value
+                                }))}
+                            >
+                                <MenuItem value='worker'>worker</MenuItem>
+                                {/* <MenuItem value='manager'>manager</MenuItem> */}
+                            </Select>
+                        </FormControl>
+
+                        <Button
+                            onClick={addNewEmployee}
+                            variant="contained"
+                            style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
+                        >
+                            Save
+                        </Button>
+                    </Stack>
+                </Box>
+            </Modal>
+
             <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
 
-                <Stack direction='row' justifyContent='center'>
+                <Stack direction='row' justifyContent='space-between'>
+                    <div></div>
                     <Stack direction='row' margin='10px' gap={1}>
                         <Button
                             onClick={() => setFilter(pre => ({
@@ -166,6 +333,12 @@ function UserManagement(props) {
                             <Typography>Inactive</Typography>
                         </Button>
                     </Stack>
+                    <Button
+                        onClick={() => setOpen(true)}
+                        variant='contained'
+                    >
+                        <Typography>Add Employee</Typography>
+                    </Button>
                 </Stack>
 
                 {userList.isLoading ? <CircularProgress size={56} color="info" /> : <table className="table mt-4 table-bordered table-striped align-middle text-center">

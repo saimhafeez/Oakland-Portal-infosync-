@@ -21,9 +21,6 @@ const SuperAdminSidebar = () => {
                             User Management
                         </Link>
                     </li>
-                    <li>Role Assigning</li>
-                    <li>Rejected NADs</li>
-                    <li>All QA Passed</li>
                 </ul>
             </div>
         </>

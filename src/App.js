@@ -123,30 +123,48 @@ function App() {
   //   };
   // }, []);
 
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       if (authUser) {
-        // User is signed in
-        setUser(authUser);
-        // Fetch the user's role from Firestore
+        // Fetch the user's data from Firestore
         const userRef = doc(firestore, "users", authUser.uid);
         getDoc(userRef)
           .then((docSnapshot) => {
             if (docSnapshot.exists()) {
-              setUserRole(docSnapshot.data().role);
-              setUserJdesc(docSnapshot.data().jdesc);
-              setUserEmail(docSnapshot.data().email);
-              // setUser(docSnapshot.data());
-              setLoading(false);
-              localStorage.setItem("userEmail", JSON.stringify(userEmail));
+              const userData = docSnapshot.data();
+
+              if (userData.role === "worker" || userData.role === "manager") {
+                // Check if the user's role is "worker" or "manager" and status is "active"
+                if (userData.status === "active") {
+                  setUser(authUser);
+                  setUserRole(userData.role);
+                  setUserJdesc(userData.jdesc);
+                  setUserEmail(userData.email);
+                  setLoading(false);
+                  localStorage.setItem("userEmail", JSON.stringify(userData.email));
+                } else {
+                  alert("User status is not active.");
+                  setUser(null);
+                  setLoading(false);
+                }
+              } else {
+                // For other roles, proceed without additional checks
+                setUser(authUser);
+                setUserRole(userData.role);
+                setUserJdesc(userData.jdesc);
+                setUserEmail(userData.email);
+                setLoading(false);
+                localStorage.setItem("userEmail", JSON.stringify(userData.email));
+              }
             } else {
-              console.log("User role not found.");
+              console.log("User data not found in Firestore.");
+              setUser(null);
               setLoading(false);
             }
           })
           .catch((error) => {
-            console.error("Error getting user role:", error);
+            console.error("Error getting user data from Firestore:", error);
+            setUser(null);
             setLoading(false);
           });
       } else {
@@ -157,7 +175,6 @@ function App() {
         setUserJdesc(null);
         setUserName(null);
         setLoading(false);
-        // localStorage.removeItem("userEmail");
       }
     });
 
@@ -165,6 +182,8 @@ function App() {
       unsubscribe();
     };
   }, []);
+
+
 
 
   if (loading) {

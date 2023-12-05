@@ -35,6 +35,7 @@ const firebaseConfig = {
 // };
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+let secondaryApp = initializeApp(firebaseConfig, "secondary");
 const auth = getAuth();
 
 // initilize Firestore
@@ -56,4 +57,4 @@ const firestore = getFirestore();
 //     console.log(err.message);
 //   });
 
-export { app, auth, firestore };
+export { app, auth, firestore, secondaryApp };
