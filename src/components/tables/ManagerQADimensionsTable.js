@@ -75,7 +75,7 @@ const ManagerQADimensionsTable = (props) => {
                 var minor = result.minor_changes;
                 var major = result.major_changes;
                 var passed = result.qa_passed
-                var earnings = result.earning;
+                var earnings = result.earning.toFixed(2);
                 resolve([attempted, not_understandable, minor, major, passed, earnings])
             }).catch((e) => console.log('error occured', e))
         })
@@ -307,7 +307,7 @@ const ManagerQADimensionsTable = (props) => {
                                 <td>{item['QA-Worker']}</td>
                                 <td>{formatDate(item.lastModified)}</td>
                                 <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'minor' ? 'MINOR Fixes' : item.status === 'major' ? 'MAJOR Fixes' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
-                                <td>{item.earning || 'N/A'}</td>
+                                <td>{item.earning && item.earning.toFixed(2) || 'N/A'}</td>
                             </tr>
                         ))}
                     </tbody>

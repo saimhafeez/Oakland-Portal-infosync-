@@ -1,4 +1,3 @@
-import { Link } from "@mui/material";
 import React from "react";
 
 const SuperAdminSidebar = () => {
@@ -7,19 +6,34 @@ const SuperAdminSidebar = () => {
             <div className="set-max-width-252">
                 <ul>
                     <li>
-                        <Link href="/dashboard" color='white' underline="hover">
+                        <a href="/dashboard" className="link-light" underline="hover">
                             Dashboard
-                        </Link>
+                        </a>
                     </li>
                     <li>
-                        <Link href="/ingredients" color='white' underline="hover">
+                        <a href="/ingredients" className="link-light" underline="hover">
                             Ingredients Management
-                        </Link>
+                        </a>
                     </li>
                     <li>
-                        <Link href="/user-management" color='white' underline="hover">
+                        <a href="/user-management" className="link-light" underline="hover">
                             User Management
-                        </Link>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/ready-to-live" className="link-light" underline="hover">
+                            Ready to Live
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/all-nads" className="link-light" underline="hover">
+                            All NADs
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/not-understandables" className="link-light" underline="hover">
+                            All Not Understandables
+                        </a>
                     </li>
                 </ul>
             </div>

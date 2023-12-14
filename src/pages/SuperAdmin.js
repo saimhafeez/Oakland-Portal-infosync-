@@ -166,7 +166,7 @@ function SuperAdmin(props) {
                 var minor = result.minor_changes;
                 var major = result.major_changes;
                 var passed = result.qa_passed
-                var earnings = result.earning;
+                var earnings = result.earning.toFixed(0);
                 return [worker.name, worker.jdesc, attempted, rejected_nad, not_understandable, under_qa, minor, major, passed, earnings]
             })
         )
@@ -229,13 +229,13 @@ function SuperAdmin(props) {
             products = products.filter((item) => item.productID.toString().includes(searchByID))
         }
 
-        if (filterByQAStatus !== 'qa-status') {
-            products = products.filter((item) => item.status === filterByQAStatus)
-        }
-
-        // if (filterByDimQAStatus !== 'qa-status') {
-        //     products = products.filter((item) => item.qaDimAnaQAStatus === filterByDimQAStatus)
+        // if (filterByQAStatus !== 'qa-status') {
+        //     products = products.filter((item) => item.status === filterByQAStatus)
         // }
+
+        if (filterByQAStatus !== 'qa-status') {
+            products = products.filter((item) => filterByQAStatus === 'under_qa' ? item.status === null : item.status === filterByQAStatus)
+        }
 
         return products
     }
@@ -393,7 +393,9 @@ function SuperAdmin(props) {
                                                     value={filterByQAStatus}
                                                 >
                                                     <option value="qa-status">Filter by Dim.QA Status</option>
+                                                    <option value="under_qa">Under QA</option>
                                                     <option value="not_understandable">Not Understandable</option>
+                                                    <option value="rejected_nad">Not a Doable</option>
                                                     <option value="passed">100% [QA Passed]</option>
                                                     <option value="minor">MINOR [QA Passed]</option>
                                                     <option value="major">MAJOR [QA Passed]</option>
@@ -430,16 +432,16 @@ function SuperAdmin(props) {
                                                 </td>
                                                 <td>
                                                     {tableFilter.includes('Extractor') ? item.productID
-                                                        : <Link href={`/product-detail-info?job=${tableFilter}&pid=${item.productID}`} underline="hover" target="_blank">
+                                                        : <a className="link-dark" href={`/product-detail-info?job=${tableFilter}&pid=${item.productID}`} underline="hover" target="_blank">
                                                             {item.productID}
-                                                        </Link>}
+                                                        </a>}
                                                 </td>
 
                                                 <td>{item.variantID || 'N/A'}</td>
                                                 <td>{tableFilter === 'QA-Extractor' || tableFilter === 'QA-DimAna' ? item['QA-Worker'] : item.Worker}</td>
                                                 <td>{formatDate(item.lastModified)}</td>
 
-                                                <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'rejcted_nad' ? 'Rejected NAD' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : item.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td>
+                                                <td>{(item.status === null || item.status === 'under_qa') ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'rejcted_nad' ? 'Rejected NAD' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : item.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td>
                                             </tr>
                                         ))}
                                     </tbody>

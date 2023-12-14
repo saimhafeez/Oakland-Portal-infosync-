@@ -53,6 +53,8 @@ function DimensionalQAAnalyst(props) {
   const [images, setImages] = useState([]);
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
+  const [url, setURL] = useState("")
+
 
   const executePythonScript = async () => {
     setDataLoading(true)
@@ -63,7 +65,10 @@ function DimensionalQAAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`;
+          var apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`;
+          if (url != '') {
+            apiUrl = apiUrl + `?url=${encodeURIComponent(url)}`
+          }
           console.log(token);
           // Make an authenticated API request
 
@@ -214,7 +219,7 @@ function DimensionalQAAnalyst(props) {
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
-
+              setURL("");
               setDataSubmitting(false)
             })
             .catch((error) => {
@@ -313,7 +318,7 @@ function DimensionalQAAnalyst(props) {
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
-
+              setURL("");
               setDataSubmitting(false)
             })
             .catch((error) => {
@@ -714,7 +719,7 @@ function DimensionalQAAnalyst(props) {
               </Button>
 
               <Stack direction='row' justifyContent='end'>
-                <TextField placeholder="Search by URL" variant="filled" style={{ borderRadius: 0 }} />
+                <TextField value={url} onChange={(e) => setURL(e.target.value)} placeholder="Search by URL" variant="filled" style={{ borderRadius: 0 }} />
                 <Button variant="contained"
                   onClick={executePythonScript}
                   style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}

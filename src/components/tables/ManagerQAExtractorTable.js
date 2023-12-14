@@ -73,7 +73,7 @@ const ManagerQAExtractorTable = (props) => {
                 var minor = result.minor_changes;
                 var major = result.major_changes;
                 var passed = result.qa_passed
-                var earnings = result.earning;
+                var earnings = result.earning.toFixed(2);
                 resolve([attempted, rejected_nad, under_qa, minor, major, passed, earnings])
             }).catch((e) => console.log('error occured', e))
         })
@@ -118,8 +118,11 @@ const ManagerQAExtractorTable = (props) => {
             products = products.filter((item) => item.productID.toString().includes(searchByID))
         }
 
+        // if (filterByQAStatus !== 'qa-status') {
+        //     products = products.filter((item) => item.status === filterByQAStatus)
+        // }
         if (filterByQAStatus !== 'qa-status') {
-            products = products.filter((item) => item.status === filterByQAStatus)
+            products = products.filter((item) => filterByQAStatus === 'under_qa' ? item.status === null : item.status === filterByQAStatus)
         }
 
         return products
@@ -307,7 +310,7 @@ const ManagerQAExtractorTable = (props) => {
                                 <td>{item['QA-Worker']}</td>
                                 <td>{formatDate(item.lastModified)}</td>
                                 <td>{item.status === 'under_qa' || !item.status ? 'Under QA' : item.status === 'rejected_nad' ? 'Rejected NAD' : item.status === 'minor' ? 'MINOR Fixes' : item.status === 'major' ? 'MAJOR Fixes' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
-                                <td>{item.earning || 'N/A'}</td>
+                                <td>{item.earning && item.earning.toFixed(2) || 'N/A'}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -183,11 +183,17 @@ const ExtractionQA = (props) => {
               setSelectedOption(data.not_doable ? 'major' : 'passed')
             })
             .catch((error) => {
+              toast.error(error.toString(), {
+                position: toast.POSITION.TOP_RIGHT,
+              });
               console.error("Error:", error);
             });
         })
         .catch((error) => {
           // Handle any errors while getting the token
+          toast.error(error.toString(), {
+            position: toast.POSITION.TOP_RIGHT,
+          });
           console.error("Token Error:", error);
         });
     }
@@ -692,7 +698,7 @@ const ExtractionQA = (props) => {
         setIsFetchButtonDisabled(false);
 
         toast.success("Data submited Successfully!", {
-          position: toast.POSITION.BOTTOM_RIGHT,
+          position: toast.POSITION.TOP_RIGHT,
         });
 
         setSearchQuery("")
@@ -785,7 +791,7 @@ const ExtractionQA = (props) => {
         setVisibilityNotDoable(false);
 
         toast.success("Data submited Successfully!", {
-          position: toast.POSITION.BOTTOM_RIGHT,
+          position: toast.POSITION.TOP_RIGHT,
         });
 
         setSearchQuery('')
@@ -956,7 +962,7 @@ const ExtractionQA = (props) => {
 
           <div className="d-flex flex-column justify-content-center align-items-center mt-4 mb-5">
             <div className="set-select-all me-3">
-              <select value={selectedOption} onChange={handleSelectChange}>
+              <select value={selectedOption} className="bg-primary-subtle p-1" onChange={handleSelectChange}>
                 {(!notDoable || notDoable === false) && <option value="passed">100% [QA passed]</option>}
                 {(!notDoable || notDoable === false) && <option value="minor">Minor Fixes</option>}
                 <option value="major">Major Fixes</option>
@@ -1130,7 +1136,7 @@ const ExtractionQA = (props) => {
                   <div className="row">
                     {!defaultThumbnail
                       ? toast.error("Sorted Data Ended!", {
-                        position: toast.POSITION.BOTTOM_RIGHT,
+                        position: toast.POSITION.TOP_RIGHT,
                       })
                       : defaultThumbnail.map((item) => (
                         <div className="mb-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>

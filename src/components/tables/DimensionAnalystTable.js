@@ -100,8 +100,12 @@ const DimensionAnalystTable = (props) => {
       products = products.filter((item) => item.productID.includes(searchByID))
     }
 
+    // if (filterByQAStatus !== 'qa-status') {
+    //   products = products.filter((item) => item.status === filterByQAStatus)
+    // }
+
     if (filterByQAStatus !== 'qa-status') {
-      products = products.filter((item) => item.status === filterByQAStatus)
+      products = products.filter((item) => filterByQAStatus === 'under_qa' ? item.status === null : item.status === filterByQAStatus)
     }
 
     return products
@@ -278,7 +282,7 @@ const DimensionAnalystTable = (props) => {
                 <td>{item.productID}</td>
                 <td>{item.variantID || 'N/A'}</td>
                 <td>{formatDate(item.lastModified)}</td>
-                <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
+                <td>{(item.status === null || item.status === 'under_qa') ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
                 {/* <td>{item.earning || 'N/A'}</td> */}
               </tr>
             ))}

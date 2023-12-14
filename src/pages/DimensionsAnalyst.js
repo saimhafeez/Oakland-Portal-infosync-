@@ -55,6 +55,8 @@ function DimensionsAnalyst(props) {
   const [displayHeader, setDisplayHeader] = useState(false)
   const [openModal, setOpenModal] = useState(0);
 
+  const [url, setURL] = useState("");
+
 
   const executePythonScript = async () => {
     setDataLoading(true)
@@ -65,7 +67,10 @@ function DimensionsAnalyst(props) {
         .getIdToken()
         .then((token) => {
           // Define the API endpoint URL
-          const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`;
+          var apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`;
+          if (url != '') {
+            apiUrl = apiUrl + `?url=${encodeURIComponent(url)}`
+          }
           console.log(token);
           fetch(apiUrl, {
             method: "GET",
@@ -188,7 +193,7 @@ function DimensionsAnalyst(props) {
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
-
+              setURL("");
               setDataSubmitting(false)
 
             })
@@ -287,7 +292,7 @@ function DimensionsAnalyst(props) {
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
-
+              setURL("");
               setDataSubmitting(false)
 
             })
@@ -843,7 +848,7 @@ function DimensionsAnalyst(props) {
               </Button>
 
               <Stack direction='row' justifyContent='end'>
-                <TextField placeholder="Search by URL" variant="filled" style={{ borderRadius: 0 }} />
+                <TextField value={url} placeholder="Search by URL" variant="filled" onChange={(e) => setURL(e.target.value)} style={{ borderRadius: 0 }} />
                 <Button variant="contained"
                   onClick={executePythonScript}
                   style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
@@ -867,23 +872,6 @@ function DimensionsAnalyst(props) {
                   {dataLoading && <CircularProgress size={26} color="warning" />}
                 </Stack>
               </Button>
-
-
-              <Stack direction="column">
-                <Typography>Report Issue</Typography>
-
-                <Button variant="outlined"
-                  onClick={executePythonScriptSubmit_not_understandable}
-                  disabled={!dataLoaded}
-
-                  color="error"
-                >
-                  <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontWeight='bold'>Not Understandable</Typography>
-                    {dataSubmitting && <CircularProgress size={26} color="info" />}
-                  </Stack>
-                </Button>
-              </Stack>
 
 
               <Stack direction="column">
@@ -926,17 +914,35 @@ function DimensionsAnalyst(props) {
 
             </Stack>
 
-            <Stack direction="column">
-              <Button variant="outlined"
-                onClick={executePythonScriptSubmit}
-                disabled={!dataLoaded}
-                color="error"
-              >
-                <Stack direction='row' gap={2} alignItems='center'>
-                  <Typography fontWeight='bold'>Submit</Typography>
-                  {dataSubmitting && <CircularProgress size={26} color="info" />}
-                </Stack>
-              </Button>
+            <Stack direction='column' alignSelf='end' width='100%' gap={5}>
+              <Stack direction="column">
+                <Typography>Report Issue</Typography>
+
+                <Button variant="outlined"
+                  onClick={executePythonScriptSubmit_not_understandable}
+                  disabled={!dataLoaded}
+
+                  color="error"
+                >
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>Not Understandable</Typography>
+                    {dataSubmitting && <CircularProgress size={26} color="info" />}
+                  </Stack>
+                </Button>
+              </Stack>
+
+              <Stack direction="column">
+                <Button variant="outlined"
+                  onClick={executePythonScriptSubmit}
+                  disabled={!dataLoaded}
+                  color="error"
+                >
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>Submit</Typography>
+                    {dataSubmitting && <CircularProgress size={26} color="info" />}
+                  </Stack>
+                </Button>
+              </Stack>
             </Stack>
           </Stack>
 

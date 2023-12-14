@@ -134,12 +134,18 @@ const Extraction = (props) => {
             })
             .catch((error) => {
               // Handle any errors
-              console.error("Error:", error);
+              toast.error(error.toString(), {
+                position: toast.POSITION.TOP_RIGHT,
+              });
+              console.error("Error:", error.toString());
             });
         })
         .catch((error) => {
           // Handle any errors while getting the token
           console.error("Token Error:", error);
+          toast.error(error, {
+            position: toast.POSITION.TOP_RIGHT,
+          });
         });
     }
     // try {
@@ -601,7 +607,7 @@ const Extraction = (props) => {
         setVisibilityNotDoable(false);
 
         toast.success("Sorted Data Submit Successfully!", {
-          position: toast.POSITION.BOTTOM_RIGHT,
+          position: toast.POSITION.TOP_RIGHT,
         });
 
         setSearchQuery("")
@@ -674,7 +680,7 @@ const Extraction = (props) => {
         setVisibilityNotDoable(false);
 
         toast.success("Not Doable Product Submited Successfully!", {
-          position: toast.POSITION.BOTTOM_RIGHT,
+          position: toast.POSITION.TOP_RIGHT,
         });
       })
       .catch((error) => {

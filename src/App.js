@@ -60,6 +60,9 @@ import SuperAdmin from "./pages/SuperAdmin";
 import Ingredients from "./pages/Ingredients";
 import ProductVendorInformation from "./pages/ProductVendorInformation";
 import UserManagement from './pages/admin/UserManagement';
+import ReadyToLive from './pages/admin/ReadyToLive';
+import AllNads from './pages/admin/AllNads';
+import NotUnderstandables from './pages/admin/NotUnderstandables';
 
 
 const auth = getAuth();
@@ -437,6 +440,39 @@ function App() {
                 path="/user-management"
                 element={
                   <UserManagement
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/ready-to-live"
+                element={
+                  <ReadyToLive
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/all-nads"
+                element={
+                  <AllNads
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/not-understandables"
+                element={
+                  <NotUnderstandables
                     userEmail={userEmail}
                     userRole={userRole}
                     userJdesc={userJdesc}

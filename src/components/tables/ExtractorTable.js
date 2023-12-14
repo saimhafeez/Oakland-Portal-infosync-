@@ -102,8 +102,9 @@ const ExtractorTable = (props) => {
     }
 
     if (filterByQAStatus !== 'qa-status') {
-      products = products.filter((item) => item.status === filterByQAStatus)
+      products = products.filter((item) => filterByQAStatus === 'under_qa' ? item.status === null : item.status === filterByQAStatus)
     }
+
 
     return products
   }
@@ -248,7 +249,7 @@ const ExtractorTable = (props) => {
                   <option value="qa-status">Filter by QA Status</option>
                   <option value="under_qa">Under QA</option>
                   <option value="passed">100% [QA Passed]</option>
-                  <option value="minor">MINOR[QA Passed]</option>
+                  <option value="minor">MINOR [QA Passed]</option>
                   <option value="major">MAJOR [QA Passed]</option>
                 </select>
 
@@ -279,7 +280,7 @@ const ExtractorTable = (props) => {
                 <td>{item.productID}</td>
                 <td>{item.variantID || 'N/A'}</td>
                 <td>{formatDate(item.lastModified)}</td>
-                <td>{item.status === 'under_qa' ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'rejected_nad' ? 'Not a Doable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
+                <td>{(item.status === null || item.status === 'under_qa') ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'rejected_nad' ? 'Not a Doable' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : 'N/A'}</td>
                 {/* <td>{item.earning || 'N/A'}</td> */}
               </tr>
             ))}
