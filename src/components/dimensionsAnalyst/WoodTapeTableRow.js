@@ -45,7 +45,7 @@ function WoodTapeTableRow({
           {WoodTapeSize.map((item, index) => {
             return (
               <MenuItem key={index} value={item.Size}>
-                {item.Size}
+                {item.Size.toUpperCase()}
               </MenuItem>
             );
           })}

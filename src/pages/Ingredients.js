@@ -240,6 +240,44 @@ function Ingredients(props) {
     //             "unit": "ft",
     //             "totalQuantity": 10,
     //             "status": "active"
+    //         },
+    //         "Misc": {
+    //             "wheels": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "cross rods": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "gauze": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "realing": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "wooden legs": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "handles": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "box": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "wooden piller": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
+    //             "steel piller": {
+    //                 "price": 10,
+    //                 "status": "active"
+    //             },
     //         }
     //     }
 

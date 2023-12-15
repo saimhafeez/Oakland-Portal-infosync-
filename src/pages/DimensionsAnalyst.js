@@ -36,6 +36,8 @@ import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
+import MiscItemSize from '../res/MiscItemSize.json'
+
 // Import css files
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -56,6 +58,9 @@ function DimensionsAnalyst(props) {
   const [openModal, setOpenModal] = useState(0);
 
   const [url, setURL] = useState("");
+
+  const [miscItems, setMiscItems] = useState(['Select Another Misc Item'])
+  const [selectedMiscItemSelectionValue, setSelectedMiscItemSelectionValue] = useState("Select Another Misc Item")
 
 
   const executePythonScript = async () => {
@@ -84,17 +89,68 @@ function DimensionsAnalyst(props) {
             console.log("network response was ok");
             return response.json();
           })
-            .then((data) => {
+            .then(async (data) => {
               // Handle the API response data
               console.log("API Response:", data);
-              setImages(data.images);
-              setWeightAndDimentions(data["weight and dimensions"]);
-              setPreviewImage(data.images[0]);
-              // setPreviewImage(images.dimen[0]);
-              setProductID(data.id);
-              setProductSKU(data.sku);
-              setDataLoaded(true);
-              setDataLoading(false)
+              fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/images/${data.sku}`).then((response) => {
+                if (!response.ok) {
+                  throw new Error("Network response was not ok");
+                }
+                console.log("network response was ok");
+                return response.json();
+              }).then(async (images) => {
+                console.log('images --> ', images);
+                const { dimensional, ordinary, thumbnails, whitebg } = images[0].data.final;
+                setImages([...dimensional, ...thumbnails, ...ordinary, ...whitebg]);
+                setWeightAndDimentions(data["weight and dimensions"]);
+                setPreviewImage(dimensional[0]);
+                // setPreviewImage(images.dimen[0]);
+                setProductID(data.id);
+                setProductSKU(data.sku);
+                setDataLoaded(true);
+                setDataLoading(false)
+
+                const { data: _data } = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).catch((e) => console.log('error occured', e));
+
+                console.log('ingredients', _data);
+
+                const micsRows = []
+                console.log('Object.keys(_data.Misc) -->', Object.keys(_data.Misc));
+                Object.keys(_data.Misc).map((item) => {
+                  if (_data.Misc[item].status === 'active') {
+                    setMiscItems(pre => ([
+                      ...pre,
+                      item
+                    ]))
+                  }
+                  // console.log('_data.Misc[item]', _data.Misc[item]);
+                })
+
+                // setMiscItems(["Select Another Misc Item", ...Object.keys(_data.Misc)]);
+
+                Object.keys(_data.Misc).slice(0, 5).map((misc) => {
+                  micsRows.push({
+                    item: misc,
+                    size: MiscItemSize[0].Size,
+                    qty: ''
+                  })
+                })
+
+                setProductProperties(pre => ({
+                  ...pre,
+                  miscTableRows: micsRows
+                }))
+
+
+
+              }).catch((error) => {
+                // Handle any errors
+                console.error("Error:", error);
+                setDataLoaded(false);
+                setDataLoading(false)
+                window.alert('No Job Found');
+              });
+
             })
             .catch((error) => {
               // Handle any errors
@@ -142,7 +198,7 @@ function DimensionsAnalyst(props) {
               console.log("network response was ok");
               return response.json();
             })
-            .then((data) => {
+            .then(async (data) => {
               // Handle the API response data
               console.log("API Response:", data);
 
@@ -157,6 +213,7 @@ function DimensionsAnalyst(props) {
                 ...pre,
                 buildMaterial: "IRON PIPE / MDF"
               }))
+
               setProductProperties({
                 ironPipeRows: [
                   PropsModel["ironPipeRows"],
@@ -500,6 +557,13 @@ function DimensionsAnalyst(props) {
     }
   }
 
+  const getFreeMiscItems = () => {
+
+    const miscItem = productProperties.miscTableRows.map(itm => itm.item)
+
+    return miscItems.filter(item => !miscItem.includes(item));
+  }
+
   return (
     <>
       {
@@ -825,6 +889,48 @@ function DimensionsAnalyst(props) {
                       );
                     })}
                   </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell style={{ display: 'flex' }}>
+                        <Select
+                          size="small"
+                          value={selectedMiscItemSelectionValue}
+                          onChange={(e) => setSelectedMiscItemSelectionValue(e.target.value)}
+                          // defaultValue='Select Another Misc Item'
+                          name="size"
+                          style={{ width: "100%" }}
+                        >
+                          {getFreeMiscItems().map((item, index) => {
+                            return (
+                              <MenuItem key={index} value={item}>
+                                {item}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+
+                        <Button
+                          onClick={() => {
+
+                            if (selectedMiscItemSelectionValue !== 'Select Another Misc Item') {
+                              setProductProperties(pre => ({
+                                ...pre,
+                                miscTableRows: [...pre.miscTableRows, {
+                                  item: selectedMiscItemSelectionValue,
+                                  size: MiscItemSize[0].Size,
+                                  qty: ''
+                                }]
+                              }))
+                              setSelectedMiscItemSelectionValue("Select Another Misc Item")
+                            }
+
+                          }}
+                        >
+                          <AddCircleIcon htmlColor="#1976d2" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableFooter>
                 </Table>
               </TableContainer>
             </Stack>
@@ -932,10 +1038,10 @@ function DimensionsAnalyst(props) {
               </Stack>
 
               <Stack direction="column">
-                <Button variant="outlined"
+                <Button variant="contained"
                   onClick={executePythonScriptSubmit}
                   disabled={!dataLoaded}
-                  color="error"
+                  color="success"
                 >
                   <Stack direction='row' gap={2} alignItems='center'>
                     <Typography fontWeight='bold'>Submit</Typography>
@@ -945,7 +1051,6 @@ function DimensionsAnalyst(props) {
               </Stack>
             </Stack>
           </Stack>
-
         </Stack>
       </Wrapper >
     </>
