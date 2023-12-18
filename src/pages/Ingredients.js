@@ -62,6 +62,12 @@ function Ingredients(props) {
         totalQuantity: 0,
         status: 'active'
     })
+
+    const [newMisc, setNewMisc] = useState({
+        name: '',
+        price: 0,
+        status: 'active'
+    })
     // =================================================
 
 
@@ -206,6 +212,85 @@ function Ingredients(props) {
         console.log('newData', newData);
 
     }
+
+    const editMiscIngredient = (misc) => {
+        setCurrentlyAdding("Misc")
+        // console.log('misc.toString()', misc.toString());
+        setCurrentlyEditing(misc.toString())
+        console.log('misc', misc);
+        setNewMisc({
+            name: misc,
+            price: (ingredients['Misc'])[misc].price,
+            unit: (ingredients['Misc'])[misc].unit,
+        })
+        setOpen(true)
+    }
+
+    const saveMiscIngredient = () => {
+        const changes = {
+            [`${newMisc.name}`]: {
+                price: parseInt(newMisc.price),
+                status: currentlyEditing ? ((ingredients["Misc"])[currentlyEditing]).status : newMisc.status,
+            }
+        }
+        console.log('original', (ingredients["Misc"])[currentlyEditing])
+        console.log('changes', changes);
+
+        const newData = {
+            ...ingredients,
+            ['Misc']: {
+                ...(ingredients['Misc']),
+                ...changes
+            }
+        }
+
+        setOpen(false)
+        setCurrentlyAdding(null)
+        setCurrentlyEditing(null)
+        setNewMisc({
+            name: '',
+            price: 0,
+            status: 'active'
+        })
+
+        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newData),
+        }).then((res) => res.json()).then((result) => {
+            console.log('submitted', result);
+            fetchIngredients()
+        }).catch((e) => console.log('error occured', e))
+
+        console.log('newData', newData);
+    }
+
+    const changeActiveStatusMiscIngredient = (ing, status) => {
+        const newData = {
+            ...ingredients,
+            ['Misc']: {
+                ...(ingredients['Misc']),
+                [ing]: {
+                    ...((ingredients['Misc'])[ing]),
+                    status
+                }
+            }
+        }
+
+        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newData),
+        }).then((res) => res.json()).then((result) => {
+            console.log('submitted', result);
+            fetchIngredients()
+        }).catch((e) => console.log('error occured', e))
+    }
+
 
     // useEffect(() => {
     //     const ingredient = {
@@ -476,6 +561,33 @@ function Ingredients(props) {
         }).catch((e) => console.log('error occured', e))
     }
 
+    const MiscModal = () => {
+        return <>
+            <Stack gap={2}>
+                <TextField
+                    label="Name"
+                    variant="outlined"
+                    value={newMisc.name}
+                    onChange={(e) => setNewMisc((pre) => ({ ...pre, name: e.target.value }))}
+                />
+                <TextField
+                    label="Price"
+                    variant="outlined"
+                    type="number"
+                    value={newMisc.price}
+                    onChange={(e) => setNewMisc((pre) => ({ ...pre, price: e.target.value }))}
+                />
+                <Button
+                    onClick={saveMiscIngredient}
+                    variant="contained"
+                    style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
+                >
+                    Save
+                </Button>
+            </Stack>
+        </>
+    }
+
     return (
         <>
             <HeaderSignOut
@@ -503,6 +615,11 @@ function Ingredients(props) {
                         totalQuantity: 0,
                         status: 'active'
                     })
+                    setNewMisc({
+                        name: '',
+                        price: 0,
+                        status: 'active'
+                    })
                     setCurrentlyAdding(null)
                 }}
                 aria-labelledby="modal-modal-title"
@@ -521,6 +638,7 @@ function Ingredients(props) {
                 }}>
                     {currentlyAdding === 'Iron Pipe' && IronPipeModal()}
                     {(currentlyAdding === 'Wooden Sheet' || currentlyAdding === 'Wood Tape') && WoodenSheetNTapeModal()}
+                    {(currentlyAdding === 'Misc') && MiscModal()}
                 </Box>
             </Modal>
 
@@ -558,12 +676,6 @@ function Ingredients(props) {
                         <>
                             <div className="px-5">
                                 <h2>Iron Pipe</h2>
-                                {/* <div className=" d-flex flex-row justify-content-center">
-
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div> */}
                                 <div className="mt-1">
                                     <Button
                                         onClick={() => {
@@ -638,21 +750,7 @@ function Ingredients(props) {
 
                             <div className="px-5">
                                 <h2>Wooden Sheet</h2>
-                                {/* <div className=" d-flex flex-row justify-content-center">
-
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div> */}
                                 <div className="mt-1">
-                                    {/* <Button
-                        onClick={() => setOpen(true)}
-                        variant="contained"
-                        style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
-                    >
-                        <AddCircleOutlineIcon />
-                        <Typography>Add New Ingredient</Typography>
-                    </Button> */}
                                     <table className="table table-bordered table-striped align-middle text-center">
                                         <thead className="table-info">
                                             <tr>
@@ -708,21 +806,8 @@ function Ingredients(props) {
 
                             <div className="px-5">
                                 <h2>Wood Tape</h2>
-                                {/* <div className=" d-flex flex-row justify-content-center">
-
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div> */}
                                 <div className="mt-1">
-                                    {/* <Button
-                        onClick={() => setOpen(true)}
-                        variant="contained"
-                        style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
-                    >
-                        <AddCircleOutlineIcon />
-                        <Typography>Add New Ingredient</Typography>
-                    </Button> */}
+
                                     <table className="table table-bordered table-striped align-middle text-center">
                                         <thead className="table-info">
                                             <tr>
@@ -771,6 +856,74 @@ function Ingredients(props) {
                                                 </td>
                                             </tr>
                                             }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div >
+
+                            <div className="px-5">
+                                <h2>Misc</h2>
+                                <div className="mt-1">
+                                    <Button
+                                        onClick={() => {
+                                            setCurrentlyAdding("Misc")
+                                            setOpen(true)
+                                        }}
+                                        variant="contained"
+                                        style={{ width: 'fit-content', borderRadius: 0, margin: '10px', gap: 2 }}
+                                    >
+                                        <AddCircleOutlineIcon />
+                                        <Typography>Add New Misc Item</Typography>
+                                    </Button>
+                                    <table className="table table-bordered table-striped align-middle text-center">
+                                        <thead className="table-info">
+                                            <tr>
+                                                <th>Item</th>
+                                                <th>Price</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {ingredients && Object.keys(ingredients["Misc"]).map((misc, index) => {
+                                                if (activeFilter === (ingredients["Misc"])[misc].status) {
+                                                    return <tr tr key={index}>
+                                                        <td>{misc}</td>
+                                                        <td>
+                                                            {(ingredients["Misc"])[misc].price}
+                                                        </td>
+                                                        <td>
+                                                            <Stack direction='row' justifyContent='center'>
+                                                                {activeFilter !== 'trash' && <Button
+                                                                    // style={{ width: '75px', height: '100%' }}
+                                                                    color="secondary"
+                                                                    variant="outlined"
+                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                                    onClick={() => editMiscIngredient(misc)}
+                                                                >
+                                                                    Edit
+                                                                </Button>}
+                                                                {activeFilter !== 'trash' && <Button
+                                                                    // style={{ width: '75px', height: '100%' }}
+                                                                    color="info"
+                                                                    variant="outlined"
+                                                                    onClick={() => changeActiveStatusMiscIngredient(misc, activeFilter === 'inactive' ? "active" : "inactive")}
+                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}>
+                                                                    {activeFilter === 'inactive' ? 'Set Active' : 'Set Inactive'}
+                                                                </Button>}
+                                                                <Button
+                                                                    // style={{ width: '75px', height: '100%' }}
+                                                                    color="error"
+                                                                    variant="outlined"
+                                                                    onClick={() => activeFilter !== 'trash' ? changeActiveStatusMiscIngredient(misc, "trash") : changeActiveStatusMiscIngredient(misc, "active")}
+                                                                    style={{ borderRadius: 0, width: '100%', whiteSpace: 'nowrap' }}
+                                                                >
+                                                                    {activeFilter !== 'trash' ? 'Remove' : 'Restore'}
+                                                                </Button>
+                                                            </Stack>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>

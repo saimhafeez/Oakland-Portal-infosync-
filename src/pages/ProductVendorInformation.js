@@ -83,18 +83,20 @@ function ProductVendorInformation(props) {
             const apiURL_table = `${process.env.REACT_APP_SERVER_ADDRESS}/api/table/${tableID}`
 
             fetch(apiURL_table).then(res => res.json()).then((result) => {
-                // console.log(result);
+                console.log(result);
 
                 setProductDetails((pre) => ({
                     ...pre,
                     isLoading: false,
-                    ...result.data.final
+                    ...result.data.final,
+                    title: `SKU: ${result.sku}`
                 }))
 
                 console.log('--------->', {
                     isLoading: false,
                     ...productDetails,
-                    ...result.data.final
+                    ...result.data.final,
+                    title: result.data.sku
                 });
             }).catch((e) => console.log('error occured', e))
         }).catch((e) => console.log('error occured', e))
@@ -103,107 +105,15 @@ function ProductVendorInformation(props) {
 
     const [productDetails, setProductDetails] = useState({
         isLoading: true,
-        title: 'Laptop/Computer Cart Or Stand with Wheels',
-        images: [
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-            'https://oaklyn-furniture.myshopify.com/cdn/shop/files/Laptop_Computer_Cart_Or_Stand_with_Wheels_1.jpg',
-        ],
-        "weight and dimensions": {
-            "Other Dimensions": {
-                "Knee Space": "29'' H",
-                "Overall": "29.1'' H X 95.2'' W X 59.4'' D",
-                "Desktop": "29.1'' H X 35.8'' W X 23.6'' D",
-                "Shelf": "22.8'' W X 11.8'' D",
-                "Overall Product Weight": "68.34 lb.",
-                "Desktop Plus Metal Frame Thickness": "1.57\".",
-                "Top thickness": "0.6 inches."
-            }
-        },
+        title: '',
+        images: [],
+        "weight and dimensions": {},
         buildMaterial: "IRON PIPE / MDF",
         productProperties: {
-            ironPipeRows: [
-                {
-                    "pipeTypeNSize": "Square  01'' x 01''",
-                    "length": "12",
-                    "qty": "42"
-                },
-                {
-                    "pipeTypeNSize": "Square  0.5'' x 0.5''",
-                    "length": "4",
-                    "qty": "32"
-                },
-                {
-                    "pipeTypeNSize": "Solid Wood  1.5'' x 1.5''",
-                    "length": "11",
-                    "qty": "13"
-                }
-            ],
-            woodenSheetRows: [
-                {
-                    "type": "Horizontal",
-                    "length": "13",
-                    "width": "23",
-                    "qty": "2"
-                },
-                {
-                    "type": "Vertical",
-                    "length": "34",
-                    "width": "12",
-                    "qty": "4"
-                }
-            ],
-            woodTapeRows: [
-                {
-                    "size": "Small",
-                    "length": "13",
-                    "qty": "1"
-                },
-                {
-                    "size": "Small",
-                    "length": "41",
-                    "qty": "41"
-                },
-                {
-                    "size": "Big",
-                    "length": "41",
-                    "qty": "4"
-                }
-            ],
-            miscTableRows: [
-                {
-                    "item": "Wheels",
-                    "size": "Small",
-                    "qty": "3"
-                },
-                {
-                    "item": "Cross Rods",
-                    "size": "Small",
-                    "qty": "1"
-                },
-                {
-                    "item": "Realing",
-                    "size": "Small",
-                    "qty": "3"
-                }
-            ]
+            ironPipeRows: [],
+            woodenSheetRows: [],
+            woodTapeRows: [],
+            miscTableRows: []
         }
     })
 
@@ -251,12 +161,12 @@ function ProductVendorInformation(props) {
         swipeToSlide: true,
     };
 
-    const [productPropertiesOld, setProductPropertiesOld] = useState({
-        ironPipeRows: [],
-        woodenSheetRows: [],
-        woodTapeRows: [],
-        miscTableRows: [],
-    });
+    // const [productPropertiesOld, setProductPropertiesOld] = useState({
+    //     ironPipeRows: [],
+    //     woodenSheetRows: [],
+    //     woodTapeRows: [],
+    //     miscTableRows: [],
+    // });
 
 
     const [filters, setFilters] = useState({
@@ -265,40 +175,40 @@ function ProductVendorInformation(props) {
         qaScorecard: "QA Scorecard",
     });
 
-    const getFilledRows = (propType) => {
-        const filledData = Array.from(productPropertiesOld[propType]);
-        for (var i = filledData.length; i < 9; i++) {
-            filledData.push(PropsModel[propType]);
-        }
-        return filledData;
-    };
+    // const getFilledRows = (propType) => {
+    //     const filledData = Array.from(productPropertiesOld[propType]);
+    //     for (var i = filledData.length; i < 9; i++) {
+    //         filledData.push(PropsModel[propType]);
+    //     }
+    //     return filledData;
+    // };
 
-    const getMiscTableRows = () => {
-        const rows = PropsModel["miscTableRows"];
-        rows.map((row) => {
-            productPropertiesOld.miscTableRows.map((misc) => {
-                if (misc.item === row.item) {
-                    row.qty = misc.qty;
-                    row.size = misc.size;
-                }
-            });
-        });
-        return rows;
-    };
+    // const getMiscTableRows = () => {
+    //     const rows = PropsModel["miscTableRows"];
+    //     rows.map((row) => {
+    //         productPropertiesOld.miscTableRows.map((misc) => {
+    //             if (misc.item === row.item) {
+    //                 row.qty = misc.qty;
+    //                 row.size = misc.size;
+    //             }
+    //         });
+    //     });
+    //     return rows;
+    // };
 
-    const [productProperties, setProductProperties] = useState({
-        ironPipeRows: getFilledRows("ironPipeRows"),
-        woodenSheetRows: getFilledRows("woodenSheetRows"),
-        woodTapeRows: getFilledRows("woodTapeRows"),
-        miscTableRows: getMiscTableRows(),
-    });
+    // const [productProperties, setProductProperties] = useState({
+    //     ironPipeRows: getFilledRows("ironPipeRows"),
+    //     woodenSheetRows: getFilledRows("woodenSheetRows"),
+    //     woodTapeRows: getFilledRows("woodTapeRows"),
+    //     miscTableRows: getFilledRows("miscTableRows"),
+    // });
 
-    const addNewRow = (propType) => {
-        setProductProperties((pre) => ({
-            ...pre,
-            [propType]: [...pre[propType], PropsModel[propType]],
-        }));
-    };
+    // const addNewRow = (propType) => {
+    //     setProductProperties((pre) => ({
+    //         ...pre,
+    //         [propType]: [...pre[propType], PropsModel[propType]],
+    //     }));
+    // };
 
 
     const getProductProperties = () => {
@@ -372,7 +282,7 @@ function ProductVendorInformation(props) {
             const unitCost = parseInt(ingredient.price) / parseInt(ingredient.totalQuantity)
             console.log('unitCost', unitCost);
             pipes.push({
-                title: pipe.pipeTypeNSize,
+                title: `Iron Pipe [${pipe.pipeTypeNSize}]`,
                 unitCost: unitCost.toFixed(2),
                 unitQuantity: `${parseInt(ingredient.totalQuantity).toFixed(2)} ${ingredient.unit}`,
                 quantity: pipe.qty,
@@ -387,7 +297,7 @@ function ProductVendorInformation(props) {
             const unitCost = parseInt(ingredient.price) / parseInt(ingredient.totalQuantity)
 
             pipes.push({
-                title: `Wooden Sheet ${woodenSheet.type}`,
+                title: `Wooden Sheet [${woodenSheet.type}]`,
                 unitCost: unitCost.toFixed(2),
                 unitQuantity: `${parseInt(ingredient.totalQuantity).toFixed(2)} ${ingredient.unit}`,
                 quantity: woodenSheet.qty,
@@ -401,12 +311,25 @@ function ProductVendorInformation(props) {
             const unitCost = parseInt(ingredient.price) / parseInt(ingredient.totalQuantity)
 
             pipes.push({
-                title: `Wood Tape ${woodTape.size}`,
+                title: `Wood Tape [${woodTape.size}]`,
                 unitCost: unitCost.toFixed(2),
                 unitQuantity: `${parseInt(ingredient.totalQuantity).toFixed(2)} ${ingredient.unit}`,
                 quantity: woodTape.qty,
                 cost: (((woodTape.length / 12) * woodTape.qty) * unitCost).toFixed(),
                 bom: `${((woodTape.length / 12) * woodTape.qty).toFixed(1)} ft`
+            })
+        })
+
+        productDetails.productProperties.miscTableRows.map((misc, index) => {
+
+            const ingredient = (ingredients.data[`Misc`])[misc.item]
+            pipes.push({
+                title: `${misc.item} [${misc.size}]`,
+                unitCost: ingredient.price,
+                unitQuantity: '-',
+                quantity: misc.qty,
+                cost: misc.qty * ingredient.price,
+                bom: '-'
             })
         })
 

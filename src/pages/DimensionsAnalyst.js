@@ -107,8 +107,7 @@ function DimensionsAnalyst(props) {
                 // setPreviewImage(images.dimen[0]);
                 setProductID(data.id);
                 setProductSKU(data.sku);
-                setDataLoaded(true);
-                setDataLoading(false)
+
 
                 const { data: _data } = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).catch((e) => console.log('error occured', e));
 
@@ -141,7 +140,8 @@ function DimensionsAnalyst(props) {
                   miscTableRows: micsRows
                 }))
 
-
+                setDataLoaded(true);
+                setDataLoading(false)
 
               }).catch((error) => {
                 // Handle any errors
@@ -533,17 +533,35 @@ function DimensionsAnalyst(props) {
       setOpenModal(0)
       setPasteBin("")
     } else if (openModal === 4) {
-      const miscTableRows = PropsModel["miscTableRows"]
+      const miscTableRows = []
       data.map((item) => {
         const chunks = item.split("\t");
-
-        for (var i = 0; i < miscTableRows.length; i++) {
-          if (chunks[0] === miscTableRows[i].item && chunks[2] !== "") {
-            miscTableRows[i].size = chunks[1]
-            miscTableRows[i].qty = chunks[2]
-          }
+        if (chunks[0] !== '' && chunks[1] !== '' && chunks[2] !== '') {
+          miscTableRows.push({
+            item: chunks[0].toLowerCase(),
+            size: chunks[1],
+            qty: chunks[2],
+          })
         }
+
+        // for (var i = 0; i < miscTableRows.length; i++) {
+        //   if (chunks[0] === miscTableRows[i].item && chunks[2] !== "") {
+        //     miscTableRows[i].size = chunks[1]
+        //     miscTableRows[i].qty = chunks[2]
+        //   }
+        // }
       })
+      // const miscTableRows = PropsModel["miscTableRows"]
+      // data.map((item) => {
+      //   const chunks = item.split("\t");
+
+      //   for (var i = 0; i < miscTableRows.length; i++) {
+      //     if (chunks[0] === miscTableRows[i].item && chunks[2] !== "") {
+      //       miscTableRows[i].size = chunks[1]
+      //       miscTableRows[i].qty = chunks[2]
+      //     }
+      //   }
+      // })
 
       setProductProperties(pre => ({
         ...pre,
@@ -846,13 +864,6 @@ function DimensionsAnalyst(props) {
                 </TableContainer>
               )}
             </Stack>
-
-            {/* <Grid container spacing={1} direction="row">
-    <Grid item xs={12} md={5}>
-
-    </Grid>
-  </Grid> */}
-
 
             <Stack>
 

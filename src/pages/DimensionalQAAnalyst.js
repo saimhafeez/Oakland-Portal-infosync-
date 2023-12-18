@@ -35,6 +35,8 @@ import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTabl
 import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
 
+import MiscItemSize from '../res/MiscItemSize.json'
+
 function DimensionalQAAnalyst(props) {
   const [dataLoading, setDataLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -54,6 +56,9 @@ function DimensionalQAAnalyst(props) {
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
   const [url, setURL] = useState("")
+
+  const [miscItems, setMiscItems] = useState(['Select Another Misc Item'])
+  const [selectedMiscItemSelectionValue, setSelectedMiscItemSelectionValue] = useState("Select Another Misc Item")
 
 
   const executePythonScript = async () => {
@@ -90,7 +95,7 @@ function DimensionalQAAnalyst(props) {
             console.log("network response was ok");
             return response.json();
           })
-            .then((data) => {
+            .then(async (data) => {
               // Handle the API response data
               console.log("API Response:", data);
 
@@ -119,8 +124,42 @@ function DimensionalQAAnalyst(props) {
                 qaScorecard: data.change === 'not_understandable' ? 'major' : 'QA Scorecard'
               }));
 
+
+
+              const { data: _data } = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).catch((e) => console.log('error occured', e));
+
+              console.log('ingredients', _data);
+
+              const micsRows = []
+              console.log('Object.keys(_data.Misc) -->', Object.keys(_data.Misc));
+              Object.keys(_data.Misc).map((item) => {
+                if (_data.Misc[item].status === 'active') {
+                  setMiscItems(pre => ([
+                    ...pre,
+                    item
+                  ]))
+                }
+                // console.log('_data.Misc[item]', _data.Misc[item]);
+              })
+
+              // setMiscItems(["Select Another Misc Item", ...Object.keys(_data.Misc)]);
+
+              Object.keys(_data.Misc).slice(0, 5).map((misc) => {
+                micsRows.push({
+                  item: misc,
+                  size: MiscItemSize[0].Size,
+                  qty: ''
+                })
+              })
+
+              setProductProperties(pre => ({
+                ...pre,
+                miscTableRows: micsRows
+              }))
+
               setDataLoaded(true);
               setDataLoading(false)
+
             })
             .catch((error) => {
               // Handle any errors
@@ -438,6 +477,13 @@ function DimensionalQAAnalyst(props) {
     };
   };
 
+  const getFreeMiscItems = () => {
+
+    const miscItem = productProperties.miscTableRows.map(itm => itm.item)
+
+    return miscItems.filter(item => !miscItem.includes(item));
+  }
+
 
   const [displayHeader, setDisplayHeader] = useState(false)
 
@@ -690,11 +736,53 @@ function DimensionalQAAnalyst(props) {
                           _key={index}
                           data={row}
                           handleEdit={handleEdit}
-                          editable={suggestEdit}
+                          editable={dataLoaded}
                         />
                       );
                     })}
                   </TableBody>
+                  {suggestEdit && (<TableFooter>
+                    <TableRow>
+                      <TableCell style={{ display: 'flex' }}>
+                        <Select
+                          size="small"
+                          value={selectedMiscItemSelectionValue}
+                          onChange={(e) => setSelectedMiscItemSelectionValue(e.target.value)}
+                          // defaultValue='Select Another Misc Item'
+                          name="size"
+                          style={{ width: "100%" }}
+                        >
+                          {getFreeMiscItems().map((item, index) => {
+                            return (
+                              <MenuItem key={index} value={item}>
+                                {item}
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+
+                        <Button
+                          onClick={() => {
+
+                            if (selectedMiscItemSelectionValue !== 'Select Another Misc Item') {
+                              setProductProperties(pre => ({
+                                ...pre,
+                                miscTableRows: [...pre.miscTableRows, {
+                                  item: selectedMiscItemSelectionValue,
+                                  size: MiscItemSize[0].Size,
+                                  qty: ''
+                                }]
+                              }))
+                              setSelectedMiscItemSelectionValue("Select Another Misc Item")
+                            }
+
+                          }}
+                        >
+                          <AddCircleIcon htmlColor="#1976d2" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableFooter>)}
                 </Table>
               </TableContainer>
             </Stack>
@@ -835,7 +923,7 @@ function DimensionalQAAnalyst(props) {
                   <MenuItem value="major">MAJOR Fixes</MenuItem>
                   {productNotUnderstandable === false && <MenuItem value="passed">100% [QA Passed]</MenuItem>}
                 </Select>
-                <Button variant='outlined' color="error" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded} onClick={executePythonScriptSubmit}>
+                <Button variant='contained' color="success" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded} onClick={executePythonScriptSubmit}>
                   submit
                 </Button>
               </Stack>
@@ -861,7 +949,7 @@ const Wrapper = styled.main`
   }
   td div {
     border-radius: 0px;
-    font-size: small;
+    font-size: medium;
   }
   .table-head {
     background-color: black;
