@@ -1,50 +1,29 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
-import HeaderSignOut from "../components/header/HeaderSignOut";
 import {
     Button,
-    ButtonGroup,
-    Card,
     CircularProgress,
-    Grid,
-    Link,
     MenuItem,
-    Pagination,
     Select,
     Stack,
-    TableFooter,
-    TextField,
     Typography,
-    colors,
 } from "@mui/material";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import Sidebar from "../components/sidebar/Sidebar";
-import Header from "../components/header/Header";
-import SuperAdminSidebar from "../components/sidebar/SuperAdminSidebar";
 import { formatDate } from "../utils/formatDate";
-import { sumArrays } from "../utils/sumArrays";
 
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-
-import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "../firebase";
+
+
 
 function SuperAdmin(props) {
 
     const sortOrder = ["Extractor", "QA-Extractor", "DimAna", "QA-DimAna"];
+
+    const [searchByID, setSearchByID] = useState("");
+    const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
+    const [filterByUser, setFilterByUser] = useState("user");
+    const [userList, setUserList] = useState([])
 
     const [tableFilter, setTableFilter] = useState('Extractor')
     const [hideManagersAndUsersOverview, setHideManagersAndUsersOverview] = useState(false)
@@ -57,6 +36,7 @@ function SuperAdmin(props) {
         greaterThanDate: 0,
         currentPage: 0,
         totalPages: 1,
+        totalProductsPerPage: 10,
         reset: 0,
         data: []
     })
@@ -79,8 +59,10 @@ function SuperAdmin(props) {
         currentPage: 0,
         totalPages: 1,
         reset: 0,
+        totalItems: 0,
         data: []
     })
+
 
     const fetchManagersTableData = async () => {
 
@@ -178,7 +160,7 @@ function SuperAdmin(props) {
         }))
     }
 
-    const fetchSuperAdminData = async (currentPage = tableData.currentPage) => {
+    const fetchSuperAdminData = async (currentPage = tableData.currentPage, pid = searchByID) => {
         //http://139.144.30.86:8000/api/super_table?job=Extractor
 
         setTableData((pre) => ({
@@ -187,7 +169,17 @@ function SuperAdmin(props) {
         }))
 
         const lt = (new Date().getTime() / 1000).toFixed(0)
-        const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}`
+        // const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}`
+
+        var apiURL = filterByQAStatus !== 'qa-status' ? `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}&status=${filterByQAStatus}&items_per_page=${tableData.totalProductsPerPage}`
+            : `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}`
+
+        if (pid !== '') {
+            apiURL = apiURL + `&productID=${pid}`
+        }
+        if (filterByUser !== "user") {
+            apiURL = apiURL + `&uid=${filterByUser.split("#")[1].trim()}`
+        }
 
         fetch(apiURL).then((res) => res.json()).then((result) => {
 
@@ -198,52 +190,95 @@ function SuperAdmin(props) {
                 isLoading: false,
                 data: result.data,
                 currentPage: result.curr_page,
-                totalPages: result.total_pages
+                totalPages: result.total_pages,
+                totalItems: result.total_items
             }))
 
         }).catch((e) => console.log('error occured', e))
     }
 
+    const fetchUserList = async () => {
+        const usersCollectionRef = collection(firestore, "users");
+
+        // Use a query to filter users with role=manager
+        const q = query(usersCollectionRef);
+
+        // Fetch data based on the query
+        const snapshot = await getDocs(q);
+
+        let users = [];
+        snapshot.forEach((doc) => {
+            if (doc.data().role !== 'admin') {
+                users.push(`${doc.data().name} | ${doc.data().role}-${doc.data().jdesc} # ${doc.id}`);
+            }
+
+        });
+
+        setUserList(users)
+
+    }
+
     useEffect(() => {
         fetchManagersTableData()
         fetchUsersTableData()
+        fetchUserList()
     }, [])
 
     useEffect(() => {
         fetchSuperAdminData(0)
-    }, [tableFilter])
+    }, [tableFilter, tableData.totalProductsPerPage, filterByUser])
 
     useEffect(() => {
         fetchSuperAdminData()
     }, [tableData.currentPage])
 
-    const [searchByID, setSearchByID] = useState("");
-    const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
 
-    const getAllProductsByFilter = () => {
+    useEffect(() => {
+        setTableData(pre => ({
+            ...pre,
+            isLoading: true,
+            currentPage: 0,
+            totalPages: 1,
+        }))
+        fetchSuperAdminData(0)
+    }, [filterByQAStatus])
 
-        var products = tableData.data;
-        // console.log('pro', products);
+    const fetchByProductID = () => {
+        setTableData(pre => ({
+            ...pre,
+            isLoading: true,
+            currentPage: 0,
+            totalPages: 1,
+        }))
+        fetchSuperAdminData(0)
+    }
 
-        if (searchByID !== '') {
-            products = products.filter((item) => item.productID.toString().includes(searchByID))
+    const searchItemByID = (e) => {
+        setSearchByID(e.target.value)
+        if (e.target.value === '') {
+            setTableData(pre => ({
+                ...pre,
+                isLoading: true,
+                currentPage: 0,
+                totalPages: 1,
+            }))
+            fetchSuperAdminData(0, "")
         }
-
-        // if (filterByQAStatus !== 'qa-status') {
-        //     products = products.filter((item) => item.status === filterByQAStatus)
-        // }
-
-        if (filterByQAStatus !== 'qa-status') {
-            products = products.filter((item) => filterByQAStatus === 'under_qa' ? item.status === null : item.status === filterByQAStatus)
-        }
-
-        return products
     }
 
     const navigateToItem = (productID) => {
-        if (tableFilter.includes('Extractor')) return
+        if (tableFilter === 'QA-DimAna') {
+            window.open(`/product-detail-info?job=${tableFilter}&pid=${productID}`, "_blank", "noreferrer");
+        }
         // window.location.href = `/product-detail-info?job=${tableFilter}&pid=${productID}`
-        window.open(`/product-detail-info?job=${tableFilter}&pid=${productID}`, "_blank", "noreferrer");
+    }
+
+    const navigateToComparisionSheet = (productID, variantID) => {
+        if (tableFilter === 'QA-Extractor') {
+            window.open(`/extraction-comparision?job=${tableFilter}&pid=${productID}&vid=${variantID}`, "_blank", "noreferrer");
+        } else if (tableFilter === 'QA-DimAna') {
+            window.open(`/dimana-comparision?job=${tableFilter}&pid=${productID}&vid${variantID}`, "_blank", "noreferrer");
+        }
     }
 
     return (
@@ -364,8 +399,25 @@ function SuperAdmin(props) {
                                 <table className="table mt-4 table-bordered table-striped align-middle text-center">
                                     <thead className="table-dark">
                                         <tr className="border-0 bg-white">
-                                            <th colSpan={2} className="bg-white text-dark border-0">
-                                                {getAllProductsByFilter().length} Results Found
+                                            <th className="bg-white text-dark border-0" style={{ maxWidth: '110px' }}>
+                                                <select
+                                                    className="p-2 w-100"
+                                                    name="qa-status"
+                                                    id="qa-status"
+                                                    onChange={(e) => setTableData(pre => ({
+                                                        ...pre,
+                                                        totalProductsPerPage: e.target.value
+                                                    }))}
+                                                    value={tableData.totalProductsPerPage}
+                                                >
+                                                    <option value="10">10 Per Page</option>
+                                                    <option value="25">25 Per Page</option>
+                                                    <option value="50">50 Per Page</option>
+                                                    <option value="100">100 Per Page</option>
+                                                </select>
+                                            </th>
+                                            <th className="bg-white text-dark border-0">
+                                                {tableData.totalItems} Results Found
                                             </th>
                                             <th className="bg-white" style={{ maxWidth: 200 }}>
                                                 <div className="d-flex flex-row">
@@ -374,16 +426,30 @@ function SuperAdmin(props) {
                                                         type="text"
                                                         placeholder="Search by P.ID"
                                                         style={{ backgroundColor: "#e8e8e8", width: "fit-content" }}
-                                                        onChange={(e) => setSearchByID(e.target.value)}
+                                                        onChange={searchItemByID}
                                                         value={searchByID}
                                                     />
-                                                    <button className="btn btn-go-fetch" onClick={() => setSearchByID("")}>Clear</button>
+                                                    <button className="btn btn-go-fetch" onClick={fetchByProductID}>GO</button>
                                                 </div>
                                             </th>
                                             <th className="bg-white"></th>
+                                            <th className="bg-white" style={{ maxWidth: '110px' }}>
+                                                <select
+                                                    className="p-2 w-100"
+                                                    name="qa-status"
+                                                    id="qa-status"
+                                                    onChange={(e) => setFilterByUser(e.target.value)}
+                                                    value={filterByUser}
+                                                >
+                                                    <option value="user">Filter by User</option>
+                                                    {userList.map((user, index) => {
+                                                        return <option value={user}>{user.split(" # ")[0]}</option>
+                                                    })}
+
+                                                </select>
+                                            </th>
                                             <th className="bg-white"></th>
-                                            <th className="bg-white"></th>
-                                            <th className="bg-white" style={{ maxWidth: 200 }}>
+                                            <th className="bg-white" style={{ maxWidth: '110px' }}>
 
                                                 <select
                                                     className="p-2 w-100"
@@ -392,7 +458,7 @@ function SuperAdmin(props) {
                                                     onChange={(e) => setFilterByQAStatus(e.target.value)}
                                                     value={filterByQAStatus}
                                                 >
-                                                    <option value="qa-status">Filter by Dim.QA Status</option>
+                                                    <option value="qa-status">Filter by Status</option>
                                                     <option value="under_qa">Under QA</option>
                                                     <option value="not_understandable">Not Understandable</option>
                                                     <option value="rejected_nad">Not a Doable</option>
@@ -400,8 +466,8 @@ function SuperAdmin(props) {
                                                     <option value="minor">MINOR [QA Passed]</option>
                                                     <option value="major">MAJOR [QA Passed]</option>
                                                 </select>
-
                                             </th>
+                                            <th className="bg-white"></th>
                                         </tr>
                                         <tr>
                                             <th># SR</th>
@@ -411,30 +477,33 @@ function SuperAdmin(props) {
                                             <th>{tableFilter}</th>
                                             <th>Date</th>
                                             <th>{tableFilter === 'Extractor' || tableFilter === 'QA-Extractor' ? 'Extraction' : 'DimAna'} QA Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {getAllProductsByFilter().length === 0 && <tr>
+                                        {tableData.data.length === 0 && <tr>
                                             <td colSpan={6}>
                                                 <h4 className="text-center p-2 w-100">0 Results</h4>
                                             </td>
                                         </tr>}
-                                        {getAllProductsByFilter().map((item, index) => (
+                                        {tableData.data.map((item, index) => (
                                             <tr key={index}>
-                                                <td>{index + 1}</td>
+                                                <td>{(tableData.currentPage * tableData.totalProductsPerPage) + (index + 1)}</td>
                                                 <td style={{ paddingTop: 2, paddingBottom: 2 }}>
                                                     <img
                                                         src={item.thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'}
                                                         onClick={() => { navigateToItem(item.productID) }}
                                                         alt=""
-                                                        height="52px"
+                                                        height="70px"
+                                                        style={{ cursor: tableFilter === 'QA-DimAna' ? "pointer" : "default" }}
                                                     />
                                                 </td>
                                                 <td>
-                                                    {tableFilter.includes('Extractor') ? item.productID
-                                                        : <a className="link-dark" href={`/product-detail-info?job=${tableFilter}&pid=${item.productID}`} underline="hover" target="_blank">
-                                                            {item.productID}
-                                                        </a>}
+                                                    {tableFilter === 'QA-DimAna' ? <a className="link-dark" href={`/product-detail-info?job=${tableFilter}&pid=${item.productID}`} underline="hover" target="_blank">
+                                                        {item.productID}
+                                                    </a>
+                                                        : item.productID
+                                                    }
                                                 </td>
 
                                                 <td>{item.variantID || 'N/A'}</td>
@@ -442,14 +511,69 @@ function SuperAdmin(props) {
                                                 <td>{formatDate(item.lastModified)}</td>
 
                                                 <td>{(item.status === null || item.status === 'under_qa') ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'rejcted_nad' ? 'Rejected NAD' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : item.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td>
+                                                <td>
+                                                    <button onClick={() => navigateToComparisionSheet(item.productID, item.variantID)}>compare</button>
+                                                    <button>edit</button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
-
                             }
 
                             <nav>
+                                <ul class="pagination">
+                                    <li class={`page-item ${tableData.currentPage === 0 && "disabled"}`}>
+                                        <a class="page-link" href="#" tabindex="-1" onClick={() => {
+                                            setTableData(pre => ({
+                                                ...pre,
+                                                currentPage: pre.currentPage - 1
+                                            }))
+                                        }}>Previous</a>
+                                    </li>
+
+                                    {Array(...Array(tableData.totalPages)).map((_, index) => {
+                                        // Display only a subset of pages with ellipsis
+                                        const shouldDisplay =
+                                            index === 0 ||                            // Always display the first page
+                                            index === tableData.currentPage ||       // Always display the current page
+                                            index === tableData.currentPage - 1 ||   // Display the page before the current page
+                                            index === tableData.currentPage + 1 ||   // Display the page after the current page
+                                            index === tableData.totalPages - 1;      // Always display the last page
+
+                                        return (
+                                            shouldDisplay ? (
+                                                <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
+                                                    <a class="page-link" href="#" onClick={() => {
+                                                        setTableData(pre => ({
+                                                            ...pre,
+                                                            currentPage: index
+                                                        }))
+                                                    }}>{index + 1}</a>
+                                                </li>
+                                            ) : (
+                                                // Display ellipsis for skipped pages
+                                                index === 1 || index === tableData.currentPage - 2 || index === tableData.currentPage + 2 ? (
+                                                    <li key={`ellipsis-${index}`} class="page-item disabled">
+                                                        <span class="page-link">...</span>
+                                                    </li>
+                                                ) : null
+                                            )
+                                        );
+                                    })}
+
+                                    <li class={`page-item ${tableData.currentPage === tableData.totalPages - 1 && "disabled"}`}>
+                                        <a class="page-link" href="#" onClick={() => {
+                                            setTableData(pre => ({
+                                                ...pre,
+                                                currentPage: pre.currentPage + 1
+                                            }))
+                                        }}>Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+
+                            {/* <nav>
                                 <ul class="pagination">
                                     <li class={`page-item ${tableData.currentPage === 0 && "disabled"}`}>
                                         <a class="page-link" href="#" tabindex="-1" onClick={() => {
@@ -479,7 +603,9 @@ function SuperAdmin(props) {
                                         }}>Next</a>
                                     </li>
                                 </ul>
-                            </nav>
+                            </nav> */}
+
+
 
                         </Stack>
                     }

@@ -27,12 +27,12 @@ const SuperAdminSidebar = () => {
                     </li>
                     <li>
                         <a href="/all-nads" className="link-light" underline="hover">
-                            All NADs
+                            NADs
                         </a>
                     </li>
                     <li>
                         <a href="/not-understandables" className="link-light" underline="hover">
-                            All Not Understandables
+                            NOT UNDERSTANDABLEs
                         </a>
                     </li>
                 </ul>

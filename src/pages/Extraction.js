@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "./extraction.css";
-// import extractImages from "../res/Extraction.json";
 
 import CancelIcon from "@mui/icons-material/Cancel";
-import { getAuth, signOut } from "firebase/auth";
-import { useNavigate } from "react-router";
 import HeaderSignOut from "../components/header/HeaderSignOut";
-import { toast, ToastContainer } from "react-toastify";
+import { triggerToast } from "../utils/triggerToast";
 
 const Extraction = (props) => {
-  const navigate = useNavigate();
 
   // =========================================================================
   const [searchQuery, setSearchQuery] = useState('')
@@ -44,9 +40,7 @@ const Extraction = (props) => {
   // =========================================================================
 
   const [sku, setSku] = useState({});
-  const [videos, setVideos] = useState([]);
   const [token, setToken] = useState("");
-  // const [jsonFormData, setJsonFormData] = useState("")
   const [showId, setShowId] = useState("");
 
   // state for disable button
@@ -80,13 +74,39 @@ const Extraction = (props) => {
 
   const [visibilityNotDoable, setVisibilityNotDoable] = useState(false);
 
-  const [url, setUrl] = useState("");
-  const [jsonResult, setJsonResult] = useState(""); // Initialize as an empty string
 
-  // http://139.144.30.86:3001/api/fetch-data
-  // 161.97.167.225/scrape
-  // http://161.97.167.225:8000/api/get_job
-  //http://139.144.30.86:8000/api/get_job
+  const resetAllValues = () => {
+    setDefaultThumbnail([]);
+    setSelectedThumbnail([]);
+    setDefaultDimension([]);
+    setSelectedDimentional([]);
+    setSelectedWhiteBg([]);
+    setSelectedOrdinary([]);
+    setSelectedDiscard([]);
+    setAllImages([]);
+
+    setHasThumbnailImagesMapped(false);
+    setHasDimensionalImagesMapped(false);
+    setHasWhiteBgImagesMapped(false);
+    setHasOrdinaryImagesMapped(false);
+    setHasDiscardImagesMapped(false);
+
+    // Enable the other buttons
+    setIsThumbnailButtonDisabled(false);
+    setIsDimensionalButtonDisabled(false);
+    setIsWhiteBgButtonDisabled(false);
+    setIsOrdinaryButtonDisabled(false);
+    setIsDiscardButtonDisabled(false);
+
+    // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
+    setIsFetchButtonDisabled(false);
+
+    setVisibilityNotDoable(false);
+
+    setSearchQuery("")
+  }
+
+
   const executePythonScript = async (e) => {
 
     if (props.user) {
@@ -118,66 +138,27 @@ const Extraction = (props) => {
               // Handle the API response data
               console.log("API Response:", data);
               setIsFetchButtonDisabled(true);
-              // Extract the first index image and add it to selectedThumbnail
-              // if (data.thumbnails.length > 0) {
-              //   setSelectedThumbnail([data.thumbnails[0]]);
-              //   data.unsorted = data.unsorted.slice(1); // Remove the first index image
-              //   console.log("selected thumbnail", selectedThumbnail);
-              // }
               setAllImages(data.unsorted);
               setDefaultThumbnail(data.thumbnails);
               setDefaultDimension(data.dimensional);
               setSku(data.id);
-              setVideos(data.videos);
               setShowId(data.sku);
               setVisibilityNotDoable(true);
             })
             .catch((error) => {
               // Handle any errors
-              toast.error(error.toString(), {
-                position: toast.POSITION.TOP_RIGHT,
-              });
+              triggerToast(`${error.toString()}`, "error", "50px", "top-left")
               console.error("Error:", error.toString());
+              resetAllValues()
             });
         })
         .catch((error) => {
           // Handle any errors while getting the token
           console.error("Token Error:", error);
-          toast.error(error, {
-            position: toast.POSITION.TOP_RIGHT,
-          });
+          triggerToast(`${error.toString()}`, "error", "50px", "top-left")
+          resetAllValues()
         });
     }
-    // try {
-    //   const response = await fetch("http://139.144.30.86:3001/api/fetch-data", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({ url }),
-    //   });
-    //   const data = await response.json();
-
-    //   setAllImages(data.images);
-
-    //   // Update the selectedThumbnail and selectedDimentional states with initial images
-    //   if (data.images.length >= 2) {
-    //     setSelectedThumbnail([data.images[0]]);
-    //     setSelectedDimentional([data.images[1]]);
-    //     setSelectedButton("Thumbnail"); // Highlight Thumbnail button by default
-    //   }
-    //   // Convert the JSON object to a string
-    //   const jsonString = JSON.stringify(data, null, 2); // Add formatting (indentation)
-
-    //   setJsonResult(jsonString);
-    //   // Set the JSON string in the state
-    // } catch (error) {
-    //   console.error("Error:", error);
-
-    //   // Handle the error, e.g., by displaying an error message
-    //   setJsonResult("An error occurred while fetching data.");
-    // }
-    // console.log(JSON.stringify({ url }));
   };
   // MERGE SELECTED DIMENSION AND DEFAULT DIMENSION
   const mergeSelectedDefaultDimension = [
@@ -219,15 +200,6 @@ const Extraction = (props) => {
       setAllImages((prevImages) => [...prevImages, item]);
     }
   };
-
-  // const saveDefaultThumbnail = () => {
-  //   // Implement code to save the edited defaultThumbnail images here
-  //   setIsDefaultThumbnailEditMode(false);
-  // };
-
-  // const cancelDefaultThumbnailEdit = () => {
-  //   setIsDefaultThumbnailEditMode(false);
-  // };
   // ! DEFAULT THUMBNAIL IMAGES METHOS START
 
   const editImages = (section) => {
@@ -353,78 +325,11 @@ const Extraction = (props) => {
       // setImageSelectedIds([item]);
       setImageSelectedIds([...imageSelectedIds, item]);
     }
-
-    // if (selectedButton === "Thumbnail") {
-    //   if (!hasThumbnailImagesMapped) {
-    //     // Allow selection of thumbnail images only if they haven't been mapped
-    //     if (imageSelectedIds.includes(item)) {
-    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-    //     } else {
-    //       setImageSelectedIds([item]);
-    //     }
-    //   }
-    // } else if (selectedButton === "Dimensional") {
-    //   if (!hasDimensionalImagesMapped) {
-    //     // Allow selection of dimensional images only if they haven't been mapped
-    //     if (imageSelectedIds.includes(item)) {
-    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-    //     } else {
-    //       // setImageSelectedIds([item]);
-    //       setImageSelectedIds([...imageSelectedIds, item]);
-    //     }
-    //   }
-    // } else if (selectedButton === "WhiteBg") {
-    //   if (!hasWhiteBgImagesMapped) {
-    //     // Allow selection of dimensional images only if they haven't been mapped
-    //     if (imageSelectedIds.includes(item)) {
-    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-    //     } else {
-    //       // setImageSelectedIds([item]);
-    //       setImageSelectedIds([...imageSelectedIds, item]);
-    //     }
-    //   }
-    // } else if (selectedButton === "Ordinary") {
-    //   if (!hasOrdinaryImagesMapped) {
-    //     // Allow selection of ordinary images only if they haven't been mapped
-    //     if (imageSelectedIds.includes(item)) {
-    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-    //     } else {
-    //       // setImageSelectedIds([item]);
-    //       setImageSelectedIds([...imageSelectedIds, item]);
-    //     }
-    //   }
-    // } else if (selectedButton === "Discard") {
-    //   if (!hasDiscardImagesMapped) {
-    //     // Allow selection of discard images only if they haven't been mapped
-    //     if (imageSelectedIds.includes(item)) {
-    //       setImageSelectedIds(imageSelectedIds.filter((id) => id !== item));
-    //     } else {
-    //       setImageSelectedIds([...imageSelectedIds, item]);
-    //     }
-    //   }
-    // }
   };
 
   // logic of submit button for show and delete images
 
   const submitData = () => {
-
-    // if (selectedButton === "Thumbnail") {
-    //   setHasThumbnailImagesMapped(true);
-    //   setImageSelectedIds([]);
-    // } else if (selectedButton === "Dimensional") {
-    //   setHasDimensionalImagesMapped(true);
-    //   setImageSelectedIds([]);
-    // } else if (selectedButton === "WhiteBg") {
-    //   setHasWhiteBgImagesMapped(true);
-    //   setImageSelectedIds([]);
-    // } else if (selectedButton === "Ordinary") {
-    //   setHasOrdinaryImagesMapped(true);
-    //   setImageSelectedIds([]);
-    // } else if (selectedButton === "Discard") {
-    //   setHasDiscardImagesMapped(true);
-    //   setImageSelectedIds([]);
-    // }
 
     if (imageSelectedIds.length === 0) {
       return
@@ -552,20 +457,8 @@ const Extraction = (props) => {
     if (selectedDiscard.length > 0) {
       structuredData.discard = selectedDiscard;
     }
-    // if (videos.length > 0) {
-    //   structuredData.videos = videos;
-    // }
-
-    // Log the structured data as a JSON object.
-    // console.log(JSON.stringify(structuredData, null, 2));
-
     // Define the API endpoint and data payload
     const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
-    // const data = {
-    //     key1: 'value1',
-    //     key2: 'value2'
-    // };
-
     // Send the POST request
     fetch(apiUrl, {
       method: "POST",
@@ -578,40 +471,8 @@ const Extraction = (props) => {
       .then((response) => response.json()) // Assuming server responds with json
       .then((structuredData) => {
         console.log("Success:", structuredData);
-        setDefaultThumbnail([]);
-        setSelectedThumbnail([]);
-        setDefaultDimension([]);
-        setSelectedDimentional([]);
-        setSelectedWhiteBg([]);
-        setSelectedOrdinary([]);
-        setSelectedDiscard([]);
-        setVideos([]);
-        setAllImages([]);
-
-        setHasThumbnailImagesMapped(false);
-        setHasDimensionalImagesMapped(false);
-        setHasWhiteBgImagesMapped(false);
-        setHasOrdinaryImagesMapped(false);
-        setHasDiscardImagesMapped(false);
-
-        // Enable the other buttons
-        setIsThumbnailButtonDisabled(false);
-        setIsDimensionalButtonDisabled(false);
-        setIsWhiteBgButtonDisabled(false);
-        setIsOrdinaryButtonDisabled(false);
-        setIsDiscardButtonDisabled(false);
-
-        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
-        setIsFetchButtonDisabled(false);
-
-        setVisibilityNotDoable(false);
-
-        toast.success("Sorted Data Submit Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-
-        setSearchQuery("")
-
+        resetAllValues()
+        triggerToast("Sorted Data Submit Successfully!", "success", "50px", "top-left")
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -651,37 +512,9 @@ const Extraction = (props) => {
       .then((response) => response.json()) // Assuming server responds with json
       .then((structuredData) => {
         console.log("Success:", structuredData);
-        setDefaultThumbnail([]);
-        setSelectedThumbnail([]);
-        setDefaultDimension([]);
-        setSelectedDimentional([]);
-        setSelectedWhiteBg([]);
-        setSelectedOrdinary([]);
-        setSelectedDiscard([]);
-        setVideos([]);
-        setAllImages([]);
+        resetAllValues()
+        triggerToast("Not Doable Product Submited Successfully!", "success", "50px", "top-left")
 
-        setHasThumbnailImagesMapped(false);
-        setHasDimensionalImagesMapped(false);
-        setHasWhiteBgImagesMapped(false);
-        setHasOrdinaryImagesMapped(false);
-        setHasDiscardImagesMapped(false);
-
-        // Enable the other buttons
-        setIsThumbnailButtonDisabled(false);
-        setIsDimensionalButtonDisabled(false);
-        setIsWhiteBgButtonDisabled(false);
-        setIsOrdinaryButtonDisabled(false);
-        setIsDiscardButtonDisabled(false);
-
-        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
-        setIsFetchButtonDisabled(false);
-
-        setVisibilityNotDoable(false);
-
-        toast.success("Not Doable Product Submited Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -738,52 +571,31 @@ const Extraction = (props) => {
       <div className="set-right-container" style={{ position: 'relative' }}>
         {/* header section  */}
         <div className="header">
-          <div className="set-container">
-            <div className="d-flex flex-row align-items-center justify-content-between">
-              {/* <div className="col-lg-4 col-md-4 offset-1 offset-md-0">
-                <div className="search-box d-flex align-items-center justify-content-between">
-                  <i className="fa fa-search"></i>
-                  <input
-                    type="text"
-                    placeholder="Search url..."
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                  />
-                </div>
-              </div> */}
-              <div className="">
-                <h6>
+          <div className="set-container d-flex align-items-center justify-content-center w-100">
+            <div className="d-flex flex-row align-items-center justify-content-between w-100 gap-2" style={{ maxWidth: '1100px' }}>
+              <div>
+                <h6 className="m-0">
                   Product ID: <strong>{showId}</strong>
                 </h6>
               </div>
-              <div className="">
+              <div>
                 {visibilityNotDoable === true ? (
                   <button
                     className="set-btn-red d-block w-100"
                     onClick={executeNoDoAbleScript}
                   >
-                    Mark as Not Doable and Skip
+                    NOT A DOABLE
                   </button>
                 ) : (
                   ""
                 )}
               </div>
-              {/* <div className="col-lg-3 col-md-4 text-end">
-                <button
-                  className="btn d-block w-100"
-                  onClick={executePythonScript}
-                  disabled={isFetchButtonDisabled}
-                >
-                  Fetch Data
-                </button>
-              </div> */}
-              <div className="d-flex flex-row align-items-center gap-1">
-                <div className="d-flex">
-                  <input className="w-100 px-3" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
+              <div className="d-flex flex-row align-items-center gap-1 flex-fill">
+                <div className="d-flex flex-fill">
+                  <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
                   <button
                     id="btn-go"
                     className="btn p-2 px-3  btn-go-fetch"
-
                     onClick={executePythonScript}
                     disabled={isFetchButtonDisabled}
                   >
@@ -800,9 +612,6 @@ const Extraction = (props) => {
                   Fetch Data
                 </button>
               </div>
-              {/* <div className="col-lg-1 col-md-4 text-end">
-              <button onClick={handleSignOut}>SignOut</button>
-            </div> */}
             </div>
           </div>
         </div>
@@ -810,17 +619,13 @@ const Extraction = (props) => {
         {/* radio selector  */}
         <div className="mt-5 set-fixed-bar">
           <div className="inside-div">
-            {/* <div>
-            <h2>JSON Result:</h2>
-            <pre>{jsonResult}</pre>
-          </div> */}
             <button
               onClick={() => handleButtonClick("Thumbnail")}
               className={`fw-bold select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
                 }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
               disabled={isThumbnailButtonDisabled}
             >
-              Thumbnail
+              Colored Thumbnail
             </button>
 
             <button
@@ -838,7 +643,7 @@ const Extraction = (props) => {
                 }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
               disabled={isWhiteBgButtonDisabled}
             >
-              WhiteBg
+              White Thumbnail
             </button>
             <button
               onClick={() => handleButtonClick("Ordinary")}
@@ -907,20 +712,14 @@ const Extraction = (props) => {
         </div>
 
         {/* submit button  */}
-        {/* <div className="col-lg-10 col-md-4 text-end">
-          <button onClick={submitData} className="btn btn-primary submit">
-            Submit
-          </button>
-        </div> */}
 
-        {/* <h2 className="text-center mb-5">Sorted Data</h2> */}
         {/* thumbnai section images  */}
         <div className="container-fluid py-2 thumbnail-bg mt-4">
           <div className="" style={{ marginRight: "152px" }}>
             <div className="main-div">
               <div className=" row">
                 <div className="col-lg-12">
-                  <h3 className="m-0 p-0">Thumbnail</h3>
+                  <h3 className="m-0 p-0">Colored Thumbnail</h3>
                 </div>
                 <div className="d-flex align-items-start flex-wrap">
                   <div>
@@ -1059,7 +858,7 @@ const Extraction = (props) => {
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h3 className="m-0 p-0">Dimentional</h3>
+                  <h3 className="m-0 p-0">Dimentional Images</h3>
                 </div>
                 <div className="d-flex align-align-items-start flex-wrap">
                   <div>
@@ -1194,7 +993,7 @@ const Extraction = (props) => {
             <div className="main-div">
               <div className="row">
                 <div className="col-lg-12">
-                  <h3 className="m-0 p-0">White BG</h3>
+                  <h3 className="m-0 p-0">White Thumbnails</h3>
                 </div>
                 <div>
                   <div className="all-btns">
@@ -1406,76 +1205,6 @@ const Extraction = (props) => {
             </div>
           </div>
         </div>
-        {/* VIDEO CONTAINER */}
-        {/* <div className="container-fluid py-3 video-bg">
-          <div className="container">
-            <div className="main-div">
-              <div className="row">
-                <div className="col-lg-12">
-                  <h2 className="mb-3">Videos</h2>
-                </div>
-
-                <div className="col-lg-12">
-                  <div className="row">
-                    {videos
-                      ? videos.map((item) => (
-                          <>
-                            <div className="col-12">
-                              <div>
-                                <h4 className="set-f4">Default</h4>
-                              </div>
-                            </div>
-                            <div className="col-md-2 mb-2" key={item.id}>
-                              <div
-                                className={`card ${
-                                  isDiscardlEditMode ? "edit-mode" : ""
-                                }`}
-                                onClick={() => selectMyItem(item)}
-                              >
-                                {isDiscardlEditMode && (
-                                  <div
-                                    className="cross"
-                                    onClick={() => resetDiscardImage(item)}
-                                  >
-                                    <CancelIcon />
-                                  </div>
-                                )}
-                                <img
-                                  className="card-img-top img-fluid"
-                                  src={item.poster}
-                                />
-                              </div>
-                            </div>
-                          </>
-                        ))
-                      : ""}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> */}
-        {/* sorted data into json form  */}
-
-        {/* <div className="col-lg-10 col-md-4 text-end mt-4 mb-5 infosync-skicky-button">
-          {mergeSelectedDefaultThumbnail.length > 0 ||
-            mergeSelectedDefaultDimension.length > 0 ||
-            selectedWhiteBg.length > 0 ||
-            selectedOrdinary.length > 0 ||
-            selectedDiscard.length > 0 ? (
-            <button
-              onClick={jsonData}
-              className={`btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}
-              disabled={!areAllImagesSorted()}
-            >
-              COMPLETED
-            </button>
-          ) : (
-            <button className={`btn-danger disabled}`} disabled>
-              COMPLETED
-            </button>
-          )}
-        </div> */}
       </div >
       <footer>
         <div className="col-lg-12">

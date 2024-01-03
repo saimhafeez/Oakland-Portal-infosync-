@@ -36,6 +36,7 @@ import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
 
 import MiscItemSize from '../res/MiscItemSize.json'
+import { triggerToast } from "../utils/triggerToast";
 
 function DimensionalQAAnalyst(props) {
   const [dataLoading, setDataLoading] = useState(false);
@@ -99,79 +100,90 @@ function DimensionalQAAnalyst(props) {
               // Handle the API response data
               console.log("API Response:", data);
 
-              const mergedArray = PropsModel["miscTableRows"].map(existingItem => {
-                const newDataItem = data.productProperties.miscTableRows.find(newItem => newItem.item === existingItem.item);
-
-                return newDataItem ? newDataItem : existingItem;
-              });
-
-              setImages(data.images);
-              setWeightAndDimentions(data["weight and dimensions"]);
-              setPreviewImage(data.images[0]);
-              // setPreviewImage(images.dimen[0]);
-              setProductProperties({
-                ...data.productProperties,
-                miscTableRows: mergedArray
-              });
-              setProductPropertiesOld(data.productProperties);
-              setProductID(data.id);
-              setProductSKU(data.sku);
-              setProductNotUnderstandable(data.change === 'not_understandable' ? true : false)
-
-              setFilters((pre) => ({
-                ...pre,
-                buildMaterial: data.buildMaterial,
-                qaScorecard: data.change === 'not_understandable' ? 'major' : 'QA Scorecard'
-              }));
-
-
-
-              const { data: _data } = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).catch((e) => console.log('error occured', e));
-
-              console.log('ingredients', _data);
-
-              const micsRows = []
-              console.log('Object.keys(_data.Misc) -->', Object.keys(_data.Misc));
-              Object.keys(_data.Misc).map((item) => {
-                if (_data.Misc[item].status === 'active') {
-                  setMiscItems(pre => ([
-                    ...pre,
-                    item
-                  ]))
+              fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/images/all/${data.sku}`).then((response) => {
+                if (!response.ok) {
+                  throw new Error("Network response was not ok");
                 }
-                // console.log('_data.Misc[item]', _data.Misc[item]);
-              })
+                console.log("network response was ok");
+                return response.json();
+              }).then(async (images) => {
+                const { dimensional, ordinary, thumbnails, whitebg } = images[0].data.final;
+                setImages([...dimensional, ...thumbnails, ...ordinary, ...whitebg]);
 
-              // setMiscItems(["Select Another Misc Item", ...Object.keys(_data.Misc)]);
+                // const mergedArray = PropsModel["miscTableRows"].map(existingItem => {
+                //   const newDataItem = data.productProperties.miscTableRows.find(newItem => newItem.item === existingItem.item);
 
-              Object.keys(_data.Misc).slice(0, 5).map((misc) => {
-                micsRows.push({
-                  item: misc,
-                  size: MiscItemSize[0].Size,
-                  qty: ''
+                //   return newDataItem ? newDataItem : existingItem;
+                // });
+                // setImages(data.images);
+                setWeightAndDimentions(data["weight and dimensions"]);
+                setPreviewImage(data.images[0]);
+                // setPreviewImage(images.dimen[0]);
+                // console.log('mergedArray', mergedArray);
+                setProductProperties({
+                  ...data.productProperties,
+                  // miscTableRows: mergedArray
+                });
+                setProductPropertiesOld(data.productProperties);
+                setProductID(data.id);
+                setProductSKU(data.sku);
+                setProductNotUnderstandable(data.change === 'not_understandable' ? true : false)
+
+                setFilters((pre) => ({
+                  ...pre,
+                  buildMaterial: data.buildMaterial,
+                  qaScorecard: data.change === 'not_understandable' ? 'major' : 'QA Scorecard'
+                }));
+
+                const { data: _data } = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).catch((e) => console.log('error occured', e));
+
+                console.log('ingredients', _data);
+                // const micsRows = []
+                console.log('Object.keys(_data.Misc) -->', Object.keys(_data.Misc));
+                Object.keys(_data.Misc).map((item) => {
+                  if (_data.Misc[item].status === 'active') {
+                    setMiscItems(pre => ([
+                      ...pre,
+                      item
+                    ]))
+                  }
+                  // console.log('_data.Misc[item]', _data.Misc[item]);
                 })
-              })
-
-              setProductProperties(pre => ({
-                ...pre,
-                miscTableRows: micsRows
-              }))
-
-              setDataLoaded(true);
-              setDataLoading(false)
-
+                // setMiscItems(["Select Another Misc Item", ...Object.keys(_data.Misc)]);
+                // Object.keys(_data.Misc).slice(0, 5).map((misc) => {
+                //   micsRows.push({
+                //     item: misc,
+                //     size: MiscItemSize[0].Size,
+                //     qty: ''
+                //   })
+                // })
+                // setProductProperties(pre => ({
+                //   ...pre,
+                //   miscTableRows: micsRows
+                // }))
+                setDataLoaded(true);
+                setDataLoading(false)
+              }).catch((error) => {
+                // Handle any errors
+                console.error("Error:", error);
+                setDataLoaded(false);
+                setDataLoading(false)
+                triggerToast(`No Job Found : ${error}`, 'error');
+              });
             })
             .catch((error) => {
               // Handle any errors
               console.error("Error:", error);
               setDataLoaded(false);
               setDataLoading(false)
-              window.alert('No Job Found');
+              // window.alert('No Job Found');
+              triggerToast(`No Job Found : ${error}`, 'error');
             });
         })
         .catch((error) => {
           // Handle any errors while getting the token
           console.error("Token Error:", error);
+          triggerToast(`${error}`, 'error');
         });
     }
   };
@@ -377,7 +389,7 @@ function DimensionalQAAnalyst(props) {
 
   const [filters, setFilters] = useState({
     unitSelector: "Inch",
-    buildMaterial: "",
+    buildMaterial: "IRON PIPE / MDF",
     qaScorecard: "QA Scorecard",
   });
 
@@ -391,15 +403,27 @@ function DimensionalQAAnalyst(props) {
 
   const getMiscTableRows = () => {
     const rows = PropsModel["miscTableRows"];
+    // console.log('productPropertiesOld.miscTableRows', productPropertiesOld.miscTableRows);
+    const newRows = [];
     rows.map((row) => {
       productPropertiesOld.miscTableRows.map((misc) => {
-        if (misc.item === row.item) {
-          row.qty = misc.qty;
-          row.size = misc.size;
+        if (misc.item.toLowerCase() === row.item.toLowerCase()) {
+          console.log('matched -> ', {
+            item: misc.item,
+            qty: misc.qty,
+            size: misc.size
+          });
+          newRows.push({
+            item: misc.item,
+            qty: misc.qty,
+            size: misc.size
+          })
+          // rows[row].qty = misc.qty;
+          // rows[row].size = misc.size;
         }
       });
     });
-    return rows;
+    return newRows;
   };
 
   const [productProperties, setProductProperties] = useState({
@@ -495,19 +519,82 @@ function DimensionalQAAnalyst(props) {
           userRole={props.userRole}
           userJdesc={props.userJdesc}
         />
+
       }
+
+      <div className="header">
+        <div className="set-container d-flex align-items-center justify-content-center w-100">
+          <div className="d-flex flex-row align-items-center justify-content-between w-100 gap-2" style={{ maxWidth: '1100px' }}>
+            <div>
+              <h6 className="m-0">
+                Product ID: <strong>{productSKU}</strong>
+              </h6>
+            </div>
+
+            <div className="d-flex flex-row align-items-center gap-1 flex-fill">
+
+              {/* <Stack direction='row' justifyContent='end' width={'100%'}>
+                <TextField value={url} placeholder="Search by URL" variant="filled" onChange={(e) => setURL(e.target.value)} style={{ borderRadius: 0, width: '100%' }} />
+                <Button variant="contained"
+                  onClick={executePythonScript}
+                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
+                >
+
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>GO</Typography>
+                    {dataLoading && <CircularProgress size={26} color="warning" />}
+                  </Stack>
+                </Button>
+              </Stack>
+
+              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
+              <Button variant="contained"
+                onClick={executePythonScript}
+                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
+              >
+
+                <Stack direction='row' gap={2} alignItems='center'>
+                  <Typography fontWeight='bold'>Fetch</Typography>
+                  {dataLoading && <CircularProgress size={26} color="warning" />}
+                </Stack>
+              </Button> */}
+
+              <div className="d-flex flex-fill">
+                <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} onChange={(e) => setURL(e.target.value)} value={url} />
+                <button
+                  id="btn-go"
+                  className="btn p-2 px-3  btn-go-fetch"
+
+                  onClick={executePythonScript}
+                >
+                  GO
+                </button>
+              </div>
+              <h5 className="m-0" style={{ textAlign: 'center' }}>or</h5>
+              <button
+                id="btn-fetch"
+                className="btn d-block btn-fetch"
+                onClick={executePythonScript}
+              >
+                Fetch Data
+              </button>
+            </div>
+            {/* <div className="col-lg-1 col-md-4 text-end">
+              <button onClick={handleSignOut}>SignOut</button>
+            </div> */}
+          </div>
+        </div>
+      </div>
 
       <Wrapper>
 
-        <Stack marginTop={'4px'} marginBottom={'4px'} direction='row' height='calc(100vh - 8px)'>
+        <Stack marginTop={'4px'} marginBottom={'4px'} direction='row' height='calc(100vh - 70px)'>
 
           <Stack width='50%' height='100%' justifyContent='space-between' alignItems='center'>
 
             <Stack direction='column' width='100%' spacing={0.5} p={1}>
 
-              {displayProductDataType === 'images' && <Stack>
-                <img src={previewImage} width="80%" height='auto' style={{ alignSelf: 'center' }} />
-              </Stack>}
+              {displayProductDataType === 'images' && <img src={previewImage} width="auto" height='70%' style={{ alignSelf: 'center' }} />}
 
               {dataLoaded && displayProductDataType === 'images' ?
                 <Stack direction='row' overflow='auto' width='100%' spacing={1}>
@@ -550,10 +637,7 @@ function DimensionalQAAnalyst(props) {
                 </Stack>
               }
 
-            </Stack>
-
-            <Stack marginBottom={2}>
-              <ButtonGroup variant="contained" aria-label="outlined primary button group">
+              <ButtonGroup style={{ marginTop: 10, alignSelf: 'center' }} variant="contained" aria-label="outlined primary button group">
                 <Button
                   style={{ width: '140px' }}
                   variant={displayProductDataType === 'images' ? 'contained' : 'outlined'}
@@ -563,7 +647,12 @@ function DimensionalQAAnalyst(props) {
                   variant={displayProductDataType === 'specification' ? 'contained' : 'outlined'}
                   onClick={() => setDisplayProductDataType('specification')}>Specification</Button>
               </ButtonGroup>
+
             </Stack>
+
+            {/* <Stack marginBottom={2}>
+              
+            </Stack> */}
           </Stack>
 
           <Stack direction='column' gap={3} width='35%' overflow='auto'>
@@ -678,9 +767,9 @@ function DimensionalQAAnalyst(props) {
                       </TableRow>
                       <TableRow className="cell-head">
                         <TableCell>Size</TableCell>
-                        <TableCell>L&nbsp;&nbsp;</TableCell>
-                        <TableCell>Qty</TableCell>
-                        <TableCell>Total</TableCell>
+                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
+                        {/* <TableCell>Qty</TableCell> */}
+                        {/* <TableCell>Total</TableCell> */}
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -794,10 +883,10 @@ function DimensionalQAAnalyst(props) {
 
             <Stack direction="column" gap={1}>
 
-              <Stack direction='column' justifyContent='center'>
+              {/* <Stack direction='column' justifyContent='center'>
                 <Typography fontWeight='bold' fontSize='small' textAlign='center'>Product SKU</Typography>
                 <Typography fontWeight='bold' fontSize='small' style={{ wordBreak: 'break-all' }} color='#d32f2f'>{productSKU}</Typography>
-              </Stack>
+              </Stack> */}
 
               <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
@@ -806,7 +895,7 @@ function DimensionalQAAnalyst(props) {
                 {displayHeader ? <CloseIcon /> : <MenuIcon />}
               </Button>
 
-              <Stack direction='row' justifyContent='end'>
+              {/* <Stack direction='row' justifyContent='end'>
                 <TextField value={url} onChange={(e) => setURL(e.target.value)} placeholder="Search by URL" variant="filled" style={{ borderRadius: 0 }} />
                 <Button variant="contained"
                   onClick={executePythonScript}
@@ -829,7 +918,7 @@ function DimensionalQAAnalyst(props) {
                   <Typography fontWeight='bold'>Fetch</Typography>
                   {dataLoading && <CircularProgress size={26} color="warning" />}
                 </Stack>
-              </Button>
+              </Button> */}
 
               <Stack direction="column">
                 <Typography>Build Material</Typography>
@@ -889,7 +978,7 @@ function DimensionalQAAnalyst(props) {
 
 
               <Stack direction="column">
-                {productNotUnderstandable ? <Typography textAlign='center' fontWeight='bold' fontStyle='italic'>Product Decleared as Not Understandable</Typography> : <Typography >Report Issue</Typography>}
+                {productNotUnderstandable ? <Typography textAlign='center' fontWeight='bold' fontStyle='italic'>Product Decleared as NOT UNDERSTANDABLE</Typography> : <Typography >Report Issue</Typography>}
 
                 <Button variant="outlined"
                   onClick={executePythonScriptSubmit_not_understandable}
@@ -898,7 +987,7 @@ function DimensionalQAAnalyst(props) {
                   color="error"
                 >
                   <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontSize='small' fontWeight='bold'>Mark as Not Understandable</Typography>
+                    <Typography fontSize='small' fontWeight='bold'>NOT UNDERSTANDABLE</Typography>
                     {dataSubmitting && <CircularProgress size={26} color="info" />}
                   </Stack>
                 </Button>

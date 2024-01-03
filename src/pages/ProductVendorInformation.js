@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import Table from "@mui/material/Table";
@@ -11,22 +11,14 @@ import Paper from "@mui/material/Paper";
 import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
 import HeaderSignOut from "../components/header/HeaderSignOut";
 import {
-    Button,
-    ButtonGroup,
-    Card,
     CircularProgress,
     Grid,
-    MenuItem,
-    Select,
     Stack,
-    TableFooter,
     TextField,
     Typography,
-    colors,
 } from "@mui/material";
 
 
-import AddCircleIcon from "@mui/icons-material/AddCircle";
 import PropsModel from "../res/PropsModel";
 import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTableRow";
 import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
@@ -80,7 +72,8 @@ function ProductVendorInformation(props) {
             // const tableID = '65563f7f5004aca63257416a'
             const tableID = result.data[0].tableID
 
-            const apiURL_table = `${process.env.REACT_APP_SERVER_ADDRESS}/api/table/${tableID}`
+            const apiURL_table = `${process.env.REACT_APP_SERVER_ADDRESS}/api/table/final/${pid}`
+            // const apiURL_table = `${process.env.REACT_APP_SERVER_ADDRESS}/api/table/${tableID}`
 
             fetch(apiURL_table).then(res => res.json()).then((result) => {
                 console.log(result);

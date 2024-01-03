@@ -52,7 +52,7 @@ function WoodTapeTableRow({
         </Select>
       </TableCell>
 
-      <TableCell>
+      {/* <TableCell>
         <TextField
           size="small"
           variant="outlined"
@@ -78,7 +78,7 @@ function WoodTapeTableRow({
             handleEdit(e, _key, propType);
           }}
         />
-      </TableCell>
+      </TableCell> 
 
       <TableCell>
         <TextField
@@ -89,7 +89,7 @@ function WoodTapeTableRow({
           disabled
           value={getTotal()}
         />
-      </TableCell>
+      </TableCell>*/}
     </TableRow>
   );
 }

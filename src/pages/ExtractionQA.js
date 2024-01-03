@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./extraction.css";
-// import extractImages from "../res/Extraction.json";
-
 import CancelIcon from "@mui/icons-material/Cancel";
-import { getAuth, signOut } from "firebase/auth";
-import { useNavigate } from "react-router";
 import HeaderSignOut from "../components/header/HeaderSignOut";
-import { toast, ToastContainer } from "react-toastify";
+import { triggerToast } from "../utils/triggerToast";
 
 const ExtractionQA = (props) => {
-  const navigate = useNavigate();
-
   // =========================================================================
   const [searchQuery, setSearchQuery] = useState('')
   // =========================================================================
@@ -130,19 +124,12 @@ const ExtractionQA = (props) => {
 
   const [visibilityNotDoable, setVisibilityNotDoable] = useState(false);
 
-  const [url, setUrl] = useState("");
-  const [jsonResult, setJsonResult] = useState(""); // Initialize as an empty string
-
   // SET SELECT OPTION
   const [selectedOption, setSelectedOption] = useState("passed"); // Default value
 
   const handleSelectChange = (event) => {
     setSelectedOption(event.target.value);
   };
-
-  // http://139.144.30.86:3001/api/fetch-data
-  // 161.97.167.225/scrape
-  // http://161.97.167.225:8000/api/get_job
 
   const executePythonScript = async (e) => {
     if (props.user) {
@@ -167,6 +154,11 @@ const ExtractionQA = (props) => {
             .then((response) => response.json()) // Assuming server responds with json
             .then((data) => {
               console.log("API Response:", data);
+              if (data.detail && data.detail !== "") {
+                triggerToast(data.detail, "error", "50px", "top-left")
+                resetAllValues()
+                return
+              }
               setIsFetchButtonDisabled(true);
               setAllImages(data.unsorted || []);
               setDefaultThumbnail(data.thumbnails);
@@ -183,21 +175,51 @@ const ExtractionQA = (props) => {
               setSelectedOption(data.not_doable ? 'major' : 'passed')
             })
             .catch((error) => {
-              toast.error(error.toString(), {
-                position: toast.POSITION.TOP_RIGHT,
-              });
+              resetAllValues()
+              triggerToast(error.toString(), "error", "50px", "top-left")
               console.error("Error:", error);
             });
         })
         .catch((error) => {
           // Handle any errors while getting the token
-          toast.error(error.toString(), {
-            position: toast.POSITION.TOP_RIGHT,
-          });
+          resetAllValues()
+          triggerToast(error.toString(), "error", "50px", "top-left")
           console.error("Token Error:", error);
         });
     }
   };
+
+
+  const resetAllValues = () => {
+    setDefaultThumbnail([]);
+    setSelectedThumbnail([]);
+    setDefaultDimension([]);
+    setSelectedDimentional([]);
+    setSelectedWhiteBg([]);
+    setDefaultWhiteBg([]);
+    setSelectedOrdinary([]);
+    setDefaultOrdinary([]);
+    setSelectedDiscard([]);
+    setDefaultDiscard([]);
+    setVideos([]);
+    setAllImages([]);
+
+    setHasThumbnailImagesMapped(false);
+    setHasDimensionalImagesMapped(false);
+    setHasWhiteBgImagesMapped(false);
+    setHasOrdinaryImagesMapped(false);
+    setHasDiscardImagesMapped(false);
+    // Enable the other buttons
+    setIsThumbnailButtonDisabled(false);
+    setIsDimensionalButtonDisabled(false);
+    setIsWhiteBgButtonDisabled(false);
+    setIsOrdinaryButtonDisabled(false);
+    setIsDiscardButtonDisabled(false);
+    // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
+    setIsFetchButtonDisabled(false);
+    setVisibilityNotDoable(false);
+    setSearchQuery('')
+  }
 
   // DEFAULT SECTION METHOD
 
@@ -361,34 +383,7 @@ const ExtractionQA = (props) => {
 
   // Enable/disable buttons based on the selected button
   const handleButtonClick = (buttonName) => {
-    // if (buttonName === "Thumbnail") {
-    //   setIsThumbnailButtonDisabled(hasThumbnailImagesMapped);
-    // } else if (buttonName === "Dimensional") {
-    //   setIsDimensionalButtonDisabled(hasDimensionalImagesMapped);
-    // } else if (buttonName === "WhiteBg") {
-    //   setIsWhiteBgButtonDisabled(hasWhiteBgImagesMapped);
-    // } else if (buttonName === "Ordinary") {
-    //   setIsOrdinaryButtonDisabled(hasOrdinaryImagesMapped);
-    // } else if (buttonName === "Discard") {
-    //   setIsDiscardButtonDisabled(hasDiscardImagesMapped);
-    // }
-
     setSelectedButton(buttonName);
-    // setIsThumbnailButtonDisabled(
-    //   buttonName === "Thumbnail" || selectedThumbnail.length > 0
-    // );
-    // setIsDimensionalButtonDisabled(
-    //   buttonName === "Dimensional" || selectedDimentional.length > 0
-    // );
-    // setIsWhiteBgButtonDisabled(
-    //   buttonName === "WhiteBg" || selectedWhiteBg.length > 0
-    // );
-    // setIsOrdinaryButtonDisabled(
-    //   buttonName === "Ordinary" || selectedOrdinary.length > 0
-    // );
-    // setIsDiscardButtonDisabled(
-    //   buttonName === "Discard" || selectedDiscard.length > 0
-    // );
   };
 
   // reset all state in edit button logic
@@ -398,10 +393,6 @@ const ExtractionQA = (props) => {
     setSelectedThumbnail([]);
     setAllImages((prevImages) => [...prevImages, item]);
     setIsThumbnailButtonDisabled(hasThumbnailImagesMapped);
-
-    // Disable the edit mode for thumbnail images
-    // setIsThumbnailEditMode(false);
-
     // Clear the selected image IDs
     setImageSelectedIds([]);
 
@@ -697,9 +688,7 @@ const ExtractionQA = (props) => {
         // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
         setIsFetchButtonDisabled(false);
 
-        toast.success("Data submited Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        triggerToast("Data submited Successfully!", "success", "50px", "top-left")
 
         setSearchQuery("")
 
@@ -790,9 +779,7 @@ const ExtractionQA = (props) => {
 
         setVisibilityNotDoable(false);
 
-        toast.success("Data submited Successfully!", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+        triggerToast("Data submited Successfully!", "success", "50px", "top-left")
 
         setSearchQuery('')
 
@@ -844,13 +831,10 @@ const ExtractionQA = (props) => {
       <div className="set-right-container">
         {/* header section  */}
         <div className="header">
-          <div className="set-container">
-            <div className="d-flex align-items-center justify-content-between">
-              {/* <div className="col-lg-2 col-md-4">
-                <h3>QA Extraction</h3>
-              </div> */}
-              <div className="">
-                <h6>
+          <div className="set-container d-flex align-items-center justify-content-center w-100">
+            <div className="d-flex flex-row align-items-center justify-content-between w-100 gap-2" style={{ maxWidth: '1100px' }}>
+              <div>
+                <h6 className="m-0">
                   Product ID: <strong>{showId}</strong>
                 </h6>
               </div>
@@ -863,18 +847,10 @@ const ExtractionQA = (props) => {
                   ""
                 )}
               </div>
-              {/* <div className="col-lg-3 col-md-4 text-end">
-                <button
-                  className="btn d-block w-100"
-                  onClick={executePythonScript}
-                  disabled={isFetchButtonDisabled}
-                >
-                  Fetch Data
-                </button>
-              </div> */}
-              <div className="d-flex flex-row align-items-center gap-1">
-                <div className="d-flex">
-                  <input className="w-100 px-3" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
+
+              <div className="d-flex flex-row align-items-center gap-1 flex-fill">
+                <div className="d-flex flex-fill">
+                  <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
                   <button
                     id="btn-go"
                     className="btn p-2 px-3  btn-go-fetch"
@@ -915,7 +891,7 @@ const ExtractionQA = (props) => {
                 }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
               disabled={isThumbnailButtonDisabled}
             >
-              Thumbnail
+              Colored Thumbnail
             </button>
 
             <button
@@ -932,7 +908,7 @@ const ExtractionQA = (props) => {
                 }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
               disabled={isWhiteBgButtonDisabled}
             >
-              WhiteBg
+              White Thumbnails
             </button>
             <button
               onClick={() => handleButtonClick("Ordinary")}
@@ -968,16 +944,15 @@ const ExtractionQA = (props) => {
                 <option value="major">Major Fixes</option>
               </select>
             </div>
-            {visibilityNotDoable === true && notDoable === true ? (
-              <>
-                <button className="set-btn-red" onClick={executeNoDoAbleScript}>
-                  Not Doable
-                </button>
-                &nbsp;&nbsp;&nbsp;&nbsp;
-              </>
-            ) : (
-              ""
-            )}
+            {visibilityNotDoable ?
+              <button className="w-100 btn-danger disabled" onClick={executeNoDoAbleScript}>
+                NOT A DOABLE
+              </button>
+              :
+              <button className="w-100 btn-danger">
+                NOT A DOABLE
+              </button>
+            }
             {mergeSelectedDefaultThumbnail.length > 0 ||
               mergeSelectedDefaultDimension.length > 0 ||
               selectedWhiteBg.length > 0 ||
@@ -1016,19 +991,12 @@ const ExtractionQA = (props) => {
           </div>
         </div>
 
-        {/* submit button  */}
-        {/* <div className="col-lg-10 col-md-4 text-end">
-          <button onClick={submitData} className="btn btn-primary submit">
-            Submit
-          </button>
-        </div> */}
-
         {/* <h2 className="text-center mb-5">Sorted Data</h2> */}
         {/* THUMBNAIL UPDATED CODE  */}
         <div className="container-fluid py-3 thumbnail-bg mt-4">
           <div style={{ marginRight: "152px" }}>
             <div>
-              <h2 className="mb-3">Thumbnail</h2>
+              <h2 className="mb-3">Colored Thumbnail</h2>
             </div>
             <div className="main-div d-flex align-items-start flex-wrap">
               <div>
@@ -1135,9 +1103,7 @@ const ExtractionQA = (props) => {
                 <div className="mt-4">
                   <div className="row">
                     {!defaultThumbnail
-                      ? toast.error("Sorted Data Ended!", {
-                        position: toast.POSITION.TOP_RIGHT,
-                      })
+                      ? triggerToast("Sorted Data Ended!", "error", "50px", "top-left")
                       : defaultThumbnail.map((item) => (
                         <div className="mb-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
                           <div
@@ -1173,7 +1139,7 @@ const ExtractionQA = (props) => {
         <div className="container-fluid py-3 dimensnal-bg">
           <div style={{ marginRight: "152px" }}>
             <div>
-              <h2 className="mb-3">Dimentional</h2>
+              <h2 className="mb-3">Dimensional Images</h2>
             </div>
             <div className="main-div d-flex align-items-start flex-wrap">
               <div>
@@ -1311,9 +1277,9 @@ const ExtractionQA = (props) => {
         <div className="container-fluid py-3 white-bg">
           <div style={{ marginRight: "152px" }}>
             <div className="col-lg-12">
-              <h2 className="mb-3">White BG</h2>
+              <h2 className="mb-3">White Thumbnails</h2>
             </div>
-            <div className="main-div d-flex align-items-center flex-wrap">
+            <div className="main-div d-flex flex-wrap">
               <div>
                 <div className="all-btns">
                   <div className="">
@@ -1333,7 +1299,7 @@ const ExtractionQA = (props) => {
                                   Save
                                 </button>
                                 <button
-                                  onClick={() => editImages("Dimensional")}
+                                  onClick={() => editImages("WhiteBg")}
                                   className="btn edit"
                                 >
                                   Edit
@@ -1341,7 +1307,7 @@ const ExtractionQA = (props) => {
                               </>
                             ) : (
                               <button
-                                onClick={() => editImages("Dimensional")}
+                                onClick={() => editImages("WhiteBg")}
                                 className="btn edit"
                               >
                                 Edit
@@ -1388,7 +1354,7 @@ const ExtractionQA = (props) => {
                       <h4 className="set-f4">Default</h4>
                     </div>
                     <div className="ms-3">
-                      {!isWhiteBgEditMode ? (
+                      {!isDefaultWhiteBgEditMode ? (
                         <button
                           onClick={() => handleDefaulWhiteBgtEdit(true)}
                           className="btn btn-block edit btn-width-auto"
@@ -1456,7 +1422,7 @@ const ExtractionQA = (props) => {
             <div className="col-lg-12">
               <h2 className="mb-3 ">Supportive</h2>
             </div>
-            <div className="main-div d-flex align-items-center flex-wrap">
+            <div className="main-div d-flex flex-wrap">
               <div>
                 <div className="all-btns">
                   {selectedOrdinary.length > 0 && selectedImage && (
@@ -1474,7 +1440,7 @@ const ExtractionQA = (props) => {
                               Save
                             </button>
                             <button
-                              onClick={() => editImages("Dimensional")}
+                              onClick={() => editImages("Ordinary")}
                               className="btn edit"
                             >
                               Edit
@@ -1482,7 +1448,7 @@ const ExtractionQA = (props) => {
                           </>
                         ) : (
                           <button
-                            onClick={() => editImages("Dimensional")}
+                            onClick={() => editImages("Ordinary")}
                             className="btn edit"
                           >
                             Edit
@@ -1609,7 +1575,7 @@ const ExtractionQA = (props) => {
                               Save
                             </button>
                             <button
-                              onClick={() => editImages("Dimensional")}
+                              onClick={() => editImages("Discard")}
                               className="btn edit"
                             >
                               Edit
@@ -1617,7 +1583,7 @@ const ExtractionQA = (props) => {
                           </>
                         ) : (
                           <button
-                            onClick={() => editImages("Dimensional")}
+                            onClick={() => editImages("Discard")}
                             className="btn edit"
                           >
                             Edit
@@ -1809,7 +1775,7 @@ const ExtractionQA = (props) => {
             </div>
           </div>
         </footer>
-      </div>
+      </div >
     </>
   );
 };

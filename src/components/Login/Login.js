@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Login.css";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../../firebase";
+import { auth, firestore } from "../../firebase";
 import { signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { toast, ToastContainer } from "react-toastify";
+import { triggerToast } from "../../utils/triggerToast";
+import { Stack, TextField } from "@mui/material";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 const Login = (props) => {
   const navigate = useNavigate();
@@ -17,49 +20,81 @@ const Login = (props) => {
 
   // const [userUid, setUserUid] = useState("");
 
-  const handleSubmission = () => {
+  const handleSubmission = async () => {
+    console.log('submit');
     if (!values.email || !values.password) {
-      toast.error("Please fill all fields", {
-        position: toast.POSITION.TOP_CENTER,
-      });
+      triggerToast("Please fill all fields", "error")
       return;
     }
     //  CONNECT WITH FIREBASE
     setSubmitButtonDisabled(true);
-    const loginData = signInWithEmailAndPassword(
-      auth,
-      values.email,
-      values.password
-    )
-      .then(async (res) => {
+    const loginData = await signInWithEmailAndPassword(auth, values.email, values.password)
+
+    console.log('loginData', loginData.user.email);
+
+    try {
+      // Reference to the users collection
+      const usersCollectionRef = collection(firestore, "users");
+
+      // Query for the user with the specified UID
+      const userQuery = query(usersCollectionRef, loginData.user.uid);
+
+      // Get the documents that match the query
+      const querySnapshot = await getDocs(userQuery);
+
+      // Check if any documents were found
+      if (!querySnapshot.empty) {
+        // Extract the user data from the first document
+        const userData = querySnapshot.docs[0].data();
+        console.log(userData);
         setSubmitButtonDisabled(false);
-        if (props.userRole === "admin") {
+        if (userData.role === "admin") {
           navigate("/dimensions-analyst");
-        } else if (props.userRole === "manager") {
+        } else if (userData.role === "manager") {
           navigate("/dimensions-analyst");
-        } else if (props.userRole === "worker") {
+        } else if (userData.role === "worker") {
           navigate("/dashboard");
         } else {
           return null;
         }
-        // navigate("/extraction");
-        const user = res.user;
-        console.log("User UID", user.uid);
-        toast.success(`Welcome ${props.userEmail}`, {
-          position: toast.POSITION.BOTTOM_RIGHT,
-        });
-        // console.log("User Display Name", user.displayName);
-      })
-      .catch((err) => {
-        setSubmitButtonDisabled(false);
-        // setErrorMsg(err.message);
-        toast.error(`Invalid Email or Password`, {
-          position: toast.POSITION.TOP_CENTER,
-        });
-        // OR
-        // email already in use
-      });
+
+
+      } else {
+        // No user found with the specified UID
+        console.log("User not found");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      throw error;
+    }
+
+    // .then(async (res) => {
+    //   setSubmitButtonDisabled(false);
+    //   if (props.userRole === "admin") {
+    //     navigate("/dimensions-analyst");
+    //   } else if (props.userRole === "manager") {
+    //     navigate("/dimensions-analyst");
+    //   } else if (props.userRole === "worker") {
+    //     navigate("/dashboard");
+    //   } else {
+    //     return null;
+    //   }
+    //   // navigate("/extraction");
+    //   const user = res.user;
+    //   console.log("User UID", user.uid);
+    //   triggerToast(`Welcome ${props.userEmail}`, "success")
+    //   // console.log("User Display Name", user.displayName);
+    // })
+    // .catch((err) => {
+    //   setSubmitButtonDisabled(false);
+    //   // setErrorMsg(err.message);
+    //   triggerToast("Invalid Email or Password", "error")
+    //   // OR
+    //   // email already in use
+    // });
   };
+
   return (
     <>
       <div className="main-login-signup text-center mt-5">
@@ -95,9 +130,6 @@ const Login = (props) => {
           <button onClick={handleSubmission} disabled={submitButtonDisabled}>
             LOGIN
           </button>
-          <p>
-            Create a account <Link to="/signup">SignUp</Link>
-          </p>
         </div>
       </div>
     </>

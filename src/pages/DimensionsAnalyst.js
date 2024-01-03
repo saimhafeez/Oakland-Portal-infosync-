@@ -11,12 +11,10 @@ import Paper from "@mui/material/Paper";
 import IronPipeTableRow from "../components/dimensionsAnalyst/IronPipeTableRow";
 import HeaderSignOut from "../components/header/HeaderSignOut";
 import {
-  Alert,
   Box,
   Button,
   ButtonGroup,
   CircularProgress,
-  Grid,
   MenuItem,
   Modal,
   Select,
@@ -41,7 +39,7 @@ import MiscItemSize from '../res/MiscItemSize.json'
 // Import css files
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Slider from "react-slick";
+import { triggerToast } from "../utils/triggerToast";
 
 function DimensionsAnalyst(props) {
   const [dataLoading, setDataLoading] = useState(false);
@@ -61,7 +59,6 @@ function DimensionsAnalyst(props) {
 
   const [miscItems, setMiscItems] = useState(['Select Another Misc Item'])
   const [selectedMiscItemSelectionValue, setSelectedMiscItemSelectionValue] = useState("Select Another Misc Item")
-
 
   const executePythonScript = async () => {
     setDataLoading(true)
@@ -92,7 +89,7 @@ function DimensionsAnalyst(props) {
             .then(async (data) => {
               // Handle the API response data
               console.log("API Response:", data);
-              fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/images/${data.sku}`).then((response) => {
+              fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/images/all/${data.sku}`).then((response) => {
                 if (!response.ok) {
                   throw new Error("Network response was not ok");
                 }
@@ -148,7 +145,8 @@ function DimensionsAnalyst(props) {
                 console.error("Error:", error);
                 setDataLoaded(false);
                 setDataLoading(false)
-                window.alert('No Job Found');
+                triggerToast(`No Job Found : ${error}`, 'error');
+                console.log('----> |-| 1');
               });
 
             })
@@ -157,12 +155,15 @@ function DimensionsAnalyst(props) {
               console.error("Error:", error);
               setDataLoaded(false);
               setDataLoading(false)
-              window.alert('No Job Found');
+              triggerToast(`No Job Found : ${error}`, 'error');
+              console.log('----> |-| 2');
             });
         })
         .catch((error) => {
           // Handle any errors while getting the token
+          triggerToast(`${error}`, 'error');
           console.error("Token Error:", error);
+          console.log('----> |-| 3');
         });
     }
   };
@@ -238,15 +239,6 @@ function DimensionsAnalyst(props) {
                   PropsModel["woodenSheetRows"],
                 ],
                 woodTapeRows: [
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
@@ -337,15 +329,6 @@ function DimensionsAnalyst(props) {
                   PropsModel["woodenSheetRows"],
                 ],
                 woodTapeRows: [
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
@@ -396,15 +379,6 @@ function DimensionsAnalyst(props) {
       PropsModel["woodenSheetRows"],
     ],
     woodTapeRows: [
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
-      PropsModel["woodTapeRows"],
     ],
     miscTableRows: PropsModel["miscTableRows"],
   });
@@ -440,10 +414,11 @@ function DimensionsAnalyst(props) {
         (row.width != 0 || row.width != "")
     );
 
-    var exportedWoodTapeRows = productProperties.woodTapeRows.filter(
-      (row) =>
-        (row.length != 0 || row.length != "") && (row.qty != 0 || row.qty != "")
-    );
+    var exportedWoodTapeRows = productProperties.woodTapeRows;
+    // var exportedWoodTapeRows = productProperties.woodTapeRows.filter(
+    //   (row) =>
+    //     (row.length != 0 || row.length != "") && (row.qty != 0 || row.qty != "")
+    // );
 
     var exportedMiscTableRows = productProperties.miscTableRows.filter(
       (row) => row.qty != 0 || row.qty != ""
@@ -592,6 +567,70 @@ function DimensionsAnalyst(props) {
         />
       }
 
+      <div className="header">
+        <div className="set-container d-flex align-items-center justify-content-center w-100">
+          <div className="d-flex flex-row align-items-center justify-content-between w-100 gap-2" style={{ maxWidth: '1100px' }}>
+            <div>
+              <h6 className="m-0">
+                Product ID: <strong>{productSKU}</strong>
+              </h6>
+            </div>
+
+            <div className="d-flex flex-row align-items-center gap-1 flex-fill">
+
+              {/* <Stack direction='row' justifyContent='end' width={'100%'}>
+                <TextField value={url} placeholder="Search by URL" variant="filled" onChange={(e) => setURL(e.target.value)} style={{ borderRadius: 0, width: '100%' }} />
+                <Button variant="contained"
+                  onClick={executePythonScript}
+                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
+                >
+
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>GO</Typography>
+                    {dataLoading && <CircularProgress size={26} color="warning" />}
+                  </Stack>
+                </Button>
+              </Stack>
+
+              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
+              <Button variant="contained"
+                onClick={executePythonScript}
+                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
+              >
+
+                <Stack direction='row' gap={2} alignItems='center'>
+                  <Typography fontWeight='bold'>Fetch</Typography>
+                  {dataLoading && <CircularProgress size={26} color="warning" />}
+                </Stack>
+              </Button> */}
+
+              <div className="d-flex flex-fill">
+                <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} onChange={(e) => setURL(e.target.value)} value={url} />
+                <button
+                  id="btn-go"
+                  className="btn p-2 px-3  btn-go-fetch"
+
+                  onClick={executePythonScript}
+                >
+                  GO
+                </button>
+              </div>
+              <h5 className="m-0" style={{ textAlign: 'center' }}>or</h5>
+              <button
+                id="btn-fetch"
+                className="btn d-block btn-fetch"
+                onClick={executePythonScript}
+              >
+                Fetch Data
+              </button>
+            </div>
+            {/* <div className="col-lg-1 col-md-4 text-end">
+              <button onClick={handleSignOut}>SignOut</button>
+            </div> */}
+          </div>
+        </div>
+      </div>
+
       <Wrapper>
 
         <Modal
@@ -632,15 +671,13 @@ function DimensionsAnalyst(props) {
           </Box>
         </Modal>
 
-        <Stack marginTop={'4px'} marginBottom={'4px'} direction='row' height='calc(100vh - 8px)'>
+        <Stack marginTop={'4px'} marginBottom={'4px'} direction='row' height='calc(100vh - 70px)'>
 
           <Stack width='50%' justifyContent='space-between' alignItems='center'>
 
             <Stack direction='column' width='100%' spacing={0.5} p={1}>
 
-              {displayProductDataType === 'images' && <Stack>
-                <img src={previewImage} width="80%" height='auto' style={{ alignSelf: 'center' }} />
-              </Stack>}
+              {displayProductDataType === 'images' && <img src={previewImage} width="auto" height='70%' style={{ alignSelf: 'center' }} />}
 
               {dataLoaded && displayProductDataType === 'images' ?
                 <Stack paddingTop={2} direction='row' overflow='auto' width='100%' spacing={1}>
@@ -683,10 +720,7 @@ function DimensionsAnalyst(props) {
                 </Stack>
               }
 
-            </Stack>
-
-            <Stack marginBottom={2}>
-              <ButtonGroup variant="contained" aria-label="outlined primary button group">
+              <ButtonGroup style={{ marginTop: 10, alignSelf: 'center' }} variant="contained" aria-label="outlined primary button group">
                 <Button
                   style={{ width: '140px' }}
                   variant={displayProductDataType === 'images' ? 'contained' : 'outlined'}
@@ -696,7 +730,12 @@ function DimensionsAnalyst(props) {
                   variant={displayProductDataType === 'specification' ? 'contained' : 'outlined'}
                   onClick={() => setDisplayProductDataType('specification')}>Specification</Button>
               </ButtonGroup>
+
             </Stack>
+
+            {/* <Stack marginBottom={2}>
+
+            </Stack> */}
 
           </Stack>
 
@@ -832,9 +871,9 @@ function DimensionsAnalyst(props) {
                       </TableRow>
                       <TableRow className="cell-head">
                         <TableCell>Size</TableCell>
-                        <TableCell>L&nbsp;&nbsp;</TableCell>
-                        <TableCell>Qty</TableCell>
-                        <TableCell>Total</TableCell>
+                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
+                        {/* <TableCell>Qty</TableCell> */}
+                        {/* <TableCell>Total</TableCell> */}
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -952,10 +991,10 @@ function DimensionsAnalyst(props) {
 
             <Stack direction="column" gap={1}>
 
-              <Stack direction='column' justifyContent='center'>
+              {/* <Stack direction='column' justifyContent='center'>
                 <Typography fontWeight='bold' fontSize='small' textAlign='center'>Product SKU</Typography>
                 <Typography fontWeight='bold' fontSize='small' style={{ wordBreak: 'break-all' }} color='#d32f2f'>{productSKU}</Typography>
-              </Stack>
+              </Stack> */}
 
               <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
@@ -964,7 +1003,7 @@ function DimensionsAnalyst(props) {
                 {displayHeader ? <CloseIcon /> : <MenuIcon />}
               </Button>
 
-              <Stack direction='row' justifyContent='end'>
+              {/* <Stack direction='row' justifyContent='end'>
                 <TextField value={url} placeholder="Search by URL" variant="filled" onChange={(e) => setURL(e.target.value)} style={{ borderRadius: 0 }} />
                 <Button variant="contained"
                   onClick={executePythonScript}
@@ -988,7 +1027,7 @@ function DimensionsAnalyst(props) {
                   <Typography fontWeight='bold'>Fetch</Typography>
                   {dataLoading && <CircularProgress size={26} color="warning" />}
                 </Stack>
-              </Button>
+              </Button> */}
 
 
               <Stack direction="column">
@@ -1042,7 +1081,7 @@ function DimensionsAnalyst(props) {
                   color="error"
                 >
                   <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontWeight='bold'>Not Understandable</Typography>
+                    <Typography fontWeight='bold'>NOT UNDERSTANDABLE</Typography>
                     {dataSubmitting && <CircularProgress size={26} color="info" />}
                   </Stack>
                 </Button>

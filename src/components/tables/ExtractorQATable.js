@@ -64,7 +64,10 @@ const ExtractorQATable = (props) => {
       ...pre,
       isLoading: true
     }))
-    const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=QA-Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}`
+
+    const apiURL = filterByQAStatus !== 'qa-status' ? `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=QA-Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}&status=${filterByQAStatus}`
+      : `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=QA-Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}`
+
     fetch(apiURL).then(res => res.json()).then((result) => {
       setTableData(pre => ({
         ...pre,
@@ -91,22 +94,57 @@ const ExtractorQATable = (props) => {
     fetchTableDataStats()
   }, [tableDataStats.reset])
 
-  const getAllProductsByFilter = () => {
+  useEffect(() => {
+    setTableData(pre => ({
+      ...pre,
+      isLoading: true,
+      currentPage: 0,
+      totalPages: 1,
+    }))
+    fetchTableData()
+  }, [filterByQAStatus])
 
-    var products = tableData.data;
+  const fetchByProductID = () => {
+    setTableData(pre => ({
+      ...pre,
+      isLoading: true,
+      currentPage: 0,
+      totalPages: 1,
+    }))
+    const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=QA-Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}&productID=${searchByID}`
+    fetch(apiURL).then(res => res.json()).then((result) => {
+      setTableData(pre => ({
+        ...pre,
+        isLoading: false,
+        data: result.data,
+        currentPage: result.curr_page,
+        totalPages: result.total_pages
+      }))
+      console.log('result.data', result.data);
+    }).catch((e) => console.log('error occured', e))
+  }
 
-    if (searchByID !== '') {
-      products = products.filter((item) => item.productID.includes(searchByID))
+  const searchItemByID = (e) => {
+    setSearchByID(e.target.value)
+    if (e.target.value === '') {
+      setTableData(pre => ({
+        ...pre,
+        isLoading: true,
+        currentPage: 0,
+        totalPages: 1,
+      }))
+      const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=QA-Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&uid=${props.user.uid}`
+      fetch(apiURL).then(res => res.json()).then((result) => {
+        setTableData(pre => ({
+          ...pre,
+          isLoading: false,
+          data: result.data,
+          currentPage: result.curr_page,
+          totalPages: result.total_pages
+        }))
+        console.log('result.data', result.data);
+      }).catch((e) => console.log('error occured', e))
     }
-
-    // if (filterByQAStatus !== 'qa-status') {
-    //   products = products.filter((item) => item.status === filterByQAStatus)
-    // }
-    if (filterByQAStatus !== 'qa-status') {
-      products = products.filter((item) => filterByQAStatus === 'under_qa' ? item.status === null : item.status === filterByQAStatus)
-    }
-
-    return products
   }
 
   return (
@@ -174,7 +212,7 @@ const ExtractorQATable = (props) => {
           </tbody>
         </table>}
       </div >
-      <div className="mt-5">
+      <div className="mt-5 d-flex flex-column">
         <h2>All Products Overview</h2>
         <div className="d-flex flex-row justify-content-end gap-2">
           <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>
@@ -216,26 +254,25 @@ const ExtractorQATable = (props) => {
         </div>
         {tableData.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
-        </div></div> : <table className="table mt-4 table-bordered table-striped align-middle text-center">
+        </div></div> : <table className="table mt-4 table-bordered table-striped align-middle text-center align-self-center" style={{ maxWidth: '1000px' }}>
           <thead className="table-dark">
             <tr className="border-0 bg-white">
               <th colSpan={2} className="bg-white text-dark border-0">
-                {getAllProductsByFilter().length} Results Found
+                {tableData.data.length} Results Found
               </th>
-              <th className="bg-white" style={{ maxWidth: 150 }}>
+              <th colSpan={2} className="bg-white" style={{ maxWidth: 150 }}>
                 <div className="d-flex flex-row">
                   <input
                     className="p-2 w-100"
                     type="text"
                     placeholder="Search by ProductID"
                     style={{ backgroundColor: "#e8e8e8", width: "fit-content" }}
-                    onChange={(e) => setSearchByID(e.target.value)}
+                    onChange={searchItemByID}
                     value={searchByID}
                   />
-                  <button className="btn btn-go-fetch" onClick={() => setSearchByID("")}>Clear</button>
+                  <button className="btn btn-go-fetch" onClick={fetchByProductID}>GO</button>
                 </div>
               </th>
-              <th className="bg-white"></th>
               <th className="bg-white"></th>
               <th className="bg-white">
 
@@ -248,10 +285,10 @@ const ExtractorQATable = (props) => {
                 >
                   <option value="qa-status">Filter by QA Status</option>
                   <option value="under_qa">Under QA</option>
+                  <option value="rejected_nad">Rejected NAD</option>
                   <option value="passed">100% [QA Passed]</option>
                   <option value="minor">MINOR Fixes</option>
                   <option value="major">MAJOR Fixes</option>
-                  <option value="rejected_nad">Rejected NAD</option>
                 </select>
 
               </th>
@@ -267,16 +304,16 @@ const ExtractorQATable = (props) => {
             </tr>
           </thead>
           <tbody>
-            {getAllProductsByFilter().length === 0 && <tr>
+            {tableData.data.length === 0 && <tr>
               <td colSpan={6}>
                 <h4 className="text-center p-2 w-100">0 Results</h4>
               </td>
             </tr>}
-            {getAllProductsByFilter().map((item, index) => (
+            {tableData.data.map((item, index) => (
               <tr key={index}>
-                <td>{index + 1}</td>
+                <td>{(tableData.currentPage * 10) + (index + 1)}</td>
                 <td>
-                  <img src={item.thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'} alt="" height="52px" />
+                  <img src={item.thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'} alt="" height="72px" />
                 </td>
                 <td>{item.productID}</td>
                 <td>{item.variantID || 'N/A'}</td>
@@ -286,41 +323,45 @@ const ExtractorQATable = (props) => {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={6}>
+                <nav>
+                  <ul class="pagination">
+                    <li class={`page-item ${tableData.currentPage === 0 && "disabled"}`}>
+                      <a class="page-link" href="#" tabindex="-1" onClick={() => {
+                        setTableData(pre => ({
+                          ...pre,
+                          currentPage: pre.currentPage - 1
+                        }))
+                      }}>Previous</a>
+                    </li>
+                    {Array(...Array(tableData.totalPages)).map((_, index) => {
+                      return <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
+                        <a class="page-link" href="#" onClick={() => {
+                          setTableData(pre => ({
+                            ...pre,
+                            currentPage: index
+                          }))
+                        }}>{index + 1}</a>
+                      </li>
+                    })}
+
+                    <li class={`page-item ${tableData.currentPage === tableData.totalPages - 1 && "disabled"}`}>
+                      <a class="page-link" href="#" onClick={() => {
+                        setTableData(pre => ({
+                          ...pre,
+                          currentPage: pre.currentPage + 1
+                        }))
+                      }}>Next</a>
+                    </li>
+                  </ul>
+                </nav>
+              </td>
+            </tr>
+          </tfoot>
         </table>}
       </div >
-
-      <nav>
-        <ul class="pagination">
-          <li class={`page-item ${tableData.currentPage === 0 && "disabled"}`}>
-            <a class="page-link" href="#" tabindex="-1" onClick={() => {
-              setTableData(pre => ({
-                ...pre,
-                currentPage: pre.currentPage - 1
-              }))
-            }}>Previous</a>
-          </li>
-          {Array(...Array(tableData.totalPages)).map((_, index) => {
-            return <li key={index} class={`page-item ${tableData.currentPage === index && 'active'}`}>
-              <a class="page-link" href="#" onClick={() => {
-                setTableData(pre => ({
-                  ...pre,
-                  currentPage: index
-                }))
-              }}>{index + 1}</a>
-            </li>
-          })}
-
-          <li class={`page-item ${tableData.currentPage === tableData.totalPages - 1 && "disabled"}`}>
-            <a class="page-link" href="#" onClick={() => {
-              setTableData(pre => ({
-                ...pre,
-                currentPage: pre.currentPage + 1
-              }))
-            }}>Next</a>
-          </li>
-        </ul>
-      </nav>
-
     </>
   );
 };

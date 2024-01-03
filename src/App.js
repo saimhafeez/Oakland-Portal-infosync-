@@ -1,41 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css';
-
-
-import axios from "axios";
 import { useEffect, useState } from "react";
-import Container from "@mui/material/Container";
-import {
-  Alert,
-  AppBar,
-  Box,
-  Breadcrumbs,
-  Button,
-  ButtonGroup,
-  Divider,
-  Drawer,
-  LinearProgress,
-  Link,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Snackbar,
-  Stack,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-import FolderIcon from "@mui/icons-material/Folder";
-import VideoFileIcon from "@mui/icons-material/VideoFile";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import MailIcon from "@mui/icons-material/Mail";
-import MenuIcon from "@mui/icons-material/Menu";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import IconButton from "@mui/material/IconButton";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import SharedLayout from "./pages/SharedLayout";
-import Dashboard from "./pages/Dashboard";
 import FileManagement from "./pages/FileManagement";
 import DimensionsAnalyst from "./pages/DimensionsAnalyst";
 import DashboardPage from "./components/Dashboard/DashboardPage";
@@ -44,87 +9,32 @@ import Login from "./components/Login/Login";
 import Signup from "./components/Signup/Signup";
 import { firestore } from "./firebase";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import ExtractionQA from "./pages/ExtractionQA";
-// import ExtractionQA from "./pages/ExtractionQA";
-import Demo from "./pages/Demo";
 import PrivateRoutes from "./routes/PrivateRoutes";
-import PublicRoutes from "./routes/PublicRoutes";
-import Header from "./components/header/Header";
-import Sidebar from "./components/sidebar/Sidebar";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NestedRoutes from "./routes/NestedRoutes";
 import DimensionalQAAnalyst from "./pages/DimensionalQAAnalyst";
-import SuperAdmin from "./pages/SuperAdmin";
 import Ingredients from "./pages/Ingredients";
 import ProductVendorInformation from "./pages/ProductVendorInformation";
 import UserManagement from './pages/admin/UserManagement';
 import ReadyToLive from './pages/admin/ReadyToLive';
 import AllNads from './pages/admin/AllNads';
 import NotUnderstandables from './pages/admin/NotUnderstandables';
-
+import ExtractionComparision from './pages/admin/ExtractionComparision';
+import DimAnaComparision from './pages/admin/DimAnaComparision';
 
 const auth = getAuth();
 
-
 function App() {
   const [userName, setUserName] = useState("");
-  // useEffect(() => {
-  //   auth.onAuthStateChanged((user) => {
-  //     if (user) {
-  //       setUserName(user.displayName);
-  //     } else setUserName("");
-  //   });
-  // }, []);
 
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
   const [userJdesc, setUserJdesc] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-  //     if (authUser) {
-  //       // User is signed in
-  //       setUser(authUser);
-  //       // Fetch the user's role from Firestore
-  //       const userRef = doc(firestore, "users", authUser.uid);
-  //       getDoc(userRef)
-  //         .then((docSnapshot) => {
-  //           if (docSnapshot.exists()) {
-  //             setUserRole(docSnapshot.data().role);
-  //             setUserJdesc(docSnapshot.data().jdesc);
-  //             setUserEmail(docSnapshot.data().email);
-  //             // setUser(docSnapshot.data());
-  //             setLoading(false);
-  //             localStorage.setItem("userEmail", JSON.stringify(userEmail));
-  //           } else {
-  //             console.log("User role not found.");
-  //             setLoading(false);
-  //           }
-  //         })
-  //         .catch((error) => {
-  //           console.error("Error getting user role:", error);
-  //           setLoading(false);
-  //         });
-  //     } else {
-  //       // User is signed out
-  //       setUser(null);
-  //       setUserRole(null);
-  //       setUserEmail(null);
-  //       setUserJdesc(null);
-  //       setUserName(null);
-  //       setLoading(false);
-  //       // localStorage.removeItem("userEmail");
-  //     }
-  //   });
-
-  //   return () => {
-  //     unsubscribe();
-  //   };
-  // }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
@@ -196,23 +106,6 @@ function App() {
       </div>
     );
   }
-  // const [data, setData] = useState([]);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     // collection mean table name
-  //     const dataRef = firestore.collection('users');
-  //     const snapshot = await dataRef.get();
-
-  //     const items = []
-  //     // doc mean document or you could say a row
-  //     snapshot.forEach((doc) => {
-  //       items.push(doc.data());
-  //     });
-  //     setData(items);
-  //   }
-  //   fetchData();
-  // }, []);
 
   return (
     <>
@@ -220,33 +113,8 @@ function App() {
         <ToastContainer />
         {/* <Route path="/" element={<SharedLayout name={userName} />}> */}
         {/* <Route index element={<Dashboard />} /> */}
-        <ToastContainer />
         <BrowserRouter>
           <Routes>
-
-            {/* <Route
-              path="/ingredients"
-              element={
-                <Ingredients
-                  userEmail={userEmail}
-                  userRole={userRole}
-                  userJdesc={userJdesc}
-                  user={user}
-                />
-              }
-            /> */}
-
-            {/* <Route
-              path="/product-detail-info"
-              element={
-                <ProductVendorInformation
-                  userEmail={userEmail}
-                  userRole={userRole}
-                  userJdesc={userJdesc}
-                  user={user}
-                />
-              }
-            /> */}
 
             {/* SECURE LOGIN ROUTE */}
             <Route
@@ -437,6 +305,28 @@ function App() {
                 }
               />
               <Route
+                path="/extraction-comparision"
+                element={
+                  <ExtractionComparision
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/dimana-comparision"
+                element={
+                  <DimAnaComparision
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
                 path="/user-management"
                 element={
                   <UserManagement
@@ -491,6 +381,3 @@ function App() {
 }
 
 export default App;
-
-// e79c2c
-// 000000
