@@ -42,6 +42,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { triggerToast } from "../utils/triggerToast";
 
 function DimensionsAnalyst(props) {
+
   const [dataLoading, setDataLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [dataSubmitting, setDataSubmitting] = useState(false);
@@ -239,6 +240,7 @@ function DimensionsAnalyst(props) {
                   PropsModel["woodenSheetRows"],
                 ],
                 woodTapeRows: [
+                  PropsModel["woodTapeRows"]
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
@@ -329,6 +331,7 @@ function DimensionsAnalyst(props) {
                   PropsModel["woodenSheetRows"],
                 ],
                 woodTapeRows: [
+                  PropsModel["woodTapeRows"]
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
@@ -379,6 +382,7 @@ function DimensionsAnalyst(props) {
       PropsModel["woodenSheetRows"],
     ],
     woodTapeRows: [
+      PropsModel["woodTapeRows"],
     ],
     miscTableRows: PropsModel["miscTableRows"],
   });
@@ -862,18 +866,12 @@ function DimensionsAnalyst(props) {
                         <TableCell className="table-head" colSpan={8}>
                           <Stack direction='row' justifyContent='space-between'>
                             <div></div>
-                            <Typography fontWeight='bold'>Wood Tape</Typography>
+                            <Typography fontWeight='bold'>Wood Tape Size</Typography>
                             <Box style={{ cursor: "pointer" }} onClick={() => setOpenModal(3)}>
                               <ContentPasteIcon />
                             </Box>
                           </Stack>
                         </TableCell>
-                      </TableRow>
-                      <TableRow className="cell-head">
-                        <TableCell>Size</TableCell>
-                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
-                        {/* <TableCell>Qty</TableCell> */}
-                        {/* <TableCell>Total</TableCell> */}
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -890,7 +888,7 @@ function DimensionsAnalyst(props) {
                         );
                       })}
                     </TableBody>
-                    <TableFooter>
+                    {/* <TableFooter>
                       <Button
                         onClick={() => {
                           addNewRow("woodTapeRows");
@@ -898,7 +896,7 @@ function DimensionsAnalyst(props) {
                       >
                         <AddCircleIcon htmlColor="#1976d2" />
                       </Button>
-                    </TableFooter>
+                    </TableFooter> */}
                   </Table>
                 </TableContainer>
               )}

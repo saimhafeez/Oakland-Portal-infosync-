@@ -30,6 +30,7 @@ function ExtractionComparision() {
         console.log('qaWorkerData -> ', qaWorkerData);
 
 
+
     }, [])
 
     return (

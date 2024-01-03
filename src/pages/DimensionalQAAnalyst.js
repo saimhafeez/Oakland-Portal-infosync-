@@ -34,9 +34,40 @@ import PropsModel from "../res/PropsModel";
 import WoodenSheetTableRow from "../components/dimensionsAnalyst/WoodenSheetTableRow";
 import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
-
 import MiscItemSize from '../res/MiscItemSize.json'
 import { triggerToast } from "../utils/triggerToast";
+
+
+const defualt_state = {
+  ironPipeRows: [
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+    PropsModel["ironPipeRows"],
+  ],
+  woodenSheetRows: [
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+    PropsModel["woodenSheetRows"],
+  ],
+  woodTapeRows: [
+    PropsModel["woodTapeRows"]
+  ],
+  miscTableRows: PropsModel["miscTableRows"],
+}
+
+
 
 function DimensionalQAAnalyst(props) {
   const [dataLoading, setDataLoading] = useState(false);
@@ -258,15 +289,7 @@ function DimensionalQAAnalyst(props) {
                   PropsModel["woodenSheetRows"],
                 ],
                 woodTapeRows: [
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
+                  PropsModel["woodTapeRows"]
                 ],
                 miscTableRows: PropsModel["miscTableRows"],
               })
@@ -333,42 +356,7 @@ function DimensionalQAAnalyst(props) {
                 buildMaterial: "IRON PIPE / MDF",
                 qaScorecard: 'QA Scorecard'
               }))
-              setProductProperties({
-                ironPipeRows: [
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                ],
-                woodenSheetRows: [
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                ],
-                woodTapeRows: [
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                  PropsModel["woodTapeRows"],
-                ],
-                miscTableRows: PropsModel["miscTableRows"],
-              })
+              setProductProperties(defualt_state)
               setURL("");
               setDataSubmitting(false)
             })
@@ -393,13 +381,13 @@ function DimensionalQAAnalyst(props) {
     qaScorecard: "QA Scorecard",
   });
 
-  const getFilledRows = (propType) => {
-    const filledData = Array.from(productPropertiesOld[propType]);
-    for (var i = filledData.length; i < 9; i++) {
-      filledData.push(PropsModel[propType]);
-    }
-    return filledData;
-  };
+  // const getFilledRows = (propType) => {
+  //   const filledData = Array.from(productPropertiesOld[propType]);
+  //   for (var i = filledData.length; i < 9; i++) {
+  //     filledData.push(PropsModel[propType]);
+  //   }
+  //   return filledData;
+  // };
 
   const getMiscTableRows = () => {
     const rows = PropsModel["miscTableRows"];
@@ -426,12 +414,7 @@ function DimensionalQAAnalyst(props) {
     return newRows;
   };
 
-  const [productProperties, setProductProperties] = useState({
-    ironPipeRows: getFilledRows("ironPipeRows"),
-    woodenSheetRows: getFilledRows("woodenSheetRows"),
-    woodTapeRows: getFilledRows("woodTapeRows"),
-    miscTableRows: getMiscTableRows(),
-  });
+  const [productProperties, setProductProperties] = useState(defualt_state);
 
   const addNewRow = (propType) => {
     setProductProperties((pre) => ({
@@ -762,14 +745,8 @@ function DimensionalQAAnalyst(props) {
                     <TableHead>
                       <TableRow>
                         <TableCell className="table-head" colSpan={8}>
-                          Wood Tape
+                          Wood Tape Size
                         </TableCell>
-                      </TableRow>
-                      <TableRow className="cell-head">
-                        <TableCell>Size</TableCell>
-                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
-                        {/* <TableCell>Qty</TableCell> */}
-                        {/* <TableCell>Total</TableCell> */}
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -786,17 +763,6 @@ function DimensionalQAAnalyst(props) {
                         );
                       })}
                     </TableBody>
-                    {suggestEdit && (
-                      <TableFooter>
-                        <Button
-                          onClick={() => {
-                            addNewRow("woodTapeRows");
-                          }}
-                        >
-                          <AddCircleIcon htmlColor="#1976d2" />
-                        </Button>
-                      </TableFooter>
-                    )}
                   </Table>
                 </TableContainer>
               </Stack>
