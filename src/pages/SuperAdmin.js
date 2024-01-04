@@ -36,6 +36,7 @@ function SuperAdmin(props) {
         greaterThanDate: 0,
         currentPage: 0,
         totalPages: 1,
+        totalItems: 0,
         totalProductsPerPage: 10,
         reset: 0,
         data: []
@@ -59,7 +60,6 @@ function SuperAdmin(props) {
         currentPage: 0,
         totalPages: 1,
         reset: 0,
-        totalItems: 0,
         data: []
     })
 
@@ -373,7 +373,7 @@ function SuperAdmin(props) {
                         <CircularProgress size={56} color="info" />
                     </Stack> :
                         <Stack>
-                            <Stack direction='row' justifyContent='end' alignItems='center' m={2}>
+                            {/* <Stack direction='row' justifyContent='end' alignItems='center' m={2}>
                                 <Stack direction="column">
                                     <Typography>Filter By Job</Typography>
                                     <Select
@@ -390,7 +390,7 @@ function SuperAdmin(props) {
                                         <MenuItem value="QA-DimAna">QA-DimAna</MenuItem>
                                     </Select>
                                 </Stack>
-                            </Stack>
+                            </Stack> */}
 
                             {tableData.isLoading ? <Stack direction='row' justifyContent='center'>
                                 <CircularProgress />
@@ -467,7 +467,22 @@ function SuperAdmin(props) {
                                                     <option value="major">MAJOR [QA Passed]</option>
                                                 </select>
                                             </th>
-                                            <th className="bg-white"></th>
+                                            <th className="bg-white">
+                                                <select
+                                                    className="p-2 w-100 text-white bg-success fw-bold"
+                                                    name="qa-status"
+                                                    id="qa-status"
+                                                    value={tableFilter}
+                                                    onChange={(e) => {
+                                                        setTableFilter(e.target.value);
+                                                    }}
+                                                >
+                                                    <option value="Extractor">Extractor</option>
+                                                    <option value="QA-Extractor">QA-Extractor</option>
+                                                    <option value="DimAna">DimAna</option>
+                                                    <option value="QA-DimAna">QA-DimAna</option>
+                                                </select>
+                                            </th>
                                         </tr>
                                         <tr>
                                             <th># SR</th>

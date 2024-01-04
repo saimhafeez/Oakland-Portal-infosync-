@@ -23,6 +23,8 @@ const ExtractorTable = (props) => {
     greaterThanDate: 0,
     currentPage: 0,
     totalPages: 1,
+    totalItems: 0,
+    totalProductsPerPage: 10,
     reset: 0,
     data: []
   })
@@ -60,20 +62,29 @@ const ExtractorTable = (props) => {
 
   }
 
-  const fetchTableData = () => {
+  const fetchTableData = (currentPage = tableData.currentPage, productID = searchByID) => {
     setTableData(pre => ({
       ...pre,
       isLoading: true
     }))
-    const apiURL = filterByQAStatus !== 'qa-status' ? `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}&status=${filterByQAStatus}`
-      : `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}`
+    var apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${currentPage}&uid=${props.user.uid}`
+
+    if (filterByQAStatus !== 'qa-status') {
+      apiURL += `&status=${filterByQAStatus}`
+    }
+
+    if (productID !== "") {
+      apiURL += `&productID=${productID}`
+    }
+
     fetch(apiURL).then(res => res.json()).then((result) => {
       setTableData(pre => ({
         ...pre,
         isLoading: false,
         data: result.data,
         currentPage: result.curr_page,
-        totalPages: result.total_pages
+        totalPages: result.total_pages,
+        totalItems: result.total_items
       }))
       console.log('result.data', result.data);
     }).catch((e) => console.log('error occured', e))
@@ -95,55 +106,17 @@ const ExtractorTable = (props) => {
   }, [tableDataStats.reset])
 
   useEffect(() => {
-    setTableData(pre => ({
-      ...pre,
-      isLoading: true,
-      currentPage: 0,
-      totalPages: 1,
-    }))
-    fetchTableData()
+    fetchTableData(0)
   }, [filterByQAStatus])
 
   const fetchByProductID = () => {
-    setTableData(pre => ({
-      ...pre,
-      isLoading: true,
-      currentPage: 0,
-      totalPages: 1,
-    }))
-    const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${tableData.currentPage}&uid=${props.user.uid}&productID=${searchByID}`
-    fetch(apiURL).then(res => res.json()).then((result) => {
-      setTableData(pre => ({
-        ...pre,
-        isLoading: false,
-        data: result.data,
-        currentPage: result.curr_page,
-        totalPages: result.total_pages
-      }))
-      console.log('result.data', result.data);
-    }).catch((e) => console.log('error occured', e))
+    fetchTableData(0)
   }
 
   const searchItemByID = (e) => {
     setSearchByID(e.target.value)
     if (e.target.value === '') {
-      setTableData(pre => ({
-        ...pre,
-        isLoading: true,
-        currentPage: 0,
-        totalPages: 1,
-      }))
-      const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=Extractor&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&uid=${props.user.uid}`
-      fetch(apiURL).then(res => res.json()).then((result) => {
-        setTableData(pre => ({
-          ...pre,
-          isLoading: false,
-          data: result.data,
-          currentPage: result.curr_page,
-          totalPages: result.total_pages
-        }))
-        console.log('result.data', result.data);
-      }).catch((e) => console.log('error occured', e))
+      fetchTableData(0, "")
     }
   }
 
@@ -238,7 +211,7 @@ const ExtractorTable = (props) => {
               style={{ backgroundColor: "#e8e8e8" }} />
           </div>
           <div className="d-flex flex-column gap-1">
-            <button className="btn btn-fetch" onClick={fetchTableData}>Submit</button>
+            <button className="btn btn-fetch" onClick={() => fetchTableData(0)}>Submit</button>
             <button className="btn btn-fetch bg-danger text-white" onClick={(e) => {
               e.preventDefault()
               document.getElementById("myDate3").value = "";
@@ -258,7 +231,7 @@ const ExtractorTable = (props) => {
           <thead className="table-dark">
             <tr className="border-0 bg-white">
               <th colSpan={2} className="bg-white text-dark border-0">
-                {tableData.data.length} Results Found
+                {tableData.totalItems} Results Found
               </th>
               <th colSpan={2} className="bg-white" style={{ maxWidth: 150 }}>
                 <div className="d-flex flex-row">
@@ -311,7 +284,7 @@ const ExtractorTable = (props) => {
             </tr>}
             {tableData.data.map((item, index) => (
               <tr key={index}>
-                <td>{(tableData.currentPage * 10) + (index + 1)}</td>
+                <td>{(tableData.currentPage * tableData.totalProductsPerPage) + (index + 1)}</td>
                 <td>
                   <img src={item.thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'} alt="" height="72px" />
                 </td>

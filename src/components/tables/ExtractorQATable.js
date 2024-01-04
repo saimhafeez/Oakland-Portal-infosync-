@@ -22,6 +22,8 @@ const ExtractorQATable = (props) => {
     greaterThanDate: 0,
     currentPage: 0,
     totalPages: 1,
+    totalItems: 0,
+    totalProductsPerPage: 10,
     reset: 0,
     data: []
   })
@@ -74,7 +76,8 @@ const ExtractorQATable = (props) => {
         isLoading: false,
         data: result.data,
         currentPage: result.curr_page,
-        totalPages: result.total_pages
+        totalPages: result.total_pages,
+        totalItems: result.total_items
       }))
     }).catch((e) => console.log('error occured', e))
     console.log(tableData.lessThanDate, tableData.greaterThanDate, tableData.currentPage);
@@ -238,7 +241,7 @@ const ExtractorQATable = (props) => {
               style={{ backgroundColor: "#e8e8e8" }} />
           </div>
           <div className="d-flex flex-column gap-1">
-            <button className="btn btn-fetch" onClick={fetchTableData}>Submit</button>
+            <button className="btn btn-fetch" onClick={() => fetchTableData(0)}>Submit</button>
             <button className="btn btn-fetch bg-danger text-white" onClick={(e) => {
               e.preventDefault()
               document.getElementById("myDate3").value = "";
@@ -258,7 +261,7 @@ const ExtractorQATable = (props) => {
           <thead className="table-dark">
             <tr className="border-0 bg-white">
               <th colSpan={2} className="bg-white text-dark border-0">
-                {tableData.data.length} Results Found
+                {tableData.totalItems} Results Found
               </th>
               <th colSpan={2} className="bg-white" style={{ maxWidth: 150 }}>
                 <div className="d-flex flex-row">
@@ -343,7 +346,7 @@ const ExtractorQATable = (props) => {
                             ...pre,
                             currentPage: index
                           }))
-                        }}>{index + 1}</a>
+                        }}>{(tableData.currentPage * tableData.totalProductsPerPage) + (index + 1)}</a>
                       </li>
                     })}
 
