@@ -40,7 +40,14 @@ function WoodTapeTableRow({
           onChange={(e) => handleEdit(e, _key, propType)}
           name="size"
           disabled={!editable}
-          style={{ width: "100%" }}
+          style={{
+            width: "100%",
+            textAlign: 'center',
+
+            fontWeight: data.size === 'Select an Option' ? 'bold' : 'normal',
+            color: data.size === 'Select an Option' ? '#7b9480' : 'black',
+            background: data.size === 'Select an Option' ? '#c6efce' : 'white',
+          }}
         >
           {WoodTapeSize.map((item, index) => {
             return (

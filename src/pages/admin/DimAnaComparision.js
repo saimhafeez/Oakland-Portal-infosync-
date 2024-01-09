@@ -31,6 +31,8 @@ import { getImagesByID } from '../../utils/getImagesByID';
 
 function DimAnaComparision(props) {
 
+    const highlightedRowsColor = '#ff9090';
+
     const [displayProductDataType, setDisplayProductDataType] = useState('images');
     const [previewImage, setPreviewImage] = useState('');
 
@@ -45,13 +47,15 @@ function DimAnaComparision(props) {
         isLoading: true,
         data: [],
         differentRows: [],
-        buildMaterial: ""
+        buildMaterial: "",
+        status: ""
     })
     const [qaDimAnaData, setQADimAnaData] = useState({
         isLoading: true,
         data: [],
         differentRows: [],
-        buildMaterial: ""
+        buildMaterial: "",
+        status: ""
     })
 
     const [info, setInfo] = useState({
@@ -237,9 +241,9 @@ function DimAnaComparision(props) {
 
             for (const prop of props) {
                 if (productProperties.miscTableRows[i][prop] !== productPropertiesOld.miscTableRows[i][prop]) {
-                    console.log('----> ', productProperties.miscTableRows[i][prop], productPropertiesOld.miscTableRows[i][prop]);
-                    console.log('----> ', typeof productProperties.miscTableRows[i][prop], typeof productPropertiesOld.miscTableRows[i][prop]);
-                    console.log('----> ', productProperties.miscTableRows[i][prop].length, productPropertiesOld.miscTableRows[i][prop].length);
+                    // console.log('----> ', productProperties.miscTableRows[i][prop], productPropertiesOld.miscTableRows[i][prop]);
+                    // console.log('----> ', typeof productProperties.miscTableRows[i][prop], typeof productPropertiesOld.miscTableRows[i][prop]);
+                    // console.log('----> ', productProperties.miscTableRows[i][prop].length, productPropertiesOld.miscTableRows[i][prop].length);
                     miscTableRows_highlighted.push(i);
                     break;
                 }
@@ -259,14 +263,16 @@ function DimAnaComparision(props) {
             ...pre,
             isLoading: false,
             data: productPropertiesOld,
-            buildMaterial: DimAnaWorkerData.data.analysed.buildMaterial
+            buildMaterial: DimAnaWorkerData.data.analysed.buildMaterial,
+            status: DimAnaWorkerData.data.analysed.change
         }))
 
         setQADimAnaData((pre) => ({
             ...pre,
             isLoading: false,
             data: productProperties,
-            buildMaterial: DimAnaQAData.data.final.buildMaterial
+            buildMaterial: DimAnaQAData.data.final.buildMaterial,
+            status: DimAnaQAData.data.final.change,
         }))
 
     }, [])
@@ -283,7 +289,11 @@ function DimAnaComparision(props) {
 
                     <Stack direction='column' width='100%' spacing={0.5} p={1}>
 
-                        <Stack>SKU: {info.sku}</Stack>
+                        <div className='bg-black text-white' style={{ textTransform: 'capitalize' }}>
+                            <h4>
+                                SKU: {info.sku}
+                            </h4>
+                        </div>
 
                         {displayProductDataType === 'images' && <img src={previewImage} width="100%" height='auto' style={{ alignSelf: 'center' }} />}
 
@@ -343,394 +353,422 @@ function DimAnaComparision(props) {
 
                 </Stack>
                 <Stack width='70%' direction='row' overflow='auto' height='calc(100vh - 70px)'>
+                    <Stack width={'50%'} bgcolor={'beige'} direction='column' gap={3}>
 
-                    {!dimAnaData.isLoading && <Stack width={'50%'} bgcolor={'beige'} direction='column' gap={3}>
+                        {dimAnaData.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div></div>
 
-                        <Stack>
-                            <TableContainer component={Paper} variant="outlined">
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell className="table-head" colSpan={6}>
-                                                <Stack direction='row' justifyContent='center'>
-                                                    <Typography fontWeight='bold'>Iron Pipe</Typography>
-                                                </Stack>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow className="cell-head">
-                                            <TableCell>Pipe Type & Size</TableCell>
-                                            <TableCell>L&nbsp;&nbsp;</TableCell>
-                                            <TableCell>Qty</TableCell>
-                                            <TableCell>Total (ft)</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {dimAnaData.data.ironPipeRows.map((row, index) => {
-                                            return (
-                                                // <IronPipeTableRow
-                                                //     key={index}
-                                                //     _key={index}
-                                                //     data={row}
-                                                //     handleEdit={handleEdit}
-                                                //     unitSelector={filters.unitSelector}
-                                                //     editable={dataLoaded}
-                                                //     hideDetails={true}
-                                                // />
-                                                <TableRow
-                                                    style={{ backgroundColor: highlightedRows.ironPipeRows.includes(index) && 'red' }}
-                                                >
-                                                    <TableCell className='cell'>{row.pipeTypeNSize}</TableCell>
-                                                    <TableCell className='cell'>{getValue(row.length)}</TableCell>
-                                                    <TableCell className='cell'>{row.qty}</TableCell>
-                                                    <TableCell className='cell'>{getTotal('Iron Pipe', { length: row.length, qty: row.qty })}</TableCell>
+                            :
+                            <>
+
+                                <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
+                                    <h4>
+                                        DimAna Selected: {(dimAnaData.status === null || dimAnaData.status === 'under_qa') ? 'Under QA' : dimAnaData.status === 'not_understandable' ? 'Not Understandable' : dimAnaData.status === 'rejcted_nad' ? 'Rejected NAD' : dimAnaData.status === 'minor' ? 'MINOR [QA Passed]' : dimAnaData.status === 'major' ? 'MAJOR [QA Passed]' : dimAnaData.status === 'passed' ? '100% [QA Passed]' : dimAnaData.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}
+                                    </h4>
+                                </div>
+
+                                <Stack>
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={6}>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Iron Pipe</Typography>
+                                                        </Stack>
+                                                    </TableCell>
                                                 </TableRow>
-                                            );
-                                        })}
-
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Stack>
-
-                        <Stack>
-                            <TableContainer component={Paper} variant="outlined">
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell className="table-head" colSpan={8}>
-                                                <Stack direction='row' justifyContent='center'>
-                                                    <Typography fontWeight='bold'>Wooden Sheet</Typography>
-                                                </Stack>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow className="cell-head">
-                                            <TableCell>Type</TableCell>
-                                            <TableCell>L&nbsp;&nbsp;</TableCell>
-                                            <TableCell>W&nbsp;&nbsp;</TableCell>
-                                            <TableCell>Qty</TableCell>
-                                            <TableCell>Total S.ft</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {dimAnaData.data.woodenSheetRows.map((row, index) => {
-                                            return (
-                                                // <WoodenSheetTableRow
-                                                //     key={index}
-                                                //     _key={index}
-                                                //     data={row}
-                                                //     handleEdit={handleEdit}
-                                                //     unitSelector={filters.unitSelector}
-                                                //     editable={dataLoaded}
-                                                //     hideDetails={true}
-                                                // />
-                                                <TableRow
-                                                    style={{ backgroundColor: highlightedRows.woodenSheetRows.includes(index) && 'red' }}
-                                                >
-                                                    <TableCell className='cell'>{row.type}</TableCell>
-                                                    <TableCell className='cell'>{getValue(row.length)}</TableCell>
-                                                    <TableCell className='cell'>{getValue(row.width)}</TableCell>
-                                                    <TableCell className='cell'>{row.qty}</TableCell>
-                                                    <TableCell className='cell'>{getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty })}</TableCell>
+                                                <TableRow className="cell-head">
+                                                    <TableCell>Pipe Type & Size</TableCell>
+                                                    <TableCell>L&nbsp;&nbsp;</TableCell>
+                                                    <TableCell>Qty</TableCell>
+                                                    <TableCell>Total (ft)</TableCell>
                                                 </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Stack>
-                        <Stack>
-                            {filters.buildMaterial !== "SOLID WOOD" && (
-                                <TableContainer component={Paper} variant="outlined">
-                                    <Table padding={0} size="small">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell className="table-head" colSpan={8}>
-                                                    <Stack direction='row' justifyContent='center'>
-                                                        <Typography fontWeight='bold'>Wood Tape</Typography>
-                                                    </Stack>
-                                                </TableCell>
-                                            </TableRow>
-                                            <TableRow className="cell-head">
-                                                <TableCell>Size</TableCell>
-                                                {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
-                                                {/* <TableCell>Qty</TableCell> */}
-                                                {/* <TableCell>Total</TableCell> */}
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {dimAnaData.data.woodTapeRows.map((row, index) => {
-                                                return (
-                                                    // <WoodTapeTableRow
-                                                    //     key={index}
-                                                    //     _key={index}
-                                                    //     data={row}
-                                                    //     handleEdit={handleEdit}
-                                                    //     unitSelector={filters.unitSelector}
-                                                    //     editable={dataLoaded}
-                                                    // />
-                                                    <TableRow
-                                                        style={{ backgroundColor: highlightedRows.woodTapeRows.includes(index) && 'red' }}
-                                                    >
-                                                        <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                            </TableHead>
+                                            <TableBody>
+                                                {dimAnaData.data.ironPipeRows.map((row, index) => {
+                                                    return (
+                                                        // <IronPipeTableRow
+                                                        //     key={index}
+                                                        //     _key={index}
+                                                        //     data={row}
+                                                        //     handleEdit={handleEdit}
+                                                        //     unitSelector={filters.unitSelector}
+                                                        //     editable={dataLoaded}
+                                                        //     hideDetails={true}
+                                                        // />
+                                                        <TableRow
+                                                            style={{ backgroundColor: highlightedRows.ironPipeRows.includes(index) && highlightedRowsColor }}
+                                                        >
+                                                            <TableCell className='cell'>{row.pipeTypeNSize}</TableCell>
+                                                            <TableCell className='cell'>{getValue(row.length)}</TableCell>
+                                                            <TableCell className='cell'>{row.qty}</TableCell>
+                                                            <TableCell className='cell'>{getTotal('Iron Pipe', { length: row.length, qty: row.qty })}</TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
+
+                                <Stack>
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={8}>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Wooden Sheet</Typography>
+                                                        </Stack>
+                                                    </TableCell>
+                                                </TableRow>
+                                                <TableRow className="cell-head">
+                                                    <TableCell>Type</TableCell>
+                                                    <TableCell>L&nbsp;&nbsp;</TableCell>
+                                                    <TableCell>W&nbsp;&nbsp;</TableCell>
+                                                    <TableCell>Qty</TableCell>
+                                                    <TableCell>Total S.ft</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {dimAnaData.data.woodenSheetRows.map((row, index) => {
+                                                    return (
+                                                        // <WoodenSheetTableRow
+                                                        //     key={index}
+                                                        //     _key={index}
+                                                        //     data={row}
+                                                        //     handleEdit={handleEdit}
+                                                        //     unitSelector={filters.unitSelector}
+                                                        //     editable={dataLoaded}
+                                                        //     hideDetails={true}
+                                                        // />
+                                                        <TableRow
+                                                            style={{ backgroundColor: highlightedRows.woodenSheetRows.includes(index) && highlightedRowsColor }}
+                                                        >
+                                                            <TableCell className='cell'>{row.type}</TableCell>
+                                                            <TableCell className='cell'>{getValue(row.length)}</TableCell>
+                                                            <TableCell className='cell'>{getValue(row.width)}</TableCell>
+                                                            <TableCell className='cell'>{row.qty}</TableCell>
+                                                            <TableCell className='cell'>{getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty })}</TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
+                                <Stack>
+                                    {filters.buildMaterial !== "SOLID WOOD" && (
+                                        <TableContainer component={Paper} variant="outlined">
+                                            <Table padding={0} size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell className="table-head" colSpan={8}>
+                                                            <Stack direction='row' justifyContent='center'>
+                                                                <Typography fontWeight='bold'>Wood Tape</Typography>
+                                                            </Stack>
+                                                        </TableCell>
                                                     </TableRow>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            )}
-                        </Stack>
-
-                        <Stack>
-
-                            <TableContainer component={Paper} variant="outlined">
-                                <Table padding={0} size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell className="table-head" colSpan={8}>
-                                                <Stack direction='row' justifyContent='center'>
-                                                    <Typography fontWeight='bold'>Misc</Typography>
-                                                </Stack>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow className="cell-head">
-                                            <TableCell>Item</TableCell>
-                                            <TableCell>Size</TableCell>
-                                            <TableCell>Qty</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {dimAnaData.data.miscTableRows.map((row, index) => {
-                                            return (
-                                                // <MiscTableRow
-                                                //     key={index}
-                                                //     _key={index}
-                                                //     data={row}
-                                                //     handleEdit={handleEdit}
-                                                //     editable={dataLoaded}
-                                                // />
-                                                <TableRow
-                                                    style={{ backgroundColor: highlightedRows.miscTableRows.includes(index) && 'red' }}
-                                                >
-                                                    <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item}</TableCell>
-                                                    <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
-                                                    <TableCell className='cell'>{row.qty}</TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Stack>
-
-                        <Stack direction="column">
-                            <Typography>Build Material</Typography>
-                            <Select
-                                size="small"
-                                value={dimAnaData.buildMaterial}
-                                name="buildMaterial"
-                                disabled={true}
-                            >
-                                <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
-                                <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
-                            </Select>
-                        </Stack>
-
-                    </Stack>}
-                    {!qaDimAnaData.isLoading && <Stack width={'50%'} bgcolor={'beige'} direction='column' gap={3}>
-
-                        <Stack>
-                            <TableContainer component={Paper} variant="outlined">
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell className="table-head" colSpan={6}>
-                                                <Stack direction='row' justifyContent='center'>
-                                                    <Typography fontWeight='bold'>Iron Pipe</Typography>
-                                                </Stack>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow className="cell-head">
-                                            <TableCell>Pipe Type & Size</TableCell>
-                                            <TableCell>L&nbsp;&nbsp;</TableCell>
-                                            <TableCell>Qty</TableCell>
-                                            <TableCell>Total (ft)</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {qaDimAnaData.data.ironPipeRows.map((row, index) => {
-                                            return (
-                                                // <IronPipeTableRow
-                                                //     key={index}
-                                                //     _key={index}
-                                                //     data={row}
-                                                //     handleEdit={handleEdit}
-                                                //     unitSelector={filters.unitSelector}
-                                                //     editable={dataLoaded}
-                                                //     hideDetails={true}
-                                                // />
-                                                <TableRow
-                                                    style={{ backgroundColor: highlightedRows.ironPipeRows.includes(index) && 'red' }}
-                                                >
-                                                    <TableCell className='cell'>{row.pipeTypeNSize}</TableCell>
-                                                    <TableCell className='cell'>{getValue(row.length)}</TableCell>
-                                                    <TableCell className='cell'>{row.qty}</TableCell>
-                                                    <TableCell className='cell'>{getTotal('Iron Pipe', { length: row.length, qty: row.qty })}</TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Stack>
-
-                        <Stack>
-                            <TableContainer component={Paper} variant="outlined">
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell className="table-head" colSpan={8}>
-                                                <Stack direction='row' justifyContent='center'>
-                                                    <Typography fontWeight='bold'>Wooden Sheet</Typography>
-                                                </Stack>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow className="cell-head">
-                                            <TableCell>Type</TableCell>
-                                            <TableCell>L&nbsp;&nbsp;</TableCell>
-                                            <TableCell>W&nbsp;&nbsp;</TableCell>
-                                            <TableCell>Qty</TableCell>
-                                            <TableCell>Total S.ft</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {qaDimAnaData.data.woodenSheetRows.map((row, index) => {
-                                            return (
-                                                // <WoodenSheetTableRow
-                                                //     key={index}
-                                                //     _key={index}
-                                                //     data={row}
-                                                //     handleEdit={handleEdit}
-                                                //     unitSelector={filters.unitSelector}
-                                                //     editable={dataLoaded}
-                                                //     hideDetails={true}
-                                                // />
-                                                <TableRow
-                                                    style={{ backgroundColor: highlightedRows.woodenSheetRows.includes(index) && 'red' }}
-                                                >
-                                                    <TableCell className='cell'>{row.type}</TableCell>
-                                                    <TableCell className='cell'>{getValue(row.length)}</TableCell>
-                                                    <TableCell className='cell'>{getValue(row.width)}</TableCell>
-                                                    <TableCell className='cell'>{row.qty}</TableCell>
-                                                    <TableCell className='cell'>{getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty })}</TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Stack>
-                        <Stack>
-                            {filters.buildMaterial !== "SOLID WOOD" && (
-                                <TableContainer component={Paper} variant="outlined">
-                                    <Table padding={0} size="small">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell className="table-head" colSpan={8}>
-                                                    <Stack direction='row' justifyContent='center'>
-                                                        <Typography fontWeight='bold'>Wood Tape</Typography>
-                                                    </Stack>
-                                                </TableCell>
-                                            </TableRow>
-                                            <TableRow className="cell-head">
-                                                <TableCell>Size</TableCell>
-                                                {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
-                                                {/* <TableCell>Qty</TableCell> */}
-                                                {/* <TableCell>Total</TableCell> */}
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {qaDimAnaData.data.woodTapeRows.map((row, index) => {
-                                                return (
-                                                    // <WoodTapeTableRow
-                                                    //     key={index}
-                                                    //     _key={index}
-                                                    //     data={row}
-                                                    //     handleEdit={handleEdit}
-                                                    //     unitSelector={filters.unitSelector}
-                                                    //     editable={dataLoaded}
-                                                    // />
-                                                    <TableRow
-                                                        style={{ backgroundColor: highlightedRows.woodTapeRows.includes(index) && 'red' }}
-                                                    >
-                                                        <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                                    <TableRow className="cell-head">
+                                                        <TableCell>Size</TableCell>
+                                                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
+                                                        {/* <TableCell>Qty</TableCell> */}
+                                                        {/* <TableCell>Total</TableCell> */}
                                                     </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {dimAnaData.data.woodTapeRows.map((row, index) => {
+                                                        return (
+                                                            // <WoodTapeTableRow
+                                                            //     key={index}
+                                                            //     _key={index}
+                                                            //     data={row}
+                                                            //     handleEdit={handleEdit}
+                                                            //     unitSelector={filters.unitSelector}
+                                                            //     editable={dataLoaded}
+                                                            // />
+                                                            <TableRow
+                                                                style={{ backgroundColor: highlightedRows.woodTapeRows.includes(index) && highlightedRowsColor }}
+                                                            >
+                                                                <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    )}
+                                </Stack>
 
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            )}
-                        </Stack>
+                                <Stack>
 
-                        <Stack>
-
-                            <TableContainer component={Paper} variant="outlined">
-                                <Table padding={0} size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell className="table-head" colSpan={8}>
-                                                <Stack direction='row' justifyContent='center'>
-                                                    <Typography fontWeight='bold'>Misc</Typography>
-                                                </Stack>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow className="cell-head">
-                                            <TableCell>Item</TableCell>
-                                            <TableCell>Size</TableCell>
-                                            <TableCell>Qty</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {qaDimAnaData.data.miscTableRows.map((row, index) => {
-                                            return (
-                                                // <MiscTableRow
-                                                //     key={index}
-                                                //     _key={index}
-                                                //     data={row}
-                                                //     handleEdit={handleEdit}
-                                                //     editable={dataLoaded}
-                                                // />
-                                                <TableRow
-                                                    style={{ backgroundColor: highlightedRows.miscTableRows.includes(index) && 'red' }}
-                                                >
-                                                    <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item}</TableCell>
-                                                    <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
-                                                    <TableCell className='cell'>{row.qty}</TableCell>
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table padding={0} size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={8}>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Misc</Typography>
+                                                        </Stack>
+                                                    </TableCell>
                                                 </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Stack>
+                                                <TableRow className="cell-head">
+                                                    <TableCell>Item</TableCell>
+                                                    <TableCell>Size</TableCell>
+                                                    <TableCell>Qty</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {dimAnaData.data.miscTableRows.map((row, index) => {
+                                                    return (
+                                                        // <MiscTableRow
+                                                        //     key={index}
+                                                        //     _key={index}
+                                                        //     data={row}
+                                                        //     handleEdit={handleEdit}
+                                                        //     editable={dataLoaded}
+                                                        // />
+                                                        <TableRow
+                                                            style={{ backgroundColor: highlightedRows.miscTableRows.includes(index) && highlightedRowsColor }}
+                                                        >
+                                                            <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item}</TableCell>
+                                                            <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                                            <TableCell className='cell'>{row.qty}</TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
 
-                        <Stack direction="column">
-                            <Typography>Build Material</Typography>
-                            <Select
-                                size="small"
-                                value={qaDimAnaData.buildMaterial}
-                                name="buildMaterial"
-                                disabled={true}
-                            >
-                                <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
-                                <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
-                            </Select>
-                        </Stack>
+                                <Stack direction="column">
+                                    <Typography>Build Material</Typography>
+                                    <Select
+                                        size="small"
+                                        value={dimAnaData.buildMaterial}
+                                        name="buildMaterial"
+                                        disabled={true}
+                                    >
+                                        <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
+                                        <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
+                                    </Select>
+                                </Stack>
+                            </>}
+
+                    </Stack>
+                    <Stack width={'50%'} bgcolor={'beige'} direction='column' gap={3}>
+
+                        {qaDimAnaData.isLoading ?
+
+                            <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div></div>
+                            :
+                            <>
+                                <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
+                                    <h4>
+                                        QA-DimAna Selected: {(qaDimAnaData.status === null || qaDimAnaData.status === 'under_qa') ? 'Under QA' : qaDimAnaData.status === 'not_understandable' ? 'Not Understandable' : qaDimAnaData.status === 'rejcted_nad' ? 'Rejected NAD' : qaDimAnaData.status === 'minor' ? 'MINOR [QA Passed]' : qaDimAnaData.status === 'major' ? 'MAJOR [QA Passed]' : qaDimAnaData.status === 'passed' ? '100% [QA Passed]' : qaDimAnaData.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}
+                                    </h4>
+                                </div>
+
+                                <Stack>
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={6}>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Iron Pipe</Typography>
+                                                        </Stack>
+                                                    </TableCell>
+                                                </TableRow>
+                                                <TableRow className="cell-head">
+                                                    <TableCell>Pipe Type & Size</TableCell>
+                                                    <TableCell>L&nbsp;&nbsp;</TableCell>
+                                                    <TableCell>Qty</TableCell>
+                                                    <TableCell>Total (ft)</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {qaDimAnaData.data.ironPipeRows.map((row, index) => {
+                                                    return (
+                                                        // <IronPipeTableRow
+                                                        //     key={index}
+                                                        //     _key={index}
+                                                        //     data={row}
+                                                        //     handleEdit={handleEdit}
+                                                        //     unitSelector={filters.unitSelector}
+                                                        //     editable={dataLoaded}
+                                                        //     hideDetails={true}
+                                                        // />
+                                                        <TableRow
+                                                            style={{ backgroundColor: highlightedRows.ironPipeRows.includes(index) && highlightedRowsColor }}
+                                                        >
+                                                            <TableCell className='cell'>{row.pipeTypeNSize}</TableCell>
+                                                            <TableCell className='cell'>{getValue(row.length)}</TableCell>
+                                                            <TableCell className='cell'>{row.qty}</TableCell>
+                                                            <TableCell className='cell'>{getTotal('Iron Pipe', { length: row.length, qty: row.qty })}</TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
+
+                                <Stack>
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={8}>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Wooden Sheet</Typography>
+                                                        </Stack>
+                                                    </TableCell>
+                                                </TableRow>
+                                                <TableRow className="cell-head">
+                                                    <TableCell>Type</TableCell>
+                                                    <TableCell>L&nbsp;&nbsp;</TableCell>
+                                                    <TableCell>W&nbsp;&nbsp;</TableCell>
+                                                    <TableCell>Qty</TableCell>
+                                                    <TableCell>Total S.ft</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {qaDimAnaData.data.woodenSheetRows.map((row, index) => {
+                                                    return (
+                                                        // <WoodenSheetTableRow
+                                                        //     key={index}
+                                                        //     _key={index}
+                                                        //     data={row}
+                                                        //     handleEdit={handleEdit}
+                                                        //     unitSelector={filters.unitSelector}
+                                                        //     editable={dataLoaded}
+                                                        //     hideDetails={true}
+                                                        // />
+                                                        <TableRow
+                                                            style={{ backgroundColor: highlightedRows.woodenSheetRows.includes(index) && highlightedRowsColor }}
+                                                        >
+                                                            <TableCell className='cell'>{row.type}</TableCell>
+                                                            <TableCell className='cell'>{getValue(row.length)}</TableCell>
+                                                            <TableCell className='cell'>{getValue(row.width)}</TableCell>
+                                                            <TableCell className='cell'>{row.qty}</TableCell>
+                                                            <TableCell className='cell'>{getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty })}</TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
+                                <Stack>
+                                    {filters.buildMaterial !== "SOLID WOOD" && (
+                                        <TableContainer component={Paper} variant="outlined">
+                                            <Table padding={0} size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell className="table-head" colSpan={8}>
+                                                            <Stack direction='row' justifyContent='center'>
+                                                                <Typography fontWeight='bold'>Wood Tape</Typography>
+                                                            </Stack>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    <TableRow className="cell-head">
+                                                        <TableCell>Size</TableCell>
+                                                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
+                                                        {/* <TableCell>Qty</TableCell> */}
+                                                        {/* <TableCell>Total</TableCell> */}
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {qaDimAnaData.data.woodTapeRows.map((row, index) => {
+                                                        return (
+                                                            // <WoodTapeTableRow
+                                                            //     key={index}
+                                                            //     _key={index}
+                                                            //     data={row}
+                                                            //     handleEdit={handleEdit}
+                                                            //     unitSelector={filters.unitSelector}
+                                                            //     editable={dataLoaded}
+                                                            // />
+                                                            <TableRow
+                                                                style={{ backgroundColor: highlightedRows.woodTapeRows.includes(index) && highlightedRowsColor }}
+                                                            >
+                                                                <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                                            </TableRow>
+
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    )}
+                                </Stack>
+
+                                <Stack>
+
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table padding={0} size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={8}>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Misc</Typography>
+                                                        </Stack>
+                                                    </TableCell>
+                                                </TableRow>
+                                                <TableRow className="cell-head">
+                                                    <TableCell>Item</TableCell>
+                                                    <TableCell>Size</TableCell>
+                                                    <TableCell>Qty</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {qaDimAnaData.data.miscTableRows.map((row, index) => {
+                                                    return (
+                                                        // <MiscTableRow
+                                                        //     key={index}
+                                                        //     _key={index}
+                                                        //     data={row}
+                                                        //     handleEdit={handleEdit}
+                                                        //     editable={dataLoaded}
+                                                        // />
+                                                        <TableRow
+                                                            style={{ backgroundColor: highlightedRows.miscTableRows.includes(index) && highlightedRowsColor }}
+                                                        >
+                                                            <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item}</TableCell>
+                                                            <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                                            <TableCell className='cell'>{row.qty}</TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
+
+                                <Stack direction="column">
+                                    <Typography>Build Material</Typography>
+                                    <Select
+                                        size="small"
+                                        value={qaDimAnaData.buildMaterial}
+                                        name="buildMaterial"
+                                        disabled={true}
+                                    >
+                                        <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
+                                        <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
+                                    </Select>
+                                </Stack>
+                            </>
+                        }
 
 
-                    </Stack>}
+                    </Stack>
 
                 </Stack>
             </Stack>

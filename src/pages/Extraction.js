@@ -578,18 +578,6 @@ const Extraction = (props) => {
                   Product ID: <strong>{showId}</strong>
                 </h6>
               </div>
-              <div>
-                {visibilityNotDoable === true ? (
-                  <button
-                    className="set-btn-red d-block w-100"
-                    onClick={executeNoDoAbleScript}
-                  >
-                    NOT A DOABLE
-                  </button>
-                ) : (
-                  ""
-                )}
-              </div>
               <div className="d-flex flex-row align-items-center gap-1 flex-fill">
                 <div className="d-flex flex-fill">
                   <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
@@ -618,14 +606,39 @@ const Extraction = (props) => {
 
         {/* radio selector  */}
         <div className="mt-5 set-fixed-bar">
+
+          <div className="mb-5 px-2">
+            {visibilityNotDoable === true ? (
+              <button
+                className="set-btn-red d-block w-100"
+                onClick={executeNoDoAbleScript}
+              >
+                NOT A DOABLE
+              </button>
+            ) : (
+              ""
+            )}
+          </div>
+
           <div className="inside-div">
             <button
               onClick={() => handleButtonClick("Thumbnail")}
               className={`fw-bold select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
                 }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
               disabled={isThumbnailButtonDisabled}
+              style={{ lineHeight: '1' }}
             >
               Colored Thumbnail
+            </button>
+
+            <button
+              onClick={() => handleButtonClick("WhiteBg")}
+              className={`fw-bold select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
+                }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
+              disabled={isWhiteBgButtonDisabled}
+              style={{ lineHeight: '1' }}
+            >
+              White Thumbnail
             </button>
 
             <button
@@ -637,17 +650,10 @@ const Extraction = (props) => {
             >
               Dimensional
             </button>
-            <button
-              onClick={() => handleButtonClick("WhiteBg")}
-              className={`fw-bold select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
-                }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
-              disabled={isWhiteBgButtonDisabled}
-            >
-              White Thumbnail
-            </button>
+
             <button
               onClick={() => handleButtonClick("Ordinary")}
-              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Ordinary" ? "active-button" : ""
+              className={`fw-bold select-btn btn ${selectedButton === "Ordinary" ? "active-button" : ""
                 }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
               disabled={isOrdinaryButtonDisabled}
             >
@@ -656,7 +662,7 @@ const Extraction = (props) => {
 
             <button
               onClick={() => handleButtonClick("Discard")}
-              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Discard" ? "active-button" : ""
+              className={`fw-bold select-btn btn ${selectedButton === "Discard" ? "active-button" : ""
                 }${isDiscardButtonDisabled ? " button-disable" : ""}`}
               disabled={isDiscardButtonDisabled}
             >
@@ -672,7 +678,7 @@ const Extraction = (props) => {
 
           </div>
 
-          <div className="w-100 mt-5">
+          <div className="w-100 mt-5 px-2">
             {mergeSelectedDefaultThumbnail.length > 0 ||
               mergeSelectedDefaultDimension.length > 0 ||
               selectedWhiteBg.length > 0 ||
@@ -680,9 +686,11 @@ const Extraction = (props) => {
               selectedDiscard.length > 0 ? (
               <button
                 onClick={jsonData}
-                className={`w-100 btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}
+                className={`w-100 btn btn-success`}
+                style={{ backgroundColor: '#105736' }}
+              // className={`w-100 btn btn-success ${areAllImagesSorted() ? "disabled" : ""}`}
 
-                disabled={!areAllImagesSorted()}
+              // disabled={!areAllImagesSorted()}
               >
                 COMPLETED
               </button>
@@ -852,6 +860,80 @@ const Extraction = (props) => {
             </div>
           </div>
         </div>
+        {/* white bg section  */}
+        <div className="container-fluid py-1 white-bg">
+          <div style={{ marginRight: "152px" }}>
+            <div className="main-div">
+              <div className="row">
+                <div className="col-lg-12">
+                  <h3 className="m-0 p-0">White Thumbnails</h3>
+                </div>
+                <div>
+                  <div className="all-btns">
+                    {selectedWhiteBg.length > 0 && selectedImage && (
+                      <div className="d-flex">
+                        <div>
+                          <h4 className="set-f4">My Selection</h4>
+                        </div>
+                        <div className="mb btn-click all-btn ms-3">
+                          {isWhiteBgEditMode ? (
+                            <>
+                              <button
+                                onClick={saveImages}
+                                className="btn me-3 save"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => editImages("WhiteBg")}
+                                className="btn edit"
+                              >
+                                Edit
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => editImages("WhiteBg")}
+                              className="btn edit"
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="row">
+                      {selectedWhiteBg.map((item) => (
+                        <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
+                          <div
+                            className={`card ${isWhiteBgEditMode ? "edit-mode" : ""
+                              }`}
+                            onClick={() => selectMyItem(item)}
+                          >
+                            {isWhiteBgEditMode && (
+                              <div
+                                className="cross"
+                                onClick={() => resetWhiteBg(item)}
+                              >
+                                <CancelIcon />
+                              </div>
+                            )}
+                            <img
+                              className="card-img-top img-fluid"
+                              src={item.src}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* dimentional images section  */}
         <div className="container-fluid py-1 dimensnal-bg">
           <div style={{ marginRight: "152px" }}>
@@ -980,80 +1062,6 @@ const Extraction = (props) => {
                           </div>
                         ))
                         : ""}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* white bg section  */}
-        <div className="container-fluid py-1 white-bg">
-          <div style={{ marginRight: "152px" }}>
-            <div className="main-div">
-              <div className="row">
-                <div className="col-lg-12">
-                  <h3 className="m-0 p-0">White Thumbnails</h3>
-                </div>
-                <div>
-                  <div className="all-btns">
-                    {selectedWhiteBg.length > 0 && selectedImage && (
-                      <div className="d-flex">
-                        <div>
-                          <h4 className="set-f4">My Selection</h4>
-                        </div>
-                        <div className="mb btn-click all-btn ms-3">
-                          {isWhiteBgEditMode ? (
-                            <>
-                              <button
-                                onClick={saveImages}
-                                className="btn me-3 save"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={() => editImages("WhiteBg")}
-                                className="btn edit"
-                              >
-                                Edit
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => editImages("WhiteBg")}
-                              className="btn edit"
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="row">
-                      {selectedWhiteBg.map((item) => (
-                        <div className="mb-2" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
-                          <div
-                            className={`card ${isWhiteBgEditMode ? "edit-mode" : ""
-                              }`}
-                            onClick={() => selectMyItem(item)}
-                          >
-                            {isWhiteBgEditMode && (
-                              <div
-                                className="cross"
-                                onClick={() => resetWhiteBg(item)}
-                              >
-                                <CancelIcon />
-                              </div>
-                            )}
-                            <img
-                              className="card-img-top img-fluid"
-                              src={item.src}
-                            />
-                          </div>
-                        </div>
-                      ))}
                     </div>
                   </div>
                 </div>

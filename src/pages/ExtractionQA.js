@@ -880,6 +880,19 @@ const ExtractionQA = (props) => {
 
         {/* radio selector  */}
         <div className="mt-5 set-fixed-bar">
+
+          <div className="mb-5 px-2">
+            {visibilityNotDoable ?
+              <button className="w-100 set-btn-red" onClick={executeNoDoAbleScript}>
+                NOT A DOABLE
+              </button>
+              :
+              <button className="w-100 btn btn-danger">
+                NOT A DOABLE
+              </button>
+            }
+          </div>
+
           <div className="inside-div">
             {/* <div>
             <h2>JSON Result:</h2>
@@ -890,8 +903,19 @@ const ExtractionQA = (props) => {
               className={`fw-bold select-btn btn ${selectedButton === "Thumbnail" ? "active-button" : ""
                 }${isThumbnailButtonDisabled ? " button-disable" : ""}`}
               disabled={isThumbnailButtonDisabled}
+              style={{ lineHeight: '1' }}
             >
               Colored Thumbnail
+            </button>
+
+            <button
+              onClick={() => handleButtonClick("WhiteBg")}
+              className={`fw-bold select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
+                }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
+              disabled={isWhiteBgButtonDisabled}
+              style={{ lineHeight: '1' }}
+            >
+              White Thumbnails
             </button>
 
             <button
@@ -902,17 +926,10 @@ const ExtractionQA = (props) => {
             >
               Dimensional
             </button>
-            <button
-              onClick={() => handleButtonClick("WhiteBg")}
-              className={`fw-bold select-btn btn ${selectedButton === "WhiteBg" ? "active-button" : ""
-                }${isWhiteBgButtonDisabled ? " button-disable" : ""}`}
-              disabled={isWhiteBgButtonDisabled}
-            >
-              White Thumbnails
-            </button>
+
             <button
               onClick={() => handleButtonClick("Ordinary")}
-              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Ordinary" ? "active-button" : ""
+              className={`fw-bold select-btn btn ${selectedButton === "Ordinary" ? "active-button" : ""
                 }${isOrdinaryButtonDisabled ? " button-disable" : ""}`}
               disabled={isOrdinaryButtonDisabled}
             >
@@ -921,7 +938,7 @@ const ExtractionQA = (props) => {
 
             <button
               onClick={() => handleButtonClick("Discard")}
-              className={`fw-bold select-btn btn btn-equ ${selectedButton === "Discard" ? "active-button" : ""
+              className={`fw-bold select-btn btn ${selectedButton === "Discard" ? "active-button" : ""
                 }${isDiscardButtonDisabled ? " button-disable" : ""}`}
               disabled={isDiscardButtonDisabled}
             >
@@ -937,39 +954,33 @@ const ExtractionQA = (props) => {
           </div>
 
           <div className="d-flex flex-column justify-content-center align-items-center mt-4 mb-5">
-            <div className="set-select-all me-3">
+            <div className="set-select-all me-1">
               <select value={selectedOption} className="bg-primary-subtle p-1" onChange={handleSelectChange}>
                 {(!notDoable || notDoable === false) && <option value="passed">100% [QA passed]</option>}
                 {(!notDoable || notDoable === false) && <option value="minor">Minor Fixes</option>}
                 <option value="major">Major Fixes</option>
               </select>
             </div>
-            {visibilityNotDoable ?
-              <button className="w-100 btn-danger disabled" onClick={executeNoDoAbleScript}>
-                NOT A DOABLE
-              </button>
-              :
-              <button className="w-100 btn-danger">
-                NOT A DOABLE
-              </button>
-            }
-            {mergeSelectedDefaultThumbnail.length > 0 ||
-              mergeSelectedDefaultDimension.length > 0 ||
-              selectedWhiteBg.length > 0 ||
-              selectedOrdinary.length > 0 ||
-              selectedDiscard.length > 0 ? (
-              <button
-                onClick={jsonData}
-                className={`w-100 btn-danger ${areAllImagesSorted() ? "disabled" : ""}`}
-                disabled={!areAllImagesSorted()}
-              >
-                COMPLETED
-              </button>
-            ) : (
-              <button className={`w-100 btn-danger disabled}`} disabled>
-                COMPLETED
-              </button>
-            )}
+
+            <div className="w-100 px-2">
+              {mergeSelectedDefaultThumbnail.length > 0 ||
+                mergeSelectedDefaultDimension.length > 0 ||
+                selectedWhiteBg.length > 0 ||
+                selectedOrdinary.length > 0 ||
+                selectedDiscard.length > 0 ? (
+                <button
+                  onClick={jsonData}
+                  className={`w-100 btn btn-success`}
+                  style={{ backgroundColor: '#105736' }}
+                >
+                  COMPLETED
+                </button>
+              ) : (
+                <button className={`btn-danger disabled`} disabled>
+                  COMPLETED
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1134,145 +1145,6 @@ const ExtractionQA = (props) => {
           </div>
         </div>
 
-        {/* updated code of dimensional images */}
-
-        <div className="container-fluid py-3 dimensnal-bg">
-          <div style={{ marginRight: "152px" }}>
-            <div>
-              <h2 className="mb-3">Dimensional Images</h2>
-            </div>
-            <div className="main-div d-flex align-items-start flex-wrap">
-              <div>
-                <div className="all-btns">
-                  {selectedDimentional.length > 0 && selectedImage && (
-                    <div className="d-flex">
-                      <div>
-                        <h4 className="set-f4">My Update</h4>
-                      </div>
-                      <div className="mb btn-click all-btn ms-3">
-                        {isDimensionalEditMode ? (
-                          <>
-                            <button
-                              onClick={saveImages}
-                              className="btn me-3 save"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => editImages("Dimensional")}
-                              className="btn edit"
-                            >
-                              Edit
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => editImages("Dimensional")}
-                            className="btn edit"
-                          >
-                            Edit
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="d-flex">
-                  {selectedDimentional.map((item) => (
-                    <div className="mb-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
-                      <div
-                        className={`card ${isDimensionalEditMode ? "edit-mode" : ""
-                          }`}
-                        onClick={() => selectMyItem(item)}
-                      >
-                        {isDimensionalEditMode && (
-                          <div
-                            className="cross"
-                            onClick={() => resetDimensionalImage(item)}
-                          >
-                            <CancelIcon />
-                          </div>
-                        )}
-                        <img
-                          className="card-img-top img-fluid"
-                          src={item.src}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="d-flex">
-                  <div>
-                    <h4 className="set-f4">Default</h4>
-                  </div>
-                  <div className="ms-3">
-                    {!isDefaultDimensionEditMode ? (
-                      <button
-                        onClick={() => handleDefaultDimensionEdit(true)}
-                        className="btn btn-block edit btn-width-auto"
-                      >
-                        Edit
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          onClick={saveImages}
-                          className="btn btn-block me-3 save btn-width-auto"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => handleDefaultDimensionEdit(false)}
-                          className="btn btn-block edit btn-width-auto"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* ! DIMESNIONAL DEFAULT IMAGES METHOD START   */}
-
-                <div className="d-flex">
-                  {defaultDimension
-                    ? defaultDimension.map((item) => (
-                      <div className="mb-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
-                        <div
-                          className={`card ${isDefaultDimensionEditMode ? "edit-mode" : ""
-                            }`}
-                          onClick={() => selectMyItem(item)}
-                        >
-                          {isDefaultDimensionEditMode && (
-                            <div
-                              className="cross"
-                              onClick={() => resetDefaultDimension(item)}
-                            >
-                              <CancelIcon />
-                            </div>
-                          )}
-                          <img
-                            className="card-img-top img-fluid"
-                            src={item.src}
-                          />
-                        </div>
-                      </div>
-                    ))
-                    : ""}
-                </div>
-
-                {/* ! DIMESNIONAL DEFAULT IMAGES METHOD END  */}
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-
         {/* WHITE BG UPDATED CODE  */}
         <div className="container-fluid py-3 white-bg">
           <div style={{ marginRight: "152px" }}>
@@ -1415,6 +1287,146 @@ const ExtractionQA = (props) => {
             </div>
           </div>
         </div>
+
+        {/* updated code of dimensional images */}
+
+        <div className="container-fluid py-3 dimensnal-bg">
+          <div style={{ marginRight: "152px" }}>
+            <div>
+              <h2 className="mb-3">Dimensional Images</h2>
+            </div>
+            <div className="main-div d-flex align-items-start flex-wrap">
+              <div>
+                <div className="all-btns">
+                  {selectedDimentional.length > 0 && selectedImage && (
+                    <div className="d-flex">
+                      <div>
+                        <h4 className="set-f4">My Update</h4>
+                      </div>
+                      <div className="mb btn-click all-btn ms-3">
+                        {isDimensionalEditMode ? (
+                          <>
+                            <button
+                              onClick={saveImages}
+                              className="btn me-3 save"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => editImages("Dimensional")}
+                              className="btn edit"
+                            >
+                              Edit
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => editImages("Dimensional")}
+                            className="btn edit"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="d-flex">
+                  {selectedDimentional.map((item) => (
+                    <div className="mb-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
+                      <div
+                        className={`card ${isDimensionalEditMode ? "edit-mode" : ""
+                          }`}
+                        onClick={() => selectMyItem(item)}
+                      >
+                        {isDimensionalEditMode && (
+                          <div
+                            className="cross"
+                            onClick={() => resetDimensionalImage(item)}
+                          >
+                            <CancelIcon />
+                          </div>
+                        )}
+                        <img
+                          className="card-img-top img-fluid"
+                          src={item.src}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="d-flex">
+                  <div>
+                    <h4 className="set-f4">Default</h4>
+                  </div>
+                  <div className="ms-3">
+                    {!isDefaultDimensionEditMode ? (
+                      <button
+                        onClick={() => handleDefaultDimensionEdit(true)}
+                        className="btn btn-block edit btn-width-auto"
+                      >
+                        Edit
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={saveImages}
+                          className="btn btn-block me-3 save btn-width-auto"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => handleDefaultDimensionEdit(false)}
+                          className="btn btn-block edit btn-width-auto"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* ! DIMESNIONAL DEFAULT IMAGES METHOD START   */}
+
+                <div className="d-flex">
+                  {defaultDimension
+                    ? defaultDimension.map((item) => (
+                      <div className="mb-4" key={item.id} style={{ width: '180px', marginLeft: '20px' }}>
+                        <div
+                          className={`card ${isDefaultDimensionEditMode ? "edit-mode" : ""
+                            }`}
+                          onClick={() => selectMyItem(item)}
+                        >
+                          {isDefaultDimensionEditMode && (
+                            <div
+                              className="cross"
+                              onClick={() => resetDefaultDimension(item)}
+                            >
+                              <CancelIcon />
+                            </div>
+                          )}
+                          <img
+                            className="card-img-top img-fluid"
+                            src={item.src}
+                          />
+                        </div>
+                      </div>
+                    ))
+                    : ""}
+                </div>
+
+                {/* ! DIMESNIONAL DEFAULT IMAGES METHOD END  */}
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
 
         {/* ordinary images section  */}
         <div className="container-fluid py-3 ordinary-b ">

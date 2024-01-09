@@ -978,7 +978,7 @@ function DimensionalQAAnalyst(props) {
                   <MenuItem value="major">MAJOR Fixes</MenuItem>
                   {productNotUnderstandable === false && <MenuItem value="passed">100% [QA Passed]</MenuItem>}
                 </Select>
-                <Button variant='contained' color="success" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded} onClick={executePythonScriptSubmit}>
+                <Button variant='contained' color="success" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded || (filters.buildMaterial === 'IRON PIPE / MDF' && productProperties.woodTapeRows[0].size === 'Select an Option')} onClick={executePythonScriptSubmit}>
                   submit
                 </Button>
               </Stack>

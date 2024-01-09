@@ -1088,7 +1088,7 @@ function DimensionsAnalyst(props) {
               <Stack direction="column">
                 <Button variant="contained"
                   onClick={executePythonScriptSubmit}
-                  disabled={!dataLoaded}
+                  disabled={!dataLoaded || (filters.buildMaterial === 'IRON PIPE / MDF' && productProperties.woodTapeRows[0].size === 'Select an Option')}
                   color="success"
                 >
                   <Stack direction='row' gap={2} alignItems='center'>
