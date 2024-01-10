@@ -292,6 +292,10 @@ function SuperAdmin(props) {
     }
 
     const resetProduct = (sku) => {
+        setTableData(pre => ({
+            ...pre,
+            isLoading: true
+        }))
         fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/reset/${sku}`).then((res) => res.json()).then((result) => {
 
             console.log('result', result);
@@ -299,6 +303,19 @@ function SuperAdmin(props) {
             fetchSuperAdminData(0)
 
         }).catch((e) => console.log('error occured', e))
+    }
+
+    const disableResetButton = (item) => {
+        if (
+            (item['Extractor'] && item['Extractor'].name && !item['Extractor'].updatedAt) ||
+            (item['QA-Extractor'] && item['QA-Extractor'].name && !item['QA-Extractor'].updatedAt) ||
+            (item['DimAna'] && item['DimAna'].name && !item['DimAna'].updatedAt) ||
+            (item['QA-DimAna'] && item['QA-DimAna'].name && !item['QA-DimAna'].updatedAt)
+        ) {
+            return true
+        } else {
+            return false
+        }
     }
 
     return (
@@ -595,7 +612,11 @@ function SuperAdmin(props) {
                                                             onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID)}
                                                         >compare</button>
                                                         }
-                                                        <button className="btn btn-warning" onClick={() => resetProduct(item.ProductID)}>Reset</button>
+                                                        <button
+                                                            className="btn btn-warning"
+                                                            onClick={() => resetProduct(item.ProductID)}
+                                                            disabled={disableResetButton(item)}
+                                                        >Reset</button>
                                                     </div>
                                                 </td>
                                             </tr>
