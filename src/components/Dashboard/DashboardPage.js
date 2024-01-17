@@ -2,21 +2,13 @@ import React from "react";
 import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
 import { useNavigate } from "react-router";
-import { useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../firebase";
-import ExtractorTable from "../tables/ExtractorTable";
-import ExtractorQATable from "../tables/ExtractorQATable";
-import AdminTable from "../tables/AdminTable";
-import ManagerTable from "../tables/ManagerTable";
-import DimensionAnalystTable from "../tables/DimensionAnalystTable";
-import DimensionQATable from "../tables/DimensionQATable";
 import ManagerExtractorTable from "../tables/ManagerExtractorTable";
 import ManagerQAExtractorTable from "../tables/ManagerQAExtractorTable";
 import ManagerDimensionsTable from "../tables/ManagerDimensionsTable";
 import ManagerQADimensionsTable from "../tables/ManagerQADimensionsTable";
 import SuperAdmin from "../../pages/SuperAdmin";
 import SuperAdminSidebar from "../sidebar/SuperAdminSidebar";
+import UserDashboard from "../tables/UserDashboard";
 
 const DashboardPage = (props) => {
   const navigate = useNavigate();
@@ -61,15 +53,7 @@ const DashboardPage = (props) => {
           </div>
         </div>
         {/* TABLES */}
-        {props.userRole === "worker" && props.userJdesc === "Extractor" && (<ExtractorTable user={props.user} />)}
-
-        {props.userRole === "worker" && props.userJdesc === "QA-Extractor" && (<ExtractorQATable user={props.user} />)}
-
-        {props.userRole === "worker" && props.userJdesc === "DimAna" && <DimensionAnalystTable user={props.user} />}
-
-        {props.userRole === "worker" && props.userJdesc === "QA-DimAna" && <DimensionQATable user={props.user} />}
-
-
+        {props.userRole === "worker" && <UserDashboard user={props.user} />}
 
         {props.userRole === "admin" && <SuperAdmin />}
 

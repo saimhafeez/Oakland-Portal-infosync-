@@ -19,6 +19,11 @@ import { firestore } from "../firebase";
 function SuperAdmin(props) {
 
     const sortOrder = ["Extractor", "QA-Extractor", "DimAna", "QA-DimAna"];
+    const colors = {
+        major: '#f1c232',
+        minor: '#ffe599',
+        not_understandable: '#F8D465'
+    }
 
     const [searchByID, setSearchByID] = useState("");
     const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
@@ -31,7 +36,8 @@ function SuperAdmin(props) {
     const lt = (new Date().getTime() / 1000).toFixed(0)
 
     const [tableData, setTableData] = useState({
-        isLoading: true,
+        isLoading: false,
+        // isLoading: true,
         lessThanDate: lt,
         greaterThanDate: 0,
         currentPage: 0,
@@ -143,13 +149,14 @@ function SuperAdmin(props) {
 
                 const attempted = result.attempts;
                 var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
-                var not_understandable = worker.jdesc.includes('Extractor') ? result.rejects : 0
+                var not_understandable = worker.jdesc.includes('Extractor') ? result.rejects : 0;
                 var under_qa = result.not_validated;
                 var minor = result.minor_changes;
                 var major = result.major_changes;
-                var passed = result.qa_passed
+                var passed = result.qa_passed;
                 var earnings = result.earning.toFixed(0);
-                return [worker.name, worker.jdesc, attempted, rejected_nad, not_understandable, under_qa, minor, major, passed, earnings]
+                var resets = (Math.random().toFixed(2) * 10).toFixed(0);
+                return [worker.name, worker.jdesc, attempted, rejected_nad, not_understandable, under_qa, minor, major, passed, earnings, resets];
             })
         )
 
@@ -172,6 +179,8 @@ function SuperAdmin(props) {
         const lt = (new Date().getTime() / 1000).toFixed(0)
         // const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}`
 
+        const non_nads_params = '&extractor_status=under_qa&extractor_status=passed&extractor_status=major&extractor_status=minor'
+
         var apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${lt}&gt=0&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}`
         // var apiURL = filterByQAStatus !== 'qa-status' ? `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${lt}&gt=0&page=${currentPage}&status=${filterByQAStatus}&items_per_page=${tableData.totalProductsPerPage}`
         //     : `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${lt}&gt=0&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}`
@@ -190,17 +199,27 @@ function SuperAdmin(props) {
         if (filterByUser !== "user") {
             apiURL = apiURL + `&uid=${filterByUser.split("#")[1].trim()}`
         }
+        if (tableFilter === 'Filter by Role') {
+            apiURL = apiURL + non_nads_params
+        }
 
         fetch(apiURL).then((res) => res.json()).then((result) => {
 
             console.log('result', result);
 
+            // Filter out NADs
+            // const non_nads = result.data.filter((product) => product['Extractor Status'] !== 'rejected_nad');
+
+            // const non_nads_totalpages = Math.ceil(non_nads.length / tableData.totalProductsPerPage)
+
             setTableData((pre) => ({
                 ...pre,
                 isLoading: false,
                 data: result.data,
+                // data: non_nads,
                 currentPage: result.curr_page,
                 totalPages: result.total_pages,
+                // totalPages: non_nads_totalpages,
                 totalItems: result.total_items
             }))
 
@@ -219,7 +238,8 @@ function SuperAdmin(props) {
         let users = [];
         snapshot.forEach((doc) => {
             if (doc.data().role !== 'admin') {
-                users.push(`${doc.data().name} | ${doc.data().role}-${doc.data().jdesc} # ${doc.id}`);
+                // users.push(`${doc.data().name} | ${doc.data().role}-${doc.data().jdesc} # ${doc.id}`);
+                users.push(`${doc.data().name} # ${doc.id}`);
             }
 
         });
@@ -283,20 +303,20 @@ function SuperAdmin(props) {
         // window.location.href = `/product-detail-info?job=${tableFilter}&pid=${productID}`
     }
 
-    const navigateToComparisionSheet = (productID, variantID) => {
-        if (tableFilter === 'QA-Extractor') {
-            window.open(`/extraction-comparision?job=${tableFilter}&pid=${productID}&vid=${variantID}`, "_blank", "noreferrer");
-        } else if (tableFilter === 'QA-DimAna') {
-            window.open(`/dimana-comparision?job=${tableFilter}&pid=${productID}&vid${variantID}`, "_blank", "noreferrer");
+    const navigateToComparisionSheet = (productID, variantID, _tableFilter) => {
+        if (_tableFilter === 'QA-Extractor') {
+            window.open(`/extraction-comparision?job=${_tableFilter}&pid=${productID}&vid=${variantID}`, "_blank", "noreferrer");
+        } else if (_tableFilter === 'QA-DimAna') {
+            window.open(`/dimana-comparision?job=${_tableFilter}&pid=${productID}&vid${variantID}`, "_blank", "noreferrer");
         }
     }
 
-    const resetProduct = (sku) => {
+    const resetProduct = (sku, selector) => {
         setTableData(pre => ({
             ...pre,
             isLoading: true
         }))
-        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/reset/${sku}`).then((res) => res.json()).then((result) => {
+        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/reset_${selector}/${sku}`).then((res) => res.json()).then((result) => {
 
             console.log('result', result);
 
@@ -389,6 +409,7 @@ function SuperAdmin(props) {
                                     <th>MAJOR [QA Passed]</th>
                                     <th>[100%] QA Passed</th>
                                     <th>Earnings</th>
+                                    <th style={{ background: '#ffc0c0' }}>Resets</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -410,33 +431,15 @@ function SuperAdmin(props) {
                         <CircularProgress size={56} color="info" />
                     </Stack> :
                         <Stack>
-                            {/* <Stack direction='row' justifyContent='end' alignItems='center' m={2}>
-                                <Stack direction="column">
-                                    <Typography>Filter By Job</Typography>
-                                    <Select
-                                        size="medium"
-                                        value={tableFilter}
-                                        onChange={(e) => {
-                                            setTableFilter(e.target.value);
-                                        }}
-                                        name="tableFilterList"
-                                    >
-                                        <MenuItem value="Extractor">Extractor</MenuItem>
-                                        <MenuItem value="QA-Extractor">QA-Extractor</MenuItem>
-                                        <MenuItem value="DimAna">DimAna</MenuItem>
-                                        <MenuItem value="QA-DimAna">QA-DimAna</MenuItem>
-                                    </Select>
-                                </Stack>
-                            </Stack> */}
 
                             {tableData.isLoading ? <Stack direction='row' justifyContent='center'>
                                 <CircularProgress />
                             </Stack> :
 
-                                <table className="table mt-4 table-bordered table-striped align-middle text-center">
-                                    <thead className="table-dark">
-                                        <tr className="border-0 bg-white">
-                                            <th className="bg-white text-dark border-0" style={{ maxWidth: '110px' }}>
+                                <>
+                                    <div className="bg-white text-dark border-0 d-flex flex-row w-100 justify-content-between align-items-center" style={{ whiteSpace: 'nowrap' }}>
+                                        <div className="d-flex flex-row w-100 align-items-center gap-2" >
+                                            <div>
                                                 <select
                                                     className="p-2 w-100"
                                                     name="qa-status"
@@ -452,43 +455,31 @@ function SuperAdmin(props) {
                                                     <option value="50">50 Per Page</option>
                                                     <option value="100">100 Per Page</option>
                                                 </select>
-                                            </th>
-                                            <th className="bg-white text-dark border-0">
-                                                {tableData.totalItems} Results Found
-                                            </th>
-                                            <th colSpan={2} className="bg-white" style={{ maxWidth: 200 }}>
-                                                <div className="d-flex flex-row">
-                                                    <input
-                                                        className="p-2 w-100"
-                                                        type="text"
-                                                        placeholder="Search by P.ID"
-                                                        style={{ backgroundColor: "#e8e8e8", width: "fit-content" }}
-                                                        onChange={searchItemByID}
-                                                        value={searchByID}
-                                                    />
-                                                    <button className="btn btn-go-fetch" onClick={fetchByProductID}>GO</button>
-                                                </div>
-                                            </th>
-                                            {/* <th className="bg-white"></th> */}
-                                            {/* <th className="bg-white"></th> */}
-                                            {/* <th className="bg-white"></th> */}
-                                            <th className="bg-white"></th>
-                                            <th colSpan={2} className="bg-white" style={{ maxWidth: '110px' }}>
-                                                <select
+                                            </div>
+                                            <div>
+                                                <input
                                                     className="p-2 w-100"
-                                                    name="qa-status"
-                                                    id="qa-status"
-                                                    onChange={(e) => setFilterByUser(e.target.value)}
-                                                    value={filterByUser}
-                                                >
-                                                    <option value="user">Filter by User</option>
-                                                    {userList.map((user, index) => {
-                                                        return <option value={user}>{user.split(" # ")[0]}</option>
-                                                    })}
+                                                    type="text"
+                                                    style={{ backgroundColor: "#e8e8e8", width: "fit-content" }}
+                                                    value={`${tableData.totalItems} Results Found`}
+                                                    disabled={true}
+                                                />
+                                            </div>
+                                            <div className="d-flex flex-row">
+                                                <input
+                                                    className="p-2 w-100"
+                                                    type="text"
+                                                    placeholder="Search by P.ID"
+                                                    style={{ backgroundColor: "#e8e8e8", width: "fit-content" }}
+                                                    onChange={searchItemByID}
+                                                    value={searchByID}
+                                                />
+                                                <button className="btn btn-go-fetch" onClick={fetchByProductID}>GO</button>
+                                            </div>
+                                        </div>
+                                        <div className="d-flex flex-row w-100 align-items-center gap-2 justify-content-end" style={{ paddingRight: '10px' }}>
 
-                                                </select>
-                                            </th>
-                                            <th className="bg-white">
+                                            <div>
                                                 <select
                                                     className="p-2 w-100 text-white bg-success fw-bold"
                                                     name="qa-status"
@@ -504,9 +495,9 @@ function SuperAdmin(props) {
                                                     <option value="DimAna">DimAna</option>
                                                     <option value="QA-DimAna">QA-DimAna</option>
                                                 </select>
-                                            </th>
-                                            <th className="bg-white" style={{ maxWidth: '110px' }}>
+                                            </div>
 
+                                            <div>
                                                 <select
                                                     className="p-2 w-100"
                                                     name="qa-status"
@@ -523,106 +514,148 @@ function SuperAdmin(props) {
                                                     <option value="minor">MINOR [QA Passed]</option>
                                                     <option value="major">MAJOR [QA Passed]</option>
                                                 </select>
-                                            </th>
-                                        </tr>
-                                        <tr>
-                                            <th># SR</th>
-                                            <th>Thumbnail</th>
-                                            <th>Product ID</th>
-                                            <th style={{ maxWidth: '40px' }}>Variant ID</th>
-                                            <th>Extractor</th>
-                                            <th>QA-Extractor</th>
-                                            <th>DimAna</th>
-                                            <th>QA-DimAna</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {tableData.data.length === 0 && <tr>
-                                            <td colSpan={6}>
-                                                <h4 className="text-center p-2 w-100">0 Results</h4>
-                                            </td>
-                                        </tr>}
-                                        {tableData.data.map((item, index) => (
-                                            <tr key={index}>
-                                                <td>{(tableData.currentPage * tableData.totalProductsPerPage) + (index + 1)}</td>
-                                                <td style={{ paddingTop: 2, paddingBottom: 2 }}>
-                                                    <img
-                                                        src={item.Thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'}
-                                                        onClick={() => { navigateToItem(item.ProductID) }}
-                                                        alt=""
-                                                        height="70px"
-                                                        style={{ cursor: tableFilter === 'QA-DimAna' ? "pointer" : "default" }}
-                                                    />
-                                                </td>
-                                                <td>
-                                                    {tableFilter === 'QA-DimAna' ? <a className="link-dark" href={`/product-detail-info?job=${tableFilter}&pid=${item.ProductID}`} underline="hover" target="_blank">
-                                                        {item.ProductID}
-                                                    </a>
-                                                        : item.ProductID
-                                                    }
-                                                </td>
+                                            </div>
 
-                                                <td>{item.VariantID || 'N/A'}</td>
-                                                <td>
-                                                    <p className="m-0">{item['Extractor'].name || 'N/A'}</p>
-                                                    <p style={{ border: '2px solid black', margin: 4 }}>
-                                                        {
-                                                            item['Extractor'].status !== null ? 'NOT A DOABLE' : ((item['Extractor Status'] === null || item['Extractor Status'] === 'under_qa') ? 'Under QA' : item['Extractor Status'] === 'not_understandable' ? 'Not Understandable' : item['Extractor Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['Extractor Status'] === 'minor' ? 'MINOR [QA Passed]' : item['Extractor Status'] === 'major' ? 'MAJOR [QA Passed]' : item['Extractor Status'] === 'passed' ? '100% [QA Passed]' : item['Extractor Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A')
-                                                        }
-                                                    </p>
-                                                    <p className="small">{item['Extractor'].updatedAt && formatDate(item['Extractor'].updatedAt) || 'N/A'}</p>
-                                                </td>
+                                            <div>
+                                                <select
+                                                    className="p-2 w-100"
+                                                    name="qa-status"
+                                                    id="qa-status"
+                                                    onChange={(e) => setFilterByUser(e.target.value)}
+                                                    value={filterByUser}
+                                                >
+                                                    <option value="user">Filter by User</option>
+                                                    {userList.map((user, index) => {
+                                                        return <option value={user}>{user.split(" # ")[0]}</option>
+                                                    })}
 
-                                                <td>
-                                                    <p className="m-0">{item['QA-Extractor'].name || 'N/A'}</p>
-                                                    <p style={{ border: '2px solid black', margin: 4 }}>{(item['Extractor Status'] === null || item['Extractor Status'] === 'under_qa') ? 'Under QA' : item['Extractor Status'] === 'not_understandable' ? 'Not Understandable' : item['Extractor Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['Extractor Status'] === 'minor' ? 'MINOR [QA Passed]' : item['Extractor Status'] === 'major' ? 'MAJOR [QA Passed]' : item['Extractor Status'] === 'passed' ? '100% [QA Passed]' : item['Extractor Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</p>
-                                                    <p className="small">{item['QA-Extractor'].updatedAt && formatDate(item['QA-Extractor'].updatedAt) || 'N/A'}</p>
-                                                </td>
+                                                </select>
+                                            </div>
 
-                                                <td>
-                                                    <p className="m-0">{item['DimAna'].name || 'N/A'}</p>
-                                                    <p style={{ border: '2px solid black', margin: 4 }}>
-                                                        {
-                                                            (item['DimAna'].name && item['DimAna'].status === null && (item['DimAna Status'] === null || item['DimAna Status'] === 'under_qa')) ? 'UNDER QA'
-                                                                :
-                                                                (item['DimAna'].status !== null ? 'NOT UNDERSTANDABLE'
-                                                                    : item['DimAna Status'] === 'not_understandable' ? 'Not Understandable' : item['DimAna Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['DimAna Status'] === 'minor' ? 'MINOR [QA Passed]' : item['DimAna Status'] === 'major' ? 'MAJOR [QA Passed]' : item['DimAna Status'] === 'passed' ? '100% [QA Passed]' : item['DimAna Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A')
-                                                        }
-                                                    </p>
-                                                    <p className="small">{item['DimAna'].updatedAt && formatDate(item['DimAna'].updatedAt) || 'N/A'}</p>
-                                                </td>
-
-                                                <td>
-                                                    <p className="m-0">{item['QA-DimAna'].name || 'N/A'}</p>
-                                                    <p style={{ border: '2px solid black', margin: 4 }}>{item['DimAna Status'] === 'not_understandable' ? 'Not Understandable' : item['DimAna Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['DimAna Status'] === 'minor' ? 'MINOR [QA Passed]' : item['DimAna Status'] === 'major' ? 'MAJOR [QA Passed]' : item['DimAna Status'] === 'passed' ? '100% [QA Passed]' : item['DimAna Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</p>
-                                                    <p className="small">{item['QA-DimAna'].updatedAt && formatDate(item['QA-DimAna'].updatedAt) || 'N/A'}</p>
-                                                </td>
-
-                                                {/* <td>{(item['Extractor Status'] === null || item['Extractor Status'] === 'under_qa') ? 'Under QA' : item['Extractor Status'] === 'not_understandable' ? 'Not Understandable' : item['Extractor Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['Extractor Status'] === 'minor' ? 'MINOR [QA Passed]' : item['Extractor Status'] === 'major' ? 'MAJOR [QA Passed]' : item['Extractor Status'] === 'passed' ? '100% [QA Passed]' : item['Extractor Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td> */}
-
-                                                {/* <td>{(item['DimAna Status'] === null || item['DimAna Status'] === 'under_qa') ? 'Under QA' : item['DimAna Status'] === 'not_understandable' ? 'Not Understandable' : item['DimAna Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['DimAna Status'] === 'minor' ? 'MINOR [QA Passed]' : item['DimAna Status'] === 'major' ? 'MAJOR [QA Passed]' : item['DimAna Status'] === 'passed' ? '100% [QA Passed]' : item['DimAna Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td> */}
-                                                {/* <td>{formatDate(item.lastModified)}</td>
-
-                                                {/* <td>{(item.status === null || item.status === 'under_qa') ? 'Under QA' : item.status === 'not_understandable' ? 'Not Understandable' : item.status === 'rejcted_nad' ? 'Rejected NAD' : item.status === 'minor' ? 'MINOR [QA Passed]' : item.status === 'major' ? 'MAJOR [QA Passed]' : item.status === 'passed' ? '100% [QA Passed]' : item.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</td> */}
-                                                <td>
-                                                    <div className="d-flex flex-row gap-2 justify-content-center">
-                                                        {tableFilter.includes('QA') && <button
-                                                            className="btn btn-warning"
-                                                            onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID)}
-                                                        >compare</button>
-                                                        }
-                                                        <button
-                                                            className="btn btn-warning"
-                                                            onClick={() => resetProduct(item.ProductID)}
-                                                            disabled={disableResetButton(item)}
-                                                        >Reset</button>
-                                                    </div>
-                                                </td>
+                                        </div>
+                                    </div>
+                                    <table className="table mt-4 table-bordered table-striped align-middle text-center" style={{ whiteSpace: 'nowrap' }}>
+                                        <thead className="table-dark">
+                                            <tr>
+                                                <th># SR</th>
+                                                <th>Thumbnail</th>
+                                                <th>Product ID</th>
+                                                {/* <th style={{ maxWidth: '40px' }}>Variant ID</th> */}
+                                                <th>Extractor</th>
+                                                <th>QA-Extractor</th>
+                                                <th className="fw-bold">Ext-Action</th>
+                                                <th>DimAna</th>
+                                                <th>QA-DimAna</th>
+                                                <th>DimAna-Action</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {tableData.data.length === 0 && <tr>
+                                                <td colSpan={6}>
+                                                    <h4 className="text-center p-2 w-100">0 Results</h4>
+                                                </td>
+                                            </tr>}
+                                            {tableData.data.map((item, index) => (
+                                                <tr key={index}>
+                                                    <td>{(tableData.currentPage * tableData.totalProductsPerPage) + (index + 1)}</td>
+                                                    <td style={{ paddingTop: 2, paddingBottom: 2 }}>
+                                                        <img
+                                                            src={item.Thumbnail || 'https://img.icons8.com/?size=256&id=j1UxMbqzPi7n&format=png'}
+                                                            onClick={() => { navigateToItem(item.ProductID) }}
+                                                            alt=""
+                                                            height="70px"
+                                                            style={{ cursor: tableFilter === 'QA-DimAna' ? "pointer" : "default" }}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        {tableFilter === 'QA-DimAna' ? <a className="link-dark" href={`/product-detail-info?job=${tableFilter}&pid=${item.ProductID}`} underline="hover" target="_blank">
+                                                            {item.ProductID}
+                                                        </a>
+                                                            : item.full_id
+                                                        }
+                                                    </td>
+
+                                                    <td>
+                                                        <p className="m-0">{item['Extractor'].name || 'N/A'}</p>
+                                                        <p
+                                                            style={{ border: '2px solid black', margin: 4, backgroundColor: (item['Extractor Status'] !== 'passed' && item['Extractor Status'] !== 'under_qa') && colors[item['Extractor Status']] }}
+                                                        >
+                                                            {
+                                                                item['Extractor'].status !== null ? 'NOT A DOABLE' : ((item['Extractor Status'] === null || item['Extractor Status'] === 'under_qa') ? 'Under QA' : item['Extractor Status'] === 'not_understandable' ? 'Not Understandable' : item['Extractor Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['Extractor Status'] === 'minor' ? 'MINOR [QA Passed]' : item['Extractor Status'] === 'major' ? 'MAJOR [QA Passed]' : item['Extractor Status'] === 'passed' ? '100% [QA Passed]' : item['Extractor Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A')
+                                                            }
+                                                        </p>
+                                                        <p className="small">{item['Extractor'].updatedAt && formatDate(item['Extractor'].updatedAt) || 'N/A'}</p>
+                                                    </td>
+
+                                                    <td>
+                                                        <p className="m-0">{item['QA-Extractor'].name || 'N/A'}</p>
+                                                        <p
+                                                            style={{ border: '2px solid black', margin: 4, backgroundColor: (item['Extractor Status'] !== 'passed' && item['Extractor Status'] !== 'under_qa') && colors[item['Extractor Status']] }}
+
+                                                        >{(item['Extractor Status'] === null || item['Extractor Status'] === 'under_qa') ? 'Under QA' : item['Extractor Status'] === 'not_understandable' ? 'Not Understandable' : item['Extractor Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['Extractor Status'] === 'minor' ? 'MINOR [QA Passed]' : item['Extractor Status'] === 'major' ? 'MAJOR [QA Passed]' : item['Extractor Status'] === 'passed' ? '100% [QA Passed]' : item['Extractor Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</p>
+                                                        <p className="small">{item['QA-Extractor'].updatedAt && formatDate(item['QA-Extractor'].updatedAt) || 'N/A'}</p>
+                                                    </td>
+
+                                                    <td>
+                                                        <div className="d-flex flex-column gap-2 justify-content-center px-2">
+                                                            {(tableFilter.includes('QA') || tableFilter === 'Filter by Role') && <button
+                                                                className="btn btn-warning"
+                                                                onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-Extractor')}
+                                                            >Compare</button>
+                                                            }
+                                                            <button
+                                                                className="btn"
+                                                                style={{ backgroundColor: 'red', color: 'white' }}
+                                                                onClick={() => resetProduct(item.ProductID, 'extractor')}
+                                                                disabled={disableResetButton(item)}
+                                                            >Reset</button>
+                                                        </div>
+                                                    </td>
+
+                                                    <td>
+                                                        <p className="m-0">{item['DimAna'].name || 'N/A'}</p>
+                                                        <p
+                                                            style={{ border: '2px solid black', margin: 4, backgroundColor: (item['DimAna Status'] !== 'passed' && item['DimAna Status'] !== 'under_qa') && colors[item['DimAna Status']] }}
+                                                        >
+                                                            {
+                                                                (item['DimAna'].name && item['DimAna'].status === null && (item['DimAna Status'] === null || item['DimAna Status'] === 'under_qa')) ? 'UNDER QA'
+                                                                    :
+                                                                    (item['DimAna'].status !== null ? 'NOT UNDERSTANDABLE'
+                                                                        : item['DimAna Status'] === 'not_understandable' ? 'Not Understandable' : item['DimAna Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['DimAna Status'] === 'minor' ? 'MINOR [QA Passed]' : item['DimAna Status'] === 'major' ? 'MAJOR [QA Passed]' : item['DimAna Status'] === 'passed' ? '100% [QA Passed]' : item['DimAna Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A')
+                                                            }
+                                                        </p>
+                                                        <p className="small">{item['DimAna'].updatedAt && formatDate(item['DimAna'].updatedAt) || 'N/A'}</p>
+                                                    </td>
+
+                                                    <td>
+                                                        <p className="m-0">{item['QA-DimAna'].name || 'N/A'}</p>
+                                                        <p
+                                                            style={{ border: '2px solid black', margin: 4, backgroundColor: (item['DimAna Status'] !== 'passed' && item['DimAna Status'] !== 'under_qa') && colors[item['DimAna Status']] }}
+                                                        >{item['DimAna Status'] === 'not_understandable' ? 'Not Understandable' : item['DimAna Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['DimAna Status'] === 'minor' ? 'MINOR [QA Passed]' : item['DimAna Status'] === 'major' ? 'MAJOR [QA Passed]' : item['DimAna Status'] === 'passed' ? '100% [QA Passed]' : item['DimAna Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A'}</p>
+                                                        <p className="small">{item['QA-DimAna'].updatedAt && formatDate(item['QA-DimAna'].updatedAt) || 'N/A'}</p>
+                                                    </td>
+
+                                                    <td>
+                                                        <div className="d-flex flex-column gap-2 justify-content-center px-2">
+                                                            {(tableFilter.includes('QA') || tableFilter === 'Filter by Role') && <button
+                                                                className="btn btn-warning"
+                                                                onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-DimAna')}
+                                                            >Compare</button>
+                                                            }
+                                                            <button
+                                                                className="btn"
+                                                                style={{ backgroundColor: 'red', color: 'white' }}
+                                                                onClick={() => resetProduct(item.ProductID, 'dimana')}
+                                                                disabled={disableResetButton(item)}
+                                                            >Reset</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+
+                                </>
                             }
 
                             <nav>

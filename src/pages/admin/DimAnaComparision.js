@@ -76,7 +76,9 @@ function DimAnaComparision(props) {
 
         if (productPropType === 'Iron Pipe') {
             if (filters.unitSelector === "Inch") {
-                return ((data.length / 12) * data.qty).toFixed(2);
+
+                return ((data.length) * data.qty).toFixed(2);
+                // return ((data.length / 12) * data.qty).toFixed(2);
             } else if (filters.unitSelector === "Centimeter") {
                 return (data.length * 0.0328084 * data.qty).toFixed(2);
             } else {
@@ -88,6 +90,7 @@ function DimAnaComparision(props) {
     };
 
     const getValue = (value) => {
+        return value
         if (filters.unitSelector === "Inch") {
             return (value / 12).toFixed(2);
         } else if (filters.unitSelector === "Centimeter") {
@@ -277,6 +280,10 @@ function DimAnaComparision(props) {
 
     }, [])
 
+    const convertToInch = (valueInFT) => {
+        return (valueInFT * 12).toFixed(2)
+    }
+
     return (
         <Wrapper>
             <HeaderSignOut
@@ -367,6 +374,29 @@ function DimAnaComparision(props) {
                                         DimAna Selected: {(dimAnaData.status === null || dimAnaData.status === 'under_qa') ? 'Under QA' : dimAnaData.status === 'not_understandable' ? 'Not Understandable' : dimAnaData.status === 'rejcted_nad' ? 'Rejected NAD' : dimAnaData.status === 'minor' ? 'MINOR [QA Passed]' : dimAnaData.status === 'major' ? 'MAJOR [QA Passed]' : dimAnaData.status === 'passed' ? '100% [QA Passed]' : dimAnaData.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}
                                     </h4>
                                 </div>
+
+                                <Stack>
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={6}>
+                                                        <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Build Material</Typography>
+                                                        </Stack>
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                <TableRow>
+                                                    <TableCell className='cell'>
+                                                        {dimAnaData.buildMaterial}
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
 
                                 <Stack>
                                     <TableContainer component={Paper} variant="outlined">
@@ -468,15 +498,9 @@ function DimAnaComparision(props) {
                                                     <TableRow>
                                                         <TableCell className="table-head" colSpan={8}>
                                                             <Stack direction='row' justifyContent='center'>
-                                                                <Typography fontWeight='bold'>Wood Tape</Typography>
+                                                                <Typography fontWeight='bold'>Wood Tape Size</Typography>
                                                             </Stack>
                                                         </TableCell>
-                                                    </TableRow>
-                                                    <TableRow className="cell-head">
-                                                        <TableCell>Size</TableCell>
-                                                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
-                                                        {/* <TableCell>Qty</TableCell> */}
-                                                        {/* <TableCell>Total</TableCell> */}
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
@@ -544,19 +568,6 @@ function DimAnaComparision(props) {
                                         </Table>
                                     </TableContainer>
                                 </Stack>
-
-                                <Stack direction="column">
-                                    <Typography>Build Material</Typography>
-                                    <Select
-                                        size="small"
-                                        value={dimAnaData.buildMaterial}
-                                        name="buildMaterial"
-                                        disabled={true}
-                                    >
-                                        <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
-                                        <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
-                                    </Select>
-                                </Stack>
                             </>}
 
                     </Stack>
@@ -582,6 +593,29 @@ function DimAnaComparision(props) {
                                                 <TableRow>
                                                     <TableCell className="table-head" colSpan={6}>
                                                         <Stack direction='row' justifyContent='center'>
+                                                            <Typography fontWeight='bold'>Build Material</Typography>
+                                                        </Stack>
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                <TableRow>
+                                                    <TableCell className='cell'>
+                                                        {qaDimAnaData.buildMaterial}
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Stack>
+
+                                <Stack>
+                                    <TableContainer component={Paper} variant="outlined">
+                                        <Table size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell className="table-head" colSpan={6}>
+                                                        <Stack direction='row' justifyContent='center'>
                                                             <Typography fontWeight='bold'>Iron Pipe</Typography>
                                                         </Stack>
                                                     </TableCell>
@@ -596,15 +630,6 @@ function DimAnaComparision(props) {
                                             <TableBody>
                                                 {qaDimAnaData.data.ironPipeRows.map((row, index) => {
                                                     return (
-                                                        // <IronPipeTableRow
-                                                        //     key={index}
-                                                        //     _key={index}
-                                                        //     data={row}
-                                                        //     handleEdit={handleEdit}
-                                                        //     unitSelector={filters.unitSelector}
-                                                        //     editable={dataLoaded}
-                                                        //     hideDetails={true}
-                                                        // />
                                                         <TableRow
                                                             style={{ backgroundColor: highlightedRows.ironPipeRows.includes(index) && highlightedRowsColor }}
                                                         >
@@ -642,15 +667,6 @@ function DimAnaComparision(props) {
                                             <TableBody>
                                                 {qaDimAnaData.data.woodenSheetRows.map((row, index) => {
                                                     return (
-                                                        // <WoodenSheetTableRow
-                                                        //     key={index}
-                                                        //     _key={index}
-                                                        //     data={row}
-                                                        //     handleEdit={handleEdit}
-                                                        //     unitSelector={filters.unitSelector}
-                                                        //     editable={dataLoaded}
-                                                        //     hideDetails={true}
-                                                        // />
                                                         <TableRow
                                                             style={{ backgroundColor: highlightedRows.woodenSheetRows.includes(index) && highlightedRowsColor }}
                                                         >
@@ -674,28 +690,14 @@ function DimAnaComparision(props) {
                                                     <TableRow>
                                                         <TableCell className="table-head" colSpan={8}>
                                                             <Stack direction='row' justifyContent='center'>
-                                                                <Typography fontWeight='bold'>Wood Tape</Typography>
+                                                                <Typography fontWeight='bold'>Wood Tape Size</Typography>
                                                             </Stack>
                                                         </TableCell>
-                                                    </TableRow>
-                                                    <TableRow className="cell-head">
-                                                        <TableCell>Size</TableCell>
-                                                        {/* <TableCell>L&nbsp;&nbsp;</TableCell> */}
-                                                        {/* <TableCell>Qty</TableCell> */}
-                                                        {/* <TableCell>Total</TableCell> */}
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
                                                     {qaDimAnaData.data.woodTapeRows.map((row, index) => {
                                                         return (
-                                                            // <WoodTapeTableRow
-                                                            //     key={index}
-                                                            //     _key={index}
-                                                            //     data={row}
-                                                            //     handleEdit={handleEdit}
-                                                            //     unitSelector={filters.unitSelector}
-                                                            //     editable={dataLoaded}
-                                                            // />
                                                             <TableRow
                                                                 style={{ backgroundColor: highlightedRows.woodTapeRows.includes(index) && highlightedRowsColor }}
                                                             >
@@ -750,19 +752,6 @@ function DimAnaComparision(props) {
                                             </TableBody>
                                         </Table>
                                     </TableContainer>
-                                </Stack>
-
-                                <Stack direction="column">
-                                    <Typography>Build Material</Typography>
-                                    <Select
-                                        size="small"
-                                        value={qaDimAnaData.buildMaterial}
-                                        name="buildMaterial"
-                                        disabled={true}
-                                    >
-                                        <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
-                                        <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
-                                    </Select>
                                 </Stack>
                             </>
                         }

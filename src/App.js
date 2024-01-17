@@ -1,7 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import FileManagement from "./pages/FileManagement";
 import DimensionsAnalyst from "./pages/DimensionsAnalyst";
 import DashboardPage from "./components/Dashboard/DashboardPage";
 import Extraction from "./pages/Extraction";
@@ -24,6 +23,7 @@ import AllNads from './pages/admin/AllNads';
 import NotUnderstandables from './pages/admin/NotUnderstandables';
 import ExtractionComparision from './pages/admin/ExtractionComparision';
 import DimAnaComparision from './pages/admin/DimAnaComparision';
+import ResetedProducts from './pages/admin/ResetedProducts';
 
 const auth = getAuth();
 
@@ -134,17 +134,6 @@ function App() {
                 element={
                   <DashboardPage
                     user={user}
-                    userEmail={userEmail}
-                    userRole={userRole}
-                    userJdesc={userJdesc}
-                  />
-                }
-              />
-              {/* SECURE NESTED ROUTE WITH FILE MANAGEMENT  */}
-              <Route
-                path="/file-management"
-                element={
-                  <FileManagement
                     userEmail={userEmail}
                     userRole={userRole}
                     userJdesc={userJdesc}
@@ -341,6 +330,17 @@ function App() {
                 path="/ready-to-live"
                 element={
                   <ReadyToLive
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/reseted"
+                element={
+                  <ResetedProducts
                     userEmail={userEmail}
                     userRole={userRole}
                     userJdesc={userJdesc}

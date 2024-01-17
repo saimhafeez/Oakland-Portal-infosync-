@@ -13,9 +13,7 @@ import { formatDate } from "../../utils/formatDate";
 import SuperAdminSidebar from "../../components/sidebar/SuperAdminSidebar";
 import Header from "../../components/header/Header";
 
-
-
-function NotUnderstandables(props) {
+function ResetedProducts(props) {
 
     const colors = {
         major: '#f1c232',
@@ -28,7 +26,7 @@ function NotUnderstandables(props) {
     const [filterByUser, setFilterByUser] = useState("user");
     const [userList, setUserList] = useState([])
 
-    const [tableFilter, setTableFilter] = useState('QA-Extractor')
+    const [tableFilter, setTableFilter] = useState('QA-DimAna')
 
     const lt = (new Date().getTime() / 1000).toFixed(0)
 
@@ -56,9 +54,9 @@ function NotUnderstandables(props) {
         const lt = (new Date().getTime() / 1000).toFixed(0)
         // const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter}&lt=${lt}&gt=0&page=${currentPage}`
 
-        const only_not_understandables = '&dimana_status=not_understandable'
+        const only_passed = '&dimana_status=passed&dimana_status=minor&dimana_status=major'
 
-        var apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}${only_not_understandables}`
+        var apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}${only_passed}`
         // var apiURL = filterByQAStatus !== 'qa-status' ? `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${lt}&gt=0&page=${currentPage}&status=${filterByQAStatus}&items_per_page=${tableData.totalProductsPerPage}`
         //     : `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${lt}&gt=0&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}`
 
@@ -212,7 +210,7 @@ function NotUnderstandables(props) {
 
             <Wrapper>
                 <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
-                    <h2 className="text-center">NOT UNDERSTANDABLES</h2>
+                    <h2 className="text-center">Reseted</h2>
                     <div className="d-flex flex-row justify-content-end gap-2">
                         <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>
                             <h5 className="m-0 py-1">Starting Date</h5>
@@ -580,4 +578,4 @@ const Wrapper = styled.main`
   }
 `;
 
-export default NotUnderstandables
+export default ResetedProducts

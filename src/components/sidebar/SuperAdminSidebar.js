@@ -22,7 +22,12 @@ const SuperAdminSidebar = () => {
                     </li>
                     <li>
                         <a href="/ready-to-live" className="link-light" underline="hover">
-                            Ready to Live
+                            100% Completed
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/reseted" className="link-light" underline="hover">
+                            Partial Completed
                         </a>
                     </li>
                     <li>

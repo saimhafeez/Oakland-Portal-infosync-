@@ -83,16 +83,18 @@ function ExtractionComparision(props) {
                     <div className="row gap-2">
                         {imageSet.map((src, index) => (
                             <div key={index} style={{ width: '180px' }}>
-                                <img
-                                    className="card-img-top img-fluid"
-                                    src={src}
-                                />
+                                <a href={src} target="_blank" rel="noopener noreferrer">
+                                    <img
+                                        className="card-img-top img-fluid"
+                                        src={src}
+                                    />
+                                </a>
                             </div>
                         ))}
                         {Object.keys(imageSet).length === 0 &&
                             <div style={{ width: '180px', opacity: '0.3' }}>
                                 <img
-                                    className="card-img-top img-fluid"
+                                    className="card-img-top img-fluid opacity-0"
                                     src='https://st3.depositphotos.com/17828278/33150/v/450/depositphotos_331503262-stock-illustration-no-image-vector-symbol-missing.jpg'
                                 />
                             </div>
