@@ -39,6 +39,11 @@ import { triggerToast } from "../utils/triggerToast";
 
 
 const defualt_state = {
+  volume: {
+    length: 0,
+    width: 0,
+    height: 0
+  },
   ironPipeRows: [
     PropsModel["ironPipeRows"],
     PropsModel["ironPipeRows"],
@@ -88,9 +93,13 @@ function DimensionalQAAnalyst(props) {
   const [weightAndDimentions, setWeightAndDimentions] = useState({});
 
   const [url, setURL] = useState("")
+  const [searchQueryType, setSearchQueryType] = useState('URL')
 
   const [miscItems, setMiscItems] = useState(['Select Another Misc Item'])
   const [selectedMiscItemSelectionValue, setSelectedMiscItemSelectionValue] = useState("Select Another Misc Item")
+  const [pipeTypeAndSizes, setPipeTypeAndSizes] = useState([])
+  const [tapeSizes, setTapeSizes] = useState([])
+
 
 
   const executePythonScript = async () => {
@@ -105,6 +114,9 @@ function DimensionalQAAnalyst(props) {
           var apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`;
           if (url != '') {
             apiUrl = apiUrl + `?url=${encodeURIComponent(url)}`
+          }
+          if (searchQueryType === 'SKU') {
+            apiUrl = apiUrl + `&use_sku=${true}`
           }
           console.log(token);
           // Make an authenticated API request
@@ -170,16 +182,18 @@ function DimensionalQAAnalyst(props) {
 
                 console.log('ingredients', _data);
                 // const micsRows = []
-                console.log('Object.keys(_data.Misc) -->', Object.keys(_data.Misc));
-                Object.keys(_data.Misc).map((item) => {
-                  if (_data.Misc[item].status === 'active') {
+                // console.log('Object.keys(_data.Misc) -->', Object.keys(_data.Misc));
+
+                _data.standardCosts.misc.map((_item) => {
+                  if (_item.status === 'active') {
                     setMiscItems(pre => ([
                       ...pre,
-                      item
+                      `${_item.item} - ${_item.details}`
                     ]))
                   }
                   // console.log('_data.Misc[item]', _data.Misc[item]);
                 })
+
                 // setMiscItems(["Select Another Misc Item", ...Object.keys(_data.Misc)]);
                 // Object.keys(_data.Misc).slice(0, 5).map((misc) => {
                 //   micsRows.push({
@@ -475,9 +489,10 @@ function DimensionalQAAnalyst(props) {
       buildMaterial: filters.buildMaterial,
       productPropertiesOld: suggestEdit ? productPropertiesOld : null,
       productProperties: {
+        volume: productProperties.volume,
         ironPipeRows: exportedIronPipeRows,
         woodenSheetRows: exportedWoodenSheetRows,
-        woodTapeRows: exportedWoodTapeRows,
+        woodTapeRows: productProperties.woodTapeRows,
         miscTableRows: exportedMiscTableRows,
       },
       change: filters.qaScorecard,
@@ -485,7 +500,6 @@ function DimensionalQAAnalyst(props) {
   };
 
   const getFreeMiscItems = () => {
-
     const miscItem = productProperties.miscTableRows.map(itm => itm.item)
 
     return miscItems.filter(item => !miscItem.includes(item));
@@ -493,6 +507,19 @@ function DimensionalQAAnalyst(props) {
 
 
   const [displayHeader, setDisplayHeader] = useState(false)
+
+  const getDropdownItems = async () => {
+    fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).then((result) => {
+      console.log('ingredients result', result);
+      const ing = result.data.portalVariables.pipeTypesNSizes.filter((pipeTypeNSize) => pipeTypeNSize.status === 'active');
+      setPipeTypeAndSizes(ing)
+      setTapeSizes(result.data.standardCosts.tape)
+    }).catch((e) => console.log('error occured', e))
+  }
+
+  useEffect(() => {
+    getDropdownItems()
+  }, [])
 
   return (
     <>
@@ -515,39 +542,29 @@ function DimensionalQAAnalyst(props) {
             </div>
 
             <div className="d-flex flex-row align-items-center gap-1 flex-fill">
-
-              {/* <Stack direction='row' justifyContent='end' width={'100%'}>
-                <TextField value={url} placeholder="Search by URL" variant="filled" onChange={(e) => setURL(e.target.value)} style={{ borderRadius: 0, width: '100%' }} />
-                <Button variant="contained"
-                  onClick={executePythonScript}
-                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
-                >
-
-                  <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontWeight='bold'>GO</Typography>
-                    {dataLoading && <CircularProgress size={26} color="warning" />}
-                  </Stack>
-                </Button>
-              </Stack>
-
-              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
-              <Button variant="contained"
-                onClick={executePythonScript}
-                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
-              >
-
-                <Stack direction='row' gap={2} alignItems='center'>
-                  <Typography fontWeight='bold'>Fetch</Typography>
-                  {dataLoading && <CircularProgress size={26} color="warning" />}
-                </Stack>
-              </Button> */}
-
-              <div className="d-flex flex-fill">
-                <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} onChange={(e) => setURL(e.target.value)} value={url} />
+              <div className="d-flex flex-fill align-items-center gap-2">
+                <input
+                  className="w-100 px-3 py-2 flex-fill"
+                  placeholder={`Search By ${searchQueryType}`}
+                  style={{ backgroundColor: "#e8e8e8" }}
+                  value={url}
+                  onChange={(e) => setURL(e.target.value)}
+                />
+                <div class="form-check form-switch">
+                  <input class="form-check-input bg-dark-subtle" type="checkbox" id="flexSwitchCheckDefault"
+                    onChange={(e) => setSearchQueryType(pre => {
+                      if (pre === 'URL') {
+                        return 'SKU'
+                      } else {
+                        return 'URL'
+                      }
+                    })}
+                  />
+                  <label class="form-check-label" for="flexSwitchCheckDefault">{searchQueryType}</label>
+                </div>
                 <button
                   id="btn-go"
                   className="btn p-2 px-3  btn-go-fetch"
-
                   onClick={executePythonScript}
                 >
                   GO
@@ -646,6 +663,71 @@ function DimensionalQAAnalyst(props) {
                   <TableHead>
                     <TableRow>
                       <TableCell className="table-head" colSpan={6}>
+                        <Typography fontWeight='bold'>Product Volume</Typography>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow className="cell-head">
+                      <TableCell>Length</TableCell>
+                      <TableCell>Width</TableCell>
+                      <TableCell>Height</TableCell>
+                      <TableCell>Volume</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+
+                    <TableRow>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume && productProperties.volume.length}
+                          fullWidth
+                          onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, length: e.target.value } }))}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume && productProperties.volume.width}
+                          fullWidth
+                          onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, width: e.target.value } }))}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume && productProperties.volume.height}
+                          fullWidth
+                          onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, height: e.target.value } }))}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume && (productProperties.volume.length * productProperties.volume.width * productProperties.volume.height)}
+                          className="cell-disabled"
+                          fullWidth
+                          disabled
+                        />
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+
+            <Stack>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-head" colSpan={6}>
                         Iron Pipe
                       </TableCell>
                     </TableRow>
@@ -669,6 +751,7 @@ function DimensionalQAAnalyst(props) {
                           unitSelector={filters.unitSelector}
                           editable={suggestEdit}
                           hideDetails={true}
+                          pipeTypeAndSizes={pipeTypeAndSizes}
                         />
                       );
                     })}
@@ -759,6 +842,7 @@ function DimensionalQAAnalyst(props) {
                             handleEdit={handleEdit}
                             unitSelector={filters.unitSelector}
                             editable={suggestEdit}
+                            tapeSizes={tapeSizes}
                           />
                         );
                       })}
@@ -779,7 +863,7 @@ function DimensionalQAAnalyst(props) {
                     </TableRow>
                     <TableRow className="cell-head">
                       <TableCell>Item</TableCell>
-                      <TableCell>Size</TableCell>
+                      {/* <TableCell>Size</TableCell> */}
                       <TableCell>Qty</TableCell>
                     </TableRow>
                   </TableHead>

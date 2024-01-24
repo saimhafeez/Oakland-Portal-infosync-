@@ -34,11 +34,6 @@ import WoodTapeTableRow from "../components/dimensionsAnalyst/WoodTapeTableRow";
 import MiscTableRow from "../components/dimensionsAnalyst/MiscTableRow";
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
-import MiscItemSize from '../res/MiscItemSize.json'
-
-// Import css files
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { triggerToast } from "../utils/triggerToast";
 
 function DimensionsAnalyst(props) {
@@ -57,9 +52,12 @@ function DimensionsAnalyst(props) {
   const [openModal, setOpenModal] = useState(0);
 
   const [url, setURL] = useState("");
+  const [searchQueryType, setSearchQueryType] = useState('URL')
 
   const [miscItems, setMiscItems] = useState(['Select Another Misc Item'])
   const [selectedMiscItemSelectionValue, setSelectedMiscItemSelectionValue] = useState("Select Another Misc Item")
+  const [pipeTypeAndSizes, setPipeTypeAndSizes] = useState([])
+  const [tapeSizes, setTapeSizes] = useState([])
 
   const executePythonScript = async () => {
     setDataLoading(true)
@@ -73,6 +71,9 @@ function DimensionsAnalyst(props) {
           var apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`;
           if (url != '') {
             apiUrl = apiUrl + `?url=${encodeURIComponent(url)}`
+          }
+          if (searchQueryType === 'SKU') {
+            apiUrl = apiUrl + `&use_sku=${true}`
           }
           console.log(token);
           fetch(apiUrl, {
@@ -112,12 +113,12 @@ function DimensionsAnalyst(props) {
                 console.log('ingredients', _data);
 
                 const micsRows = []
-                console.log('Object.keys(_data.Misc) -->', Object.keys(_data.Misc));
-                Object.keys(_data.Misc).map((item) => {
-                  if (_data.Misc[item].status === 'active') {
+                console.log('_data.standardCosts.misc -->', _data.standardCosts.misc);
+                _data.standardCosts.misc.map((_item) => {
+                  if (_item.status === 'active') {
                     setMiscItems(pre => ([
                       ...pre,
-                      item
+                      `${_item.item} - ${_item.details}`
                     ]))
                   }
                   // console.log('_data.Misc[item]', _data.Misc[item]);
@@ -125,10 +126,9 @@ function DimensionsAnalyst(props) {
 
                 // setMiscItems(["Select Another Misc Item", ...Object.keys(_data.Misc)]);
 
-                Object.keys(_data.Misc).slice(0, 5).map((misc) => {
+                _data.standardCosts.misc.slice(0, 2).map((misc) => {
                   micsRows.push({
-                    item: misc,
-                    size: MiscItemSize[0].Size,
+                    item: `${misc.item} - ${misc.details}`,
                     qty: ''
                   })
                 })
@@ -217,6 +217,11 @@ function DimensionsAnalyst(props) {
               }))
 
               setProductProperties({
+                volume: {
+                  length: 0,
+                  width: 0,
+                  height: 0
+                },
                 ironPipeRows: [
                   PropsModel["ironPipeRows"],
                   PropsModel["ironPipeRows"],
@@ -308,6 +313,11 @@ function DimensionsAnalyst(props) {
                 buildMaterial: "IRON PIPE / MDF"
               }))
               setProductProperties({
+                volume: {
+                  length: 0,
+                  width: 0,
+                  height: 0
+                },
                 ironPipeRows: [
                   PropsModel["ironPipeRows"],
                   PropsModel["ironPipeRows"],
@@ -359,6 +369,11 @@ function DimensionsAnalyst(props) {
   });
 
   const [productProperties, setProductProperties] = useState({
+    volume: {
+      length: 0,
+      width: 0,
+      height: 0
+    },
     ironPipeRows: [
       PropsModel["ironPipeRows"],
       PropsModel["ironPipeRows"],
@@ -434,6 +449,7 @@ function DimensionsAnalyst(props) {
       "weight and dimensions": weightAndDimentions,
       buildMaterial: filters.buildMaterial,
       productProperties: {
+        volume: productProperties.volume,
         ironPipeRows: exportedIronPipeRows,
         woodenSheetRows: exportedWoodenSheetRows,
         woodTapeRows: exportedWoodTapeRows,
@@ -455,7 +471,7 @@ function DimensionsAnalyst(props) {
         const chunks = item.split("\t");
         console.log('chunk[2] -->', chunks[2]);
         ironPipeRows.push({
-          pipeTypeNSize: `${chunks[1]}  ${chunks[2].replaceAll('"', "''")}`,
+          pipeTypeNSize: `${chunks[1].toLowerCase()}  ${chunks[2].replaceAll('"', "''").toLowerCase()}`,
           length: chunks[3],
           qty: chunks[4]
         })
@@ -522,25 +538,7 @@ function DimensionsAnalyst(props) {
             qty: chunks[2],
           })
         }
-
-        // for (var i = 0; i < miscTableRows.length; i++) {
-        //   if (chunks[0] === miscTableRows[i].item && chunks[2] !== "") {
-        //     miscTableRows[i].size = chunks[1]
-        //     miscTableRows[i].qty = chunks[2]
-        //   }
-        // }
       })
-      // const miscTableRows = PropsModel["miscTableRows"]
-      // data.map((item) => {
-      //   const chunks = item.split("\t");
-
-      //   for (var i = 0; i < miscTableRows.length; i++) {
-      //     if (chunks[0] === miscTableRows[i].item && chunks[2] !== "") {
-      //       miscTableRows[i].size = chunks[1]
-      //       miscTableRows[i].qty = chunks[2]
-      //     }
-      //   }
-      // })
 
       setProductProperties(pre => ({
         ...pre,
@@ -560,6 +558,19 @@ function DimensionsAnalyst(props) {
 
     return miscItems.filter(item => !miscItem.includes(item));
   }
+
+  const getDropdownItems = async () => {
+    fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).then((result) => {
+      console.log('ingredients result', result);
+      const ing = result.data.portalVariables.pipeTypesNSizes.filter((pipeTypeNSize) => pipeTypeNSize.status === 'active');
+      setPipeTypeAndSizes(ing)
+      setTapeSizes(result.data.standardCosts.tape)
+    }).catch((e) => console.log('error occured', e))
+  }
+
+  useEffect(() => {
+    getDropdownItems()
+  }, [])
 
   return (
     <>
@@ -581,39 +592,29 @@ function DimensionsAnalyst(props) {
             </div>
 
             <div className="d-flex flex-row align-items-center gap-1 flex-fill">
-
-              {/* <Stack direction='row' justifyContent='end' width={'100%'}>
-                <TextField value={url} placeholder="Search by URL" variant="filled" onChange={(e) => setURL(e.target.value)} style={{ borderRadius: 0, width: '100%' }} />
-                <Button variant="contained"
-                  onClick={executePythonScript}
-                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
-                >
-
-                  <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontWeight='bold'>GO</Typography>
-                    {dataLoading && <CircularProgress size={26} color="warning" />}
-                  </Stack>
-                </Button>
-              </Stack>
-
-              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
-              <Button variant="contained"
-                onClick={executePythonScript}
-                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
-              >
-
-                <Stack direction='row' gap={2} alignItems='center'>
-                  <Typography fontWeight='bold'>Fetch</Typography>
-                  {dataLoading && <CircularProgress size={26} color="warning" />}
-                </Stack>
-              </Button> */}
-
-              <div className="d-flex flex-fill">
-                <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} onChange={(e) => setURL(e.target.value)} value={url} />
+              <div className="d-flex flex-fill align-items-center gap-2">
+                <input
+                  className="w-100 px-3 py-2 flex-fill"
+                  placeholder={`Search By ${searchQueryType}`}
+                  style={{ backgroundColor: "#e8e8e8" }}
+                  value={url}
+                  onChange={(e) => setURL(e.target.value)}
+                />
+                <div class="form-check form-switch">
+                  <input class="form-check-input bg-dark-subtle" type="checkbox" id="flexSwitchCheckDefault"
+                    onChange={(e) => setSearchQueryType(pre => {
+                      if (pre === 'URL') {
+                        return 'SKU'
+                      } else {
+                        return 'URL'
+                      }
+                    })}
+                  />
+                  <label class="form-check-label" for="flexSwitchCheckDefault">{searchQueryType}</label>
+                </div>
                 <button
                   id="btn-go"
                   className="btn p-2 px-3  btn-go-fetch"
-
                   onClick={executePythonScript}
                 >
                   GO
@@ -751,6 +752,71 @@ function DimensionsAnalyst(props) {
                   <TableHead>
                     <TableRow>
                       <TableCell className="table-head" colSpan={6}>
+                        <Typography fontWeight='bold'>Product Volume</Typography>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow className="cell-head">
+                      <TableCell>Length</TableCell>
+                      <TableCell>Width</TableCell>
+                      <TableCell>Height</TableCell>
+                      <TableCell>Volume</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+
+                    <TableRow>
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume.length}
+                          fullWidth
+                          onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, length: e.target.value } }))}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume.width}
+                          fullWidth
+                          onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, width: e.target.value } }))}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume.height}
+                          fullWidth
+                          onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, height: e.target.value } }))}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <TextField
+                          size="small"
+                          variant="outlined"
+                          value={productProperties.volume.length * productProperties.volume.width * productProperties.volume.height}
+                          className="cell-disabled"
+                          fullWidth
+                          disabled
+                        />
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+
+            <Stack>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-head" colSpan={6}>
                         <Stack direction='row' justifyContent='space-between'>
                           <div></div>
                           <Typography fontWeight='bold'>Iron Pipe</Typography>
@@ -780,6 +846,7 @@ function DimensionsAnalyst(props) {
                           unitSelector={filters.unitSelector}
                           editable={dataLoaded}
                           hideDetails={true}
+                          pipeTypeAndSizes={pipeTypeAndSizes}
                         />
                       );
                     })}
@@ -884,6 +951,7 @@ function DimensionsAnalyst(props) {
                             handleEdit={handleEdit}
                             unitSelector={filters.unitSelector}
                             editable={dataLoaded}
+                            tapeSizes={tapeSizes}
                           />
                         );
                       })}
@@ -920,7 +988,7 @@ function DimensionsAnalyst(props) {
                     </TableRow>
                     <TableRow className="cell-head">
                       <TableCell>Item</TableCell>
-                      <TableCell>Size</TableCell>
+                      {/* <TableCell>Size</TableCell> */}
                       <TableCell>Qty</TableCell>
                     </TableRow>
                   </TableHead>
@@ -965,7 +1033,6 @@ function DimensionsAnalyst(props) {
                                 ...pre,
                                 miscTableRows: [...pre.miscTableRows, {
                                   item: selectedMiscItemSelectionValue,
-                                  size: MiscItemSize[0].Size,
                                   qty: ''
                                 }]
                               }))

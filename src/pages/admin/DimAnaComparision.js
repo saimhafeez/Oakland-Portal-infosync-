@@ -541,7 +541,7 @@ function DimAnaComparision(props) {
                                                 </TableRow>
                                                 <TableRow className="cell-head">
                                                     <TableCell>Item</TableCell>
-                                                    <TableCell>Size</TableCell>
+                                                    <TableCell>Details</TableCell>
                                                     <TableCell>Qty</TableCell>
                                                 </TableRow>
                                             </TableHead>
@@ -558,8 +558,8 @@ function DimAnaComparision(props) {
                                                         <TableRow
                                                             style={{ backgroundColor: highlightedRows.miscTableRows.includes(index) && highlightedRowsColor }}
                                                         >
-                                                            <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item}</TableCell>
-                                                            <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                                            <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item.split(' - ')[0]}</TableCell>
+                                                            <TableCell className='cell'>{row.item.split(' - ')[1]}</TableCell>
                                                             <TableCell className='cell'>{row.qty}</TableCell>
                                                         </TableRow>
                                                     );
@@ -743,8 +743,8 @@ function DimAnaComparision(props) {
                                                         <TableRow
                                                             style={{ backgroundColor: highlightedRows.miscTableRows.includes(index) && highlightedRowsColor }}
                                                         >
-                                                            <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item}</TableCell>
-                                                            <TableCell className='cell'>{row.size ? row.size.toUpperCase() : "NA"}</TableCell>
+                                                            <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item.split(' - ')[0]}</TableCell>
+                                                            <TableCell className='cell'>{row.item.split(' - ')[1]}</TableCell>
                                                             <TableCell className='cell'>{row.qty}</TableCell>
                                                         </TableRow>
                                                     );

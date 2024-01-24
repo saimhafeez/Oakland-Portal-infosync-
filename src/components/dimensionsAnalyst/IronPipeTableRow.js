@@ -18,7 +18,8 @@ function IronPipeTableRow({
   _key,
   unitSelector,
   editable = true,
-  hideDetails = false
+  hideDetails = false,
+  pipeTypeAndSizes = []
 }) {
   const propType = "ironPipeRows";
 
@@ -51,8 +52,10 @@ function IronPipeTableRow({
   }
 
   useEffect(() => {
-    fetchIngredients()
+    // fetchIngredients()
+    console.log('** --> ', pipeTypeAndSizes);
   }, [])
+
 
   return (
     <TableRow>
@@ -65,10 +68,10 @@ function IronPipeTableRow({
           name="pipeTypeNSize"
           disabled={!editable}
         >
-          {ingredients.map((item, index) => {
+          {pipeTypeAndSizes.map((pipeTypeNSize, index) => {
             return (
-              <MenuItem key={index} value={item}>
-                {item}
+              <MenuItem key={index} value={`${pipeTypeNSize.type}  ${pipeTypeNSize.size}`}>
+                {`${pipeTypeNSize.type}  ${pipeTypeNSize.size}`}
               </MenuItem>
             );
           })}

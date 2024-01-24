@@ -18,6 +18,7 @@ function WoodTapeTableRow({
   _key,
   unitSelector,
   editable = true,
+  tapeSizes = []
 }) {
   const propType = "woodTapeRows";
 
@@ -49,10 +50,11 @@ function WoodTapeTableRow({
             background: data.size === 'Select an Option' ? '#c6efce' : 'white',
           }}
         >
-          {WoodTapeSize.map((item, index) => {
+          <MenuItem value='Select an Option'>Select an Option</MenuItem>
+          {tapeSizes.map((tape, index) => {
             return (
-              <MenuItem key={index} value={item.Size}>
-                {item.Size.toUpperCase()}
+              <MenuItem key={index} value={`${tape.type} - ${tape.size_inch}`}>
+                {`${tape.type} - ${tape.size_inch}`}
               </MenuItem>
             );
           })}

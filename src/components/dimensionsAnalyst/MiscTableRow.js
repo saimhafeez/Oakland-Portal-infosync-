@@ -28,7 +28,7 @@ function MiscTableRow({ handleEdit, data, _key, editable = true }) {
         />
       </TableCell>
 
-      <TableCell>
+      {/* <TableCell>
         <Select
           size="small"
           value={data.size}
@@ -40,12 +40,12 @@ function MiscTableRow({ handleEdit, data, _key, editable = true }) {
           {MiscItemSize.map((item, index) => {
             return (
               <MenuItem key={index} value={item.Size}>
-                {item.Size}
+                {item.details}
               </MenuItem>
             );
           })}
         </Select>
-      </TableCell>
+      </TableCell> */}
 
       <TableCell>
         <TextField

@@ -7,6 +7,7 @@ import { triggerToast } from "../utils/triggerToast";
 const ExtractionQA = (props) => {
   // =========================================================================
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchQueryType, setSearchQueryType] = useState('URL')
   // =========================================================================
 
   const [allImages, setAllImages] = useState([]);
@@ -143,6 +144,9 @@ const ExtractionQA = (props) => {
           if (e.target.id === 'btn-go' && searchQuery !== '') {
             apiUrl = apiUrl + `?url=${encodeURIComponent(searchQuery)}`
           }
+          if (searchQueryType === 'SKU') {
+            apiUrl = apiUrl + `&use_sku=${true}`
+          }
           setToken(token);
           // Make an authenticated API request
           fetch(apiUrl, {
@@ -219,6 +223,7 @@ const ExtractionQA = (props) => {
     setIsFetchButtonDisabled(false);
     setVisibilityNotDoable(false);
     setSearchQuery('')
+    setShowId('')
   }
 
   // DEFAULT SECTION METHOD
@@ -691,6 +696,7 @@ const ExtractionQA = (props) => {
         triggerToast("Data submited Successfully!", "success", "50px", "top-left")
 
         setSearchQuery("")
+        setShowId('')
 
       })
       .catch((error) => {
@@ -849,12 +855,30 @@ const ExtractionQA = (props) => {
               </div>
 
               <div className="d-flex flex-row align-items-center gap-1 flex-fill">
-                <div className="d-flex flex-fill">
-                  <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
+                <div className="d-flex flex-fill align-items-center gap-2">
+                  <input
+                    className="w-100 px-3 py-2 flex-fill"
+                    placeholder={`Search By ${searchQueryType}`}
+                    style={{ backgroundColor: "#e8e8e8" }}
+                    value={searchQuery}
+                    disabled={isFetchButtonDisabled}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <div class="form-check form-switch">
+                    <input class="form-check-input bg-dark-subtle" type="checkbox" id="flexSwitchCheckDefault"
+                      onChange={(e) => setSearchQueryType(pre => {
+                        if (pre === 'URL') {
+                          return 'SKU'
+                        } else {
+                          return 'URL'
+                        }
+                      })}
+                    />
+                    <label class="form-check-label" for="flexSwitchCheckDefault">{searchQueryType}</label>
+                  </div>
                   <button
                     id="btn-go"
                     className="btn p-2 px-3  btn-go-fetch"
-
                     onClick={executePythonScript}
                     disabled={isFetchButtonDisabled}
                   >

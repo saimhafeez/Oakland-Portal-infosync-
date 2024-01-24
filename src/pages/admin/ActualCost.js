@@ -17,12 +17,16 @@ import {
     Typography,
     colors,
 } from "@mui/material";
-import styled from 'styled-components';
-import { getDimTableData } from '../utils/getDimTableData';
-import generatePDF, { Margin, Resolution, usePDF } from 'react-to-pdf';
-import HeaderSignOut from '../components/header/HeaderSignOut';
 
-function ProductVendorInformation(props) {
+
+
+
+import styled from 'styled-components';
+import HeaderSignOut from '../../components/header/HeaderSignOut';
+import { getDimTableData } from '../../utils/getDimTableData';
+import generatePDF, { Margin, Resolution, usePDF } from 'react-to-pdf';
+
+function ActualCost(props) {
     const urlParams = new URLSearchParams(window.location.search);
 
     const [displayProductDataType, setDisplayProductDataType] = useState('images');
@@ -278,27 +282,30 @@ function ProductVendorInformation(props) {
         return found
     }
 
-    const basicCosts = {
-        pipe: {
-            "square  01'' x 01''": 300,
-            "square  0.5'' x 0.5''": 400,
-        },
-        sheet: 5000 / 30
-    }
-
     const calculatePipeTotals = () => {
 
         var total_ft = 0;
+        var total_ft__x__wt_ft = 0;
         var pipe_cost = 0;
+        var paint_cost = 0;
 
         if (qaDimAnaData.isLoading) {
             return
         }
 
         qaDimAnaData.data.ironPipeRows.map((row, index) => {
-            const _total_ft = getTotal('Iron Pipe', { length: row.length, qty: row.qty }) / 12;
-            total_ft += _total_ft
-            pipe_cost += _total_ft * basicCosts.pipe[row.pipeTypeNSize]
+
+            const _total_ft = getTotal('Iron Pipe', { length: row.length, qty: row.qty }) / 12
+
+            const wt_ft = (getPipeStandanrdCost(actualCostTable.pipe[index].material).weight / getPipeStandanrdCost(actualCostTable.pipe[index].material).length_feet)
+
+            total_ft += _total_ft;
+            total_ft__x__wt_ft += _total_ft * wt_ft;
+
+            pipe_cost += _total_ft * (getPipeStandanrdCost(actualCostTable.pipe[index].material).rate / getPipeStandanrdCost(actualCostTable.pipe[index].material).length_feet)
+
+            paint_cost += _total_ft * (getPaintStandanrdCost(actualCostTable.pipe[index].paint).rate)
+
         })
 
         setSummary(pre => ({
@@ -307,6 +314,8 @@ function ProductVendorInformation(props) {
                 ...pre.pipe,
                 total_ft,
                 pipe_cost,
+                paint_cost,
+                total_ft__x__wt_ft
             }
         }))
 
@@ -316,6 +325,8 @@ function ProductVendorInformation(props) {
 
         var total_ft = 0;
         var sheet_rate = 0;
+        var tape_cost = 0;
+        var total_ft__x__wt_ft = 0;
 
         if (qaDimAnaData.isLoading) {
             return
@@ -324,8 +335,16 @@ function ProductVendorInformation(props) {
         qaDimAnaData.data.woodenSheetRows.map((row, index) => {
 
             const _total_ft = getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty }) / 12
+
+            const wt_ft = (getSheetStandanrdCost(actualCostTable.sheet[index].material).weight / getSheetStandanrdCost(actualCostTable.sheet[index].material).total_sq_feet)
+
             total_ft += _total_ft;
-            sheet_rate += _total_ft * basicCosts.sheet
+            total_ft__x__wt_ft += _total_ft * wt_ft;
+
+            sheet_rate += _total_ft * (getSheetStandanrdCost(actualCostTable.sheet[index].material).rate / getSheetStandanrdCost(actualCostTable.sheet[index].material).total_sq_feet)
+
+            tape_cost += _total_ft * (getTapeStandanrdCost(actualCostTable.sheet[index].tape).rate)
+
         })
 
         setSummary(pre => ({
@@ -334,6 +353,8 @@ function ProductVendorInformation(props) {
                 ...pre.sheet,
                 total_ft,
                 sheet_rate,
+                tape_cost,
+                total_ft__x__wt_ft
             }
         }))
 
@@ -406,7 +427,7 @@ function ProductVendorInformation(props) {
 
                         <Stack direction='column' width='100%' spacing={0.5}>
 
-                            <div className='bg-black text-white' style={{ textTransform: 'capitalize' }}>
+                            <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
                                 <h4>
                                     SKU: {info.sku}
                                 </h4>
@@ -469,7 +490,7 @@ function ProductVendorInformation(props) {
                         </Stack>
 
                     </Stack>
-                    <Stack width='70%' direction='row' overflow='auto' height='calc(100vh - 70px)'>
+                    <Stack width='70%' direction='row' >
                         <Stack width={'100%'} bgcolor={'beige'} direction='column' gap={3}>
 
                             {(qaDimAnaData.isLoading || standardCost.isLoading) ?
@@ -481,7 +502,7 @@ function ProductVendorInformation(props) {
                                 <>
                                     <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
                                         <h4>
-                                            BASIC COST SHEET
+                                            COST TABLE
                                         </h4>
                                     </div>
 
@@ -513,25 +534,51 @@ function ProductVendorInformation(props) {
                                             <Table size="small">
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell className="table-head" colSpan={5}>
+                                                        <TableCell className="table-head" colSpan={6}>
                                                             <Stack direction='row' justifyContent='center'>
                                                                 <Typography fontWeight='bold'>Pipe</Typography>
                                                             </Stack>
                                                         </TableCell>
+                                                        <TableCell className="table-head" colSpan={2} style={{ backgroundColor: '#F0D700', color: "black" }}>
+                                                            <Stack direction='row' justifyContent='center'>
+                                                                <Typography fontWeight='bold'>Paint</Typography>
+                                                            </Stack>
+                                                        </TableCell>
                                                     </TableRow>
                                                     <TableRow className="cell-head">
+                                                        <TableCell>Material</TableCell>
                                                         <TableCell>Pipe Type & Size</TableCell>
                                                         <TableCell>Measures</TableCell>
                                                         <TableCell>Qty</TableCell>
                                                         <TableCell>Total '' [Ft]</TableCell>
                                                         <TableCell>Pipe Cost</TableCell>
+                                                        <TableCell>Paint</TableCell>
+                                                        <TableCell>Paint - Cost</TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
                                                     {qaDimAnaData.data.ironPipeRows.map((row, index) => {
-                                                        console.log('bc', basicCosts.pipe[row.pipeTypeNSize], row, row.pipeTypeNSize, basicCosts.pipe);
                                                         return (
                                                             <TableRow>
+                                                                <TableCell className='cell'>
+                                                                    <select
+                                                                        className="p-2 w-100"
+                                                                        // name="qa-status"
+                                                                        // id="qa-status"
+                                                                        onChange={(e) => setActualCostTable(pre => ({
+                                                                            ...pre,
+                                                                            pipe: pre.pipe.map((item, _index) =>
+                                                                                _index === index ? { ...item, material: e.target.value } : item
+                                                                            ),
+                                                                        }))}
+                                                                        value={actualCostTable.pipe[index].material}
+                                                                    >
+                                                                        <option value="">Select Material</option>
+                                                                        {standardCost.data.pipe.map((item, index) => {
+                                                                            return <option value={`${item.material} - ${item.brand}`}>{`${item.material} - ${item.brand}`}</option>
+                                                                        })}
+                                                                    </select>
+                                                                </TableCell>
 
                                                                 <TableCell className='cell'>{row.pipeTypeNSize}</TableCell>
 
@@ -544,8 +591,28 @@ function ProductVendorInformation(props) {
                                                                 </TableCell>
 
                                                                 <TableCell className='cell'>
-                                                                    {((getTotal('Iron Pipe', { length: row.length, qty: row.qty }) / 12) * basicCosts.pipe[row.pipeTypeNSize]).toFixed(0)}
-
+                                                                    {((getTotal('Iron Pipe', { length: row.length, qty: row.qty }) / 12) * (getPipeStandanrdCost(actualCostTable.pipe[index].material).rate / getPipeStandanrdCost(actualCostTable.pipe[index].material).length_feet)).toFixed(0)}
+                                                                </TableCell>
+                                                                <TableCell className='cell'>
+                                                                    <select
+                                                                        className="p-2 w-100"
+                                                                        // name="qa-status"
+                                                                        // id="qa-status"
+                                                                        onChange={(e) => setActualCostTable(pre => ({
+                                                                            ...pre,
+                                                                            pipe: pre.pipe.map((item, _index) =>
+                                                                                _index === index ? { ...item, paint: e.target.value } : item
+                                                                            ),
+                                                                        }))}
+                                                                        value={actualCostTable.pipe[index].paint}
+                                                                    >
+                                                                        {standardCost.data.paint.map((item, index) => {
+                                                                            return <option value={`${item.type} - ${item.brand}`}>{`${item.type} - ${item.brand}`}</option>
+                                                                        })}
+                                                                    </select>
+                                                                </TableCell>
+                                                                <TableCell className='cell'>
+                                                                    {((getTotal('Iron Pipe', { length: row.length, qty: row.qty }) / 12) * (getPaintStandanrdCost(actualCostTable.pipe[index].paint).rate)).toFixed(0)}
                                                                 </TableCell>
                                                             </TableRow>
                                                         );
@@ -556,11 +623,16 @@ function ProductVendorInformation(props) {
                                                         <TableCell className='cell cell-head'>Total</TableCell>
                                                         <TableCell className='cell cell-head'></TableCell>
                                                         <TableCell className='cell cell-head'></TableCell>
+                                                        <TableCell className='cell cell-head'></TableCell>
                                                         <TableCell className='cell cell-head'>
                                                             {summary.pipe.total_ft.toFixed(2)}
                                                         </TableCell>
                                                         <TableCell className='cell cell-head'>
                                                             {summary.pipe.pipe_cost.toFixed(0)}
+                                                        </TableCell>
+                                                        <TableCell className='cell cell-head'></TableCell>
+                                                        <TableCell className='cell cell-head'>
+                                                            {summary.pipe.paint_cost.toFixed(0)}
                                                         </TableCell>
                                                     </TableRow>
                                                 </TableFooter>
@@ -573,24 +645,51 @@ function ProductVendorInformation(props) {
                                             <Table size="small">
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell className="table-head" colSpan={5}>
+                                                        <TableCell className="table-head" colSpan={6}>
                                                             <Stack direction='row' justifyContent='center'>
                                                                 <Typography fontWeight='bold'>Sheet</Typography>
                                                             </Stack>
                                                         </TableCell>
+                                                        <TableCell className="table-head" colSpan={2} style={{ backgroundColor: '#F0D700', color: "black" }}>
+                                                            <Stack direction='row' justifyContent='center'>
+                                                                <Typography fontWeight='bold'>Tape</Typography>
+                                                            </Stack>
+                                                        </TableCell>
                                                     </TableRow>
                                                     <TableRow className="cell-head">
+                                                        <TableCell>Material</TableCell>
                                                         <TableCell>Type</TableCell>
                                                         <TableCell>Measures</TableCell>
                                                         <TableCell>Qty</TableCell>
                                                         <TableCell>Total [Sq Ft]</TableCell>
                                                         <TableCell>Rate</TableCell>
+                                                        <TableCell>Tape</TableCell>
+                                                        <TableCell>Tape - Cost</TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
                                                     {qaDimAnaData.data.woodenSheetRows.map((row, index) => {
                                                         return (
                                                             <TableRow>
+                                                                <TableCell className='cell'>
+                                                                    <select
+                                                                        className="p-2 w-100"
+                                                                        // name="qa-status"
+                                                                        // id="qa-status"
+                                                                        onChange={(e) => setActualCostTable(pre => ({
+                                                                            ...pre,
+                                                                            sheet: pre.sheet.map((item, _index) =>
+                                                                                _index === index ? { ...item, material: e.target.value } : item
+                                                                            ),
+                                                                        }))}
+                                                                        value={actualCostTable.sheet[index].material}
+                                                                    >
+                                                                        <option value="">Select Material</option>
+                                                                        {standardCost.data.sheet.map((item, index) => {
+                                                                            return <option value={`${item.material} - ${item.brand}`}>{`${item.material} - ${item.brand}`}</option>
+                                                                        })}
+                                                                    </select>
+                                                                </TableCell>
                                                                 <TableCell className='cell'>{row.type}</TableCell>
                                                                 <TableCell className='cell'>{getValue(row.length)}'' x {getValue(row.width)}''</TableCell>
                                                                 <TableCell className='cell'>{row.qty}</TableCell>
@@ -600,7 +699,17 @@ function ProductVendorInformation(props) {
                                                                 </TableCell>
 
                                                                 <TableCell className='cell'>
-                                                                    {((getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty }) / 12) * basicCosts.sheet).toFixed(0)}
+                                                                    {((getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty }) / 12) * (getSheetStandanrdCost(actualCostTable.sheet[index].material).rate / getSheetStandanrdCost(actualCostTable.sheet[index].material).total_sq_feet)).toFixed(0)}
+                                                                </TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {actualCostTable.sheet[index].tape}
+                                                                </TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {(
+                                                                        (getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty }) / 12) * (getTapeStandanrdCost(actualCostTable.sheet[index].tape).rate)
+                                                                    ).toFixed(0)}
                                                                 </TableCell>
                                                             </TableRow>
                                                         );
@@ -611,11 +720,16 @@ function ProductVendorInformation(props) {
                                                         <TableCell className='cell cell-head'>Total</TableCell>
                                                         <TableCell className='cell cell-head'></TableCell>
                                                         <TableCell className='cell cell-head'></TableCell>
+                                                        <TableCell className='cell cell-head'></TableCell>
                                                         <TableCell className='cell cell-head'>
                                                             {summary.sheet.total_ft.toFixed(2)}
                                                         </TableCell>
                                                         <TableCell className='cell cell-head'>
                                                             {summary.sheet.sheet_rate.toFixed(0)}
+                                                        </TableCell>
+                                                        <TableCell className='cell cell-head'></TableCell>
+                                                        <TableCell className='cell cell-head'>
+                                                            {summary.sheet.tape_cost.toFixed(0)}
                                                         </TableCell>
                                                     </TableRow>
                                                 </TableFooter>
@@ -675,9 +789,86 @@ function ProductVendorInformation(props) {
                                         </TableContainer>
                                     </Stack>
 
-                                    <Stack>
+                                    <Stack direction='row'>
 
-                                        <TableContainer component={Paper} variant="outlined">
+                                        <TableContainer sx={{ width: '50%' }} component={Paper} variant="outlined">
+                                            <Table padding={0} size="small">
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell className="table-head" colSpan={8}>
+                                                            <Stack direction='row' justifyContent='center'>
+                                                                <Typography fontWeight='bold'>Weight & Volume</Typography>
+                                                            </Stack>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                    <TableRow className="cell-head">
+                                                        <TableCell colSpan={2}>VOLUME</TableCell>
+                                                        <TableCell colSpan={2}>WEIGHT</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    <TableRow>
+                                                        <TableCell className='cell'>
+                                                            Length
+                                                        </TableCell>
+                                                        <TableCell className='cell'>
+                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.length) || 0}
+                                                        </TableCell>
+
+                                                        <TableCell className='cell'>
+                                                            Mass Weight
+                                                        </TableCell>
+                                                        <TableCell className='cell'>
+                                                            {(summary.pipe.total_ft__x__wt_ft + summary.sheet.total_ft__x__wt_ft + summary.misc.total_weight).toFixed(2)}
+                                                        </TableCell>
+                                                    </TableRow>
+
+                                                    <TableRow>
+                                                        <TableCell className='cell'>
+                                                            Width
+                                                        </TableCell>
+                                                        <TableCell className='cell'>
+                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.width) || 0}
+                                                        </TableCell>
+
+                                                        <TableCell className='cell'>
+                                                            Volumetric Weight
+                                                        </TableCell>
+                                                        <TableCell className='cell'>
+                                                            {((qaDimAnaData.data.volume && qaDimAnaData.data.volume.length * qaDimAnaData.data.volume.width * qaDimAnaData.data.volume.height) / 5000).toFixed(2) || 0}
+                                                        </TableCell>
+                                                    </TableRow>
+
+                                                    <TableRow>
+                                                        <TableCell className='cell'>
+                                                            Height
+                                                        </TableCell>
+                                                        <TableCell className='cell'>
+                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.height) || 0}
+                                                        </TableCell>
+
+                                                        <TableCell className='cell'></TableCell>
+                                                        <TableCell className='cell'></TableCell>
+                                                    </TableRow>
+
+                                                    <TableRow>
+                                                        <TableCell className='cell'>
+                                                            Volume
+                                                        </TableCell>
+                                                        <TableCell className='cell'>
+                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.length * qaDimAnaData.data.volume.width * qaDimAnaData.data.volume.height) || 0}
+                                                        </TableCell>
+
+                                                        <TableCell className='cell'></TableCell>
+                                                        <TableCell className='cell'></TableCell>
+                                                    </TableRow>
+
+
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+
+                                        <TableContainer sx={{ width: '50%' }} component={Paper} variant="outlined">
                                             <Table padding={0} size="small">
                                                 <TableHead>
                                                     <TableRow>
@@ -700,6 +891,11 @@ function ProductVendorInformation(props) {
                                                     </TableRow>
 
                                                     <TableRow>
+                                                        <TableCell className='cell'>PAINT</TableCell>
+                                                        <TableCell className='cell'>{summary.pipe.paint_cost.toFixed(0)}</TableCell>
+                                                    </TableRow>
+
+                                                    <TableRow>
                                                         <TableCell className='cell'>TAPE</TableCell>
                                                         <TableCell className='cell'>{summary.sheet.tape_cost.toFixed(0)}</TableCell>
                                                     </TableRow>
@@ -716,7 +912,44 @@ function ProductVendorInformation(props) {
                                                         }</TableCell>
                                                     </TableRow>
 
+                                                    <TableRow>
+                                                        <TableCell className='cell'>OTHERS</TableCell>
+                                                        <TableCell className='cell'>{
+                                                            ((summary.pipe.pipe_cost + summary.pipe.paint_cost + summary.sheet.sheet_rate + summary.sheet.tape_cost + summary.misc.total_rate) * 0.1).toFixed(0)
+                                                        }</TableCell>
+                                                    </TableRow>
+
+                                                    <TableRow>
+                                                        <TableCell className='cell'>DELIVERY</TableCell>
+                                                        <TableCell className='cell'>{
+                                                            // (whichever is bigger volumertic vs mass weight) * delivery_company_rate
+                                                            (getBiggerWeight() * getShippingCompanyStandanrdCost(actualCostTable.shipping.company)[actualCostTable.shipping.service]).toFixed(0)
+                                                        }</TableCell>
+                                                    </TableRow>
                                                 </TableBody>
+                                                <TableFooter>
+                                                    <TableRow>
+                                                        <TableCell colSpan={2}>
+                                                            <Stack padding={1} direction='row' justifyContent='space-between'>
+                                                                <Button
+                                                                    variant='contained'
+                                                                    color='success'
+                                                                    disabled={!activateSaveButton()}
+                                                                    onClick={() => generatePDF(targetPDFRef, PDFoptions)}
+                                                                >
+                                                                    Generate PDF
+                                                                </Button>
+
+                                                                <Button
+                                                                    variant='contained'
+                                                                    disabled={!activateSaveButton()}
+                                                                >
+                                                                    Save
+                                                                </Button>
+                                                            </Stack>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </TableFooter>
                                             </Table>
                                         </TableContainer>
 
@@ -785,4 +1018,4 @@ const Wrapper = styled.main`
   }
 `;
 
-export default ProductVendorInformation
+export default ActualCost

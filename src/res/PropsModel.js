@@ -5,7 +5,7 @@ import MiscItemSize from './MiscItemSize.json'
 
 const PropsModel = {
     ironPipeRows: {
-        pipeTypeNSize: `${PipeTypeNSize[0].Type}  ${PipeTypeNSize[0].Size}`,
+        pipeTypeNSize: `${PipeTypeNSize[0].Type.toLowerCase()}  ${PipeTypeNSize[0].Size}`,
         length: '',
         qty: ''
     },

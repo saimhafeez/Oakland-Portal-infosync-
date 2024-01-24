@@ -4,15 +4,18 @@ import styled from "styled-components";
 import {
     Button,
     CircularProgress,
+    IconButton,
     MenuItem,
     Select,
     Stack,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import { formatDate } from "../utils/formatDate";
 
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "../firebase";
+import { InfoTwoTone } from "@mui/icons-material";
 
 
 
@@ -22,7 +25,8 @@ function SuperAdmin(props) {
     const colors = {
         major: '#f1c232',
         minor: '#ffe599',
-        not_understandable: '#F8D465'
+        not_understandable: '#F8D465',
+        resetAbove: '#6C22A6',
     }
 
     const [searchByID, setSearchByID] = useState("");
@@ -97,7 +101,9 @@ function SuperAdmin(props) {
                 return indexA - indexB;
             }).map(async (manager) => {
                 const result = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/stats?job=${manager.jdesc}&lt=${lt}&gt=0`).then((res) => res.json()).catch((e) => console.log('error occured', e))
-
+                if (!result) {
+                    return []
+                }
                 const attempted = result.attempts;
                 var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
                 var not_understandable = manager.jdesc.includes('Extractor') ? result.rejects : 0
@@ -146,6 +152,10 @@ function SuperAdmin(props) {
                 return indexA - indexB;
             }).map(async (worker) => {
                 const result = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/stats?job=${worker.jdesc}&uid=${worker.id}&lt=${lt}`).then((res) => res.json()).catch((e) => console.log('error occured', e))
+                if (!result) {
+                    return []
+                }
+                console.log(`stats [${worker.name}]`, result);
 
                 const attempted = result.attempts;
                 var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
@@ -543,10 +553,10 @@ function SuperAdmin(props) {
                                                 {/* <th style={{ maxWidth: '40px' }}>Variant ID</th> */}
                                                 <th>Extractor</th>
                                                 <th>QA-Extractor</th>
-                                                <th className="fw-bold">Ext-Action</th>
+                                                <th style={{ maxWidth: '10px' }}>Ext-Action</th>
                                                 <th>DimAna</th>
                                                 <th>QA-DimAna</th>
-                                                <th>DimAna-Action</th>
+                                                <th style={{ maxWidth: '10px' }}>DimAna-Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -597,18 +607,34 @@ function SuperAdmin(props) {
                                                     </td>
 
                                                     <td>
-                                                        <div className="d-flex flex-column gap-2 justify-content-center px-2">
+                                                        <div className="d-flex flex-column gap-2 justify-content-center px-1">
                                                             {(tableFilter.includes('QA') || tableFilter === 'Filter by Role') && <button
-                                                                className="btn btn-warning"
+                                                                className="btn btn-warning p-0 m-0 py-2"
                                                                 onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-Extractor')}
                                                             >Compare</button>
                                                             }
                                                             <button
-                                                                className="btn"
-                                                                style={{ backgroundColor: 'red', color: 'white' }}
+                                                                className="btn p-0 m-0 py-2"
+                                                                style={{ backgroundColor: item.extractor_reset_info && item.extractor_reset_info.reset_count > 0 ? colors.resetAbove : 'red', color: 'white' }}
                                                                 onClick={() => resetProduct(item.ProductID, 'extractor')}
                                                                 disabled={disableResetButton(item)}
-                                                            >Reset</button>
+                                                            >
+                                                                <Stack direction='row' gap={1} alignItems='center' justifyContent='center'>
+                                                                    <Tooltip title={
+                                                                        <Stack direction='column' spacing={1}>
+                                                                            <Typography m={0} p={0}>
+                                                                                Resets: {item.extractor_reset_info ? item.extractor_reset_info.reset_count : 0}
+                                                                            </Typography>
+                                                                            <Typography m={0} p={0}>
+                                                                                Last Reset: {item.extractor_reset_info ? formatDate(item.extractor_reset_info.last_reset) : 'N/A'}
+                                                                            </Typography>
+                                                                        </Stack>
+                                                                    }>
+                                                                        <InfoTwoTone htmlColor="white" />
+                                                                    </Tooltip>
+                                                                    <Typography p={0} m={0}>Reset</Typography>
+                                                                </Stack>
+                                                            </button>
                                                         </div>
                                                     </td>
 
@@ -636,18 +662,34 @@ function SuperAdmin(props) {
                                                     </td>
 
                                                     <td>
-                                                        <div className="d-flex flex-column gap-2 justify-content-center px-2">
+                                                        <div className="d-flex flex-column gap-2 justify-content-center px-1">
                                                             {(tableFilter.includes('QA') || tableFilter === 'Filter by Role') && <button
-                                                                className="btn btn-warning"
+                                                                className="btn btn-warning p-0 m-0 py-2"
                                                                 onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-DimAna')}
                                                             >Compare</button>
                                                             }
                                                             <button
-                                                                className="btn"
-                                                                style={{ backgroundColor: 'red', color: 'white' }}
+                                                                className="btn p-0 m-0 py-2"
+                                                                style={{ backgroundColor: item.dimana_reset_info && item.dimana_reset_info.reset_count > 0 ? colors.resetAbove : 'red', color: 'white' }}
                                                                 onClick={() => resetProduct(item.ProductID, 'dimana')}
                                                                 disabled={disableResetButton(item)}
-                                                            >Reset</button>
+                                                            >
+                                                                <Stack direction='row' gap={1} alignItems='center' justifyContent='center'>
+                                                                    <Tooltip title={
+                                                                        <Stack direction='column' spacing={1}>
+                                                                            <Typography m={0} p={0}>
+                                                                                Resets: {item.dimana_reset_info ? item.dimana_reset_info.reset_count : 0}
+                                                                            </Typography>
+                                                                            <Typography m={0} p={0}>
+                                                                                Last Reset: {item.dimana_reset_info ? formatDate(item.dimana_reset_info.last_reset) : 'N/A'}
+                                                                            </Typography>
+                                                                        </Stack>
+                                                                    }>
+                                                                        <InfoTwoTone htmlColor="white" />
+                                                                    </Tooltip>
+                                                                    <Typography p={0} m={0}>Reset</Typography>
+                                                                </Stack>
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>

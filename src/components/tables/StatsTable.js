@@ -26,7 +26,7 @@ function StatsTable({ user, job = null }) {
 
         fetch(apiURL).then((res) => res.json()).then((result) => {
 
-            console.log('result', result);
+            console.log('stats result', result);
 
             const attempted = result.attempts;
             var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
@@ -35,7 +35,11 @@ function StatsTable({ user, job = null }) {
             var major = result.major_changes;
             var passed = result.qa_passed
             var earnings = result.earning;
-            var resets = (Math.random().toFixed(2) * 10).toFixed(0);
+            const rand = (Math.random().toFixed(2) * 90).toFixed(0);
+            var resets = `${rand / attempted} %`;
+            if (attempted === 0) {
+                resets = '0 %'
+            }
 
             setTableDataStats(pre => ({
                 ...pre,

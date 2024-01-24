@@ -9,6 +9,7 @@ const Extraction = (props) => {
 
   // =========================================================================
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchQueryType, setSearchQueryType] = useState('URL')
   // =========================================================================
 
   const [allImages, setAllImages] = useState([]);
@@ -118,6 +119,9 @@ const Extraction = (props) => {
           var apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/get_job`
           if (e.target.id === 'btn-go' && searchQuery !== '') {
             apiUrl = apiUrl + `?url=${encodeURIComponent(searchQuery)}`
+          }
+          if (searchQueryType === 'SKU') {
+            apiUrl = apiUrl + `&use_sku=${true}`
           }
           console.log(token);
           setToken(token);
@@ -579,8 +583,27 @@ const Extraction = (props) => {
                 </h6>
               </div>
               <div className="d-flex flex-row align-items-center gap-1 flex-fill">
-                <div className="d-flex flex-fill">
-                  <input className="w-100 px-3 flex-fill" placeholder="Search By URL" style={{ backgroundColor: "#e8e8e8" }} value={searchQuery} disabled={isFetchButtonDisabled} onChange={(e) => setSearchQuery(e.target.value)} />
+                <div className="d-flex flex-fill align-items-center gap-2">
+                  <input
+                    className="w-100 px-3 py-2 flex-fill"
+                    placeholder={`Search By ${searchQueryType}`}
+                    style={{ backgroundColor: "#e8e8e8" }}
+                    value={searchQuery}
+                    disabled={isFetchButtonDisabled}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <div class="form-check form-switch">
+                    <input class="form-check-input bg-dark-subtle" type="checkbox" id="flexSwitchCheckDefault"
+                      onChange={(e) => setSearchQueryType(pre => {
+                        if (pre === 'URL') {
+                          return 'SKU'
+                        } else {
+                          return 'URL'
+                        }
+                      })}
+                    />
+                    <label class="form-check-label" for="flexSwitchCheckDefault">{searchQueryType}</label>
+                  </div>
                   <button
                     id="btn-go"
                     className="btn p-2 px-3  btn-go-fetch"

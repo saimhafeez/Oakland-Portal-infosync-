@@ -11,8 +11,8 @@ const SuperAdminSidebar = () => {
                         </a>
                     </li>
                     <li>
-                        <a href="/ingredients" className="link-light" underline="hover">
-                            Ingredients Management
+                        <a href="/standard-costs" className="link-light" underline="hover">
+                            Standard Costs
                         </a>
                     </li>
                     <li>
@@ -38,6 +38,16 @@ const SuperAdminSidebar = () => {
                     <li>
                         <a href="/not-understandables" className="link-light" underline="hover">
                             NOT UNDERSTANDABLEs
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/actual-costs" className="link-light" underline="hover">
+                            Actual Costs
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/portal-variables" className="link-light" underline="hover">
+                            Portal Variables
                         </a>
                     </li>
                 </ul>

@@ -24,6 +24,10 @@ import NotUnderstandables from './pages/admin/NotUnderstandables';
 import ExtractionComparision from './pages/admin/ExtractionComparision';
 import DimAnaComparision from './pages/admin/DimAnaComparision';
 import ResetedProducts from './pages/admin/ResetedProducts';
+import PortalVariables from './pages/admin/PortalVariables';
+import StandardCosts from './pages/admin/StandardCosts';
+import ActualCostProducts from './pages/admin/ActualCostProducts';
+import ActualCost from './pages/admin/ActualCost';
 
 const auth = getAuth();
 
@@ -272,9 +276,42 @@ function App() {
               }
             >
               <Route
-                path="/ingredients"
+                path="/standard-costs"
                 element={
-                  <Ingredients
+                  <StandardCosts
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/actual-costs"
+                element={
+                  <ActualCostProducts
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/product-actual-cost"
+                element={
+                  <ActualCost
+                    userEmail={userEmail}
+                    userRole={userRole}
+                    userJdesc={userJdesc}
+                    user={user}
+                  />
+                }
+              />
+              <Route
+                path="/portal-variables"
+                element={
+                  <PortalVariables
                     userEmail={userEmail}
                     userRole={userRole}
                     userJdesc={userJdesc}
