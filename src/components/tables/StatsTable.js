@@ -35,8 +35,7 @@ function StatsTable({ user, job = null }) {
             var major = result.major_changes;
             var passed = result.qa_passed
             var earnings = result.earning;
-            const rand = (Math.random().toFixed(2) * 90).toFixed(0);
-            var resets = `${rand / attempted} %`;
+            var resets = `${result.resets / attempted} %`;
             if (attempted === 0) {
                 resets = '0 %'
             }

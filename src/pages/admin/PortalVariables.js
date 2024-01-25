@@ -327,7 +327,7 @@ function PortalVariables(props) {
         console.log('newData', newVariables);
 
 
-        fetch('http://139.144.30.86:8000/api/ingredients', {
+        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

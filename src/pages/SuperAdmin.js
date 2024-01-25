@@ -165,7 +165,7 @@ function SuperAdmin(props) {
                 var major = result.major_changes;
                 var passed = result.qa_passed;
                 var earnings = result.earning.toFixed(0);
-                var resets = (Math.random().toFixed(2) * 10).toFixed(0);
+                var resets = result.resets;
                 return [worker.name, worker.jdesc, attempted, rejected_nad, not_understandable, under_qa, minor, major, passed, earnings, resets];
             })
         )

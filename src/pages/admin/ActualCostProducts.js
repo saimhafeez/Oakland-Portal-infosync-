@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+import axios from "axios";
 
 import {
     Button,
@@ -17,20 +18,18 @@ import Header from "../../components/header/Header";
 
 function ActualCostProducts(props) {
 
-    const colors = {
-        major: '#f1c232',
-        minor: '#ffe599',
-        not_understandable: '#F8D465'
-    }
 
     const [searchByID, setSearchByID] = useState("");
     const [filterByQAStatus, setFilterByQAStatus] = useState("qa-status");
     const [filterByUser, setFilterByUser] = useState("user");
-    const [userList, setUserList] = useState([])
+
+    const [productHistoryTimeStamp, setProductHistoryTimeStamp] = useState("")
 
     const [tableFilter, setTableFilter] = useState('QA-DimAna')
 
     const lt = (new Date().getTime() / 1000).toFixed(0)
+
+    const [productHistory, setProductHistory] = useState([])
 
     const [tableData, setTableData] = useState({
         isLoading: true,
@@ -75,7 +74,7 @@ function ActualCostProducts(props) {
             apiURL = apiURL + `&uid=${filterByUser.split("#")[1].trim()}`
         }
 
-        fetch(apiURL).then((res) => res.json()).then((result) => {
+        fetch(apiURL).then((res) => res.json()).then(async (result) => {
             setTableData((pre) => ({
                 ...pre,
                 isLoading: false,
@@ -101,6 +100,48 @@ function ActualCostProducts(props) {
     useEffect(() => {
         fetchSuperAdminData()
     }, [tableData.currentPage])
+
+    const fetchHistory = async () => {
+
+        const history = {};
+        const fetchPromises = [];
+
+        tableData.data.forEach((singleProductEntry, index) => {
+            const promise = fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/cost_table/${singleProductEntry.ProductID}`)
+                .then((res) => res.json())
+                .then((costingSheet) => {
+                    if (!costingSheet.detail) {
+                        // console.log('-->', costingSheet);
+                        // console.log('Yoo', {
+                        //     [singleProductEntry.ProductID]: Object.keys(costingSheet.data.timebasedData).sort((a, b) => parseInt(b) - parseInt(a))
+                        // });
+                        history[singleProductEntry.ProductID] = Object.keys(costingSheet.data.timebasedData).sort((a, b) => parseInt(b) - parseInt(a));
+                    }
+                })
+                .catch((e) => console.log('error occurred', e));
+
+            fetchPromises.push(promise);
+        });
+
+        const h = await Promise.all(fetchPromises)
+            .then(() => {
+                // All promises have resolved
+                console.log('All fetch operations completed', history);
+                // setProductHistory(history)
+                return history
+            })
+            .catch((error) => console.log('Error in Promise.all:', error));
+        console.log('h ->', h);
+        setProductHistory(h)
+    }
+
+    useEffect(() => {
+
+        if (!tableData.isLoading) {
+            fetchHistory()
+        }
+
+    }, [tableData.data])
 
 
     useEffect(() => {
@@ -202,7 +243,7 @@ function ActualCostProducts(props) {
                                 <CircularProgress />
                             </Stack> :
 
-                                <table className="table mt-4 table-bordered table-striped align-middle text-center" style={{ maxWidth: '900px' }}>
+                                <table className="table mt-4 table-bordered table-striped align-middle text-center" style={{ maxWidth: '1100px' }}>
                                     <thead className="table-dark">
                                         <tr className="border-0 bg-white">
                                             <th className="bg-white text-dark border-0" style={{ maxWidth: '110px' }}>
@@ -243,6 +284,8 @@ function ActualCostProducts(props) {
                                             <th># SR</th>
                                             <th>Thumbnail</th>
                                             <th>Product ID</th>
+                                            <th>Current Version</th>
+                                            <th>All Versions</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -272,8 +315,24 @@ function ActualCostProducts(props) {
                                                     }
                                                 </td>
 
+                                                <td>{(productHistory && productHistory[item.ProductID] && formatDate(parseInt((productHistory[item.ProductID])[0]))) || 'N/A'}</td>
+
+                                                <select
+                                                    style={{
+                                                        height: '70px'
+                                                    }}
+                                                    className="p-2 w-100"
+                                                    value={productHistoryTimeStamp}
+                                                    onChange={(e) => setProductHistoryTimeStamp(e.target.value)}
+                                                >
+                                                    <option value="">Select version</option>
+                                                    {productHistory && productHistory[item.ProductID] && productHistory[item.ProductID].map((timeStamp, index) => {
+                                                        return <option value={timeStamp}>{formatDate(parseInt(timeStamp))}</option>
+                                                    })}
+                                                </select>
+
                                                 <td>
-                                                    <a className="btn btn-dark link-light" href={`/product-actual-cost?pid=${item.ProductID}`} underline="hover" target="_blank">
+                                                    <a className="btn btn-dark link-light" href={`/product-actual-cost?pid=${item.ProductID}&version=${productHistoryTimeStamp}`} underline="hover" target="_blank">
                                                         Calculate Cost
                                                     </a>
                                                 </td>

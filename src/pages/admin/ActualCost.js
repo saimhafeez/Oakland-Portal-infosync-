@@ -18,17 +18,16 @@ import {
     colors,
 } from "@mui/material";
 
-
-
-
 import styled from 'styled-components';
 import HeaderSignOut from '../../components/header/HeaderSignOut';
 import { getDimTableData } from '../../utils/getDimTableData';
 import generatePDF, { Margin, Resolution, usePDF } from 'react-to-pdf';
+import { triggerToast } from '../../utils/triggerToast';
 
 function ActualCost(props) {
     const urlParams = new URLSearchParams(window.location.search);
 
+    const [editable, setEditable] = useState(true)
     const [displayProductDataType, setDisplayProductDataType] = useState('images');
     const [previewImage, setPreviewImage] = useState('');
 
@@ -38,8 +37,73 @@ function ActualCost(props) {
         reportIssue: false,
     });
 
-    const targetPDFRef = useRef()
+    const [costingSheet, setCostingSheet] = useState(null)
 
+    const uploadData = () => {
+
+        const currentTimeStamp = new Date().getTime();
+
+        const costingS = {
+            currentVersion: currentTimeStamp,
+            timebasedData: {
+                ...costingSheet.timebasedData,
+                [currentTimeStamp]: {
+                    summary,
+                    actualCostTable,
+                    qaDimAnaData,
+                    standardCost,
+                    info
+                }
+            }
+        }
+
+        const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/cost_table/${urlParams.get('pid')}`
+        fetch(apiURL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(costingS)
+        }).then(res => res.json()).then((result) => {
+            console.log('submitted', result);
+            triggerToast('submitted', 'success');
+            window.location.href = '/actual-costs'
+        }).catch((e) => {
+            console.log('error occured', e);
+            triggerToast(`error occured: ${e}`, 'error');
+        });
+    }
+
+    useEffect(() => {
+
+        const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/cost_table/${urlParams.get('pid')}`
+        const version = urlParams.get('version');
+
+        fetch(apiURL).then(res => res.json()).then((result) => {
+
+            console.log('costing sheet retrived', typeof result, result);
+            setCostingSheet(result.data);
+            if (!version) {
+                fetchData()
+            } else {
+                setSummary(result.data.timebasedData[version].summary)
+                setActualCostTable(result.data.timebasedData[version].actualCostTable)
+                setQADimAnaData(result.data.timebasedData[version].qaDimAnaData)
+                setInfo(result.data.timebasedData[version].info)
+                setStandardCost(result.data.timebasedData[version].standardCost)
+                setPreviewImage(result.data.timebasedData[version].info.images[0])
+                setEditable(false)
+            }
+
+
+        }).catch((e) => {
+            fetchData()
+            console.log('error occured', e)
+        });
+
+    }, [])
+
+    const targetPDFRef = useRef()
 
     const [summary, setSummary] = useState({
         pipe: {
@@ -60,7 +124,6 @@ function ActualCost(props) {
         }
     })
 
-
     const [actualCostTable, setActualCostTable] = useState({
         pipe: [],
         sheet: [],
@@ -71,17 +134,17 @@ function ActualCost(props) {
         }
     })
 
-    const [standardCost, setStandardCost] = useState({
-        isLoading: true,
-        data: null
-    })
-
     const [qaDimAnaData, setQADimAnaData] = useState({
         isLoading: true,
         data: [],
         differentRows: [],
         buildMaterial: "",
         status: ""
+    })
+
+    const [standardCost, setStandardCost] = useState({
+        isLoading: true,
+        data: null
     })
 
     const [info, setInfo] = useState({
@@ -121,8 +184,6 @@ function ActualCost(props) {
 
     const fetchData = async () => {
         const pid = urlParams.get('pid');
-
-        const lt = (new Date().getTime() / 1000).toFixed(0)
 
         const DimAnaQAData = await getDimTableData({ table_type: 'qa', pid: pid })
 
@@ -199,11 +260,6 @@ function ActualCost(props) {
         }).catch((e) => console.log('error occured', e))
 
     }
-
-
-    useEffect(() => {
-        fetchData()
-    }, [])
 
     const getPipeStandanrdCost = (material_n_brand) => {
 
@@ -565,6 +621,7 @@ function ActualCost(props) {
                                                                         className="p-2 w-100"
                                                                         // name="qa-status"
                                                                         // id="qa-status"
+                                                                        disabled={!editable}
                                                                         onChange={(e) => setActualCostTable(pre => ({
                                                                             ...pre,
                                                                             pipe: pre.pipe.map((item, _index) =>
@@ -598,6 +655,7 @@ function ActualCost(props) {
                                                                         className="p-2 w-100"
                                                                         // name="qa-status"
                                                                         // id="qa-status"
+                                                                        disabled={!editable}
                                                                         onChange={(e) => setActualCostTable(pre => ({
                                                                             ...pre,
                                                                             pipe: pre.pipe.map((item, _index) =>
@@ -676,6 +734,7 @@ function ActualCost(props) {
                                                                         className="p-2 w-100"
                                                                         // name="qa-status"
                                                                         // id="qa-status"
+                                                                        disabled={!editable}
                                                                         onChange={(e) => setActualCostTable(pre => ({
                                                                             ...pre,
                                                                             sheet: pre.sheet.map((item, _index) =>
@@ -940,12 +999,13 @@ function ActualCost(props) {
                                                                     Generate PDF
                                                                 </Button>
 
-                                                                <Button
+                                                                {editable && <Button
                                                                     variant='contained'
                                                                     disabled={!activateSaveButton()}
+                                                                    onClick={uploadData}
                                                                 >
                                                                     Save
-                                                                </Button>
+                                                                </Button>}
                                                             </Stack>
                                                         </TableCell>
                                                     </TableRow>
