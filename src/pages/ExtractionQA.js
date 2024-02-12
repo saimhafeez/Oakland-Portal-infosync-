@@ -8,6 +8,7 @@ const ExtractionQA = (props) => {
   // =========================================================================
   const [searchQuery, setSearchQuery] = useState('')
   const [searchQueryType, setSearchQueryType] = useState('URL')
+  const [dataSubmiting, setDataSubmiting] = useState(false);
   // =========================================================================
 
   const [allImages, setAllImages] = useState([]);
@@ -224,6 +225,9 @@ const ExtractionQA = (props) => {
     setVisibilityNotDoable(false);
     setSearchQuery('')
     setShowId('')
+    setSku({})
+    setDataSubmiting(false);
+
   }
 
   // DEFAULT SECTION METHOD
@@ -449,6 +453,7 @@ const ExtractionQA = (props) => {
     setIsOrdinarylEditMode(false);
     setIsDiscardlEditMode(false);
   };
+
   const selectMyItem = (item) => {
     setSelectedImage(item);
     if (imageSelectedIds.includes(item)) {
@@ -614,6 +619,7 @@ const ExtractionQA = (props) => {
   };
 
   const jsonData = () => {
+    setDataSubmiting(true)
     // initialize an empty object to hold the structured data
     const structuredData = {
       id: {},
@@ -649,7 +655,6 @@ const ExtractionQA = (props) => {
 
     // Log the structured data as a JSON object.
     // console.log(JSON.stringify(structuredData, null, 2));
-
     // Define the API endpoint and data payload
     const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
     // Send the POST request
@@ -664,46 +669,19 @@ const ExtractionQA = (props) => {
       .then((response) => response.json()) // Assuming server responds with json
       .then((structuredData) => {
         console.log("Success:", structuredData);
-        setDefaultThumbnail([]);
-        setSelectedThumbnail([]);
-        setDefaultDimension([]);
-        setSelectedDimentional([]);
-        setSelectedWhiteBg([]);
-        setDefaultWhiteBg([]);
-        setSelectedOrdinary([]);
-        setDefaultOrdinary([]);
-        setSelectedDiscard([]);
-        setDefaultDiscard([]);
-        setVideos([]);
-        setAllImages([]);
-
-        setHasThumbnailImagesMapped(false);
-        setHasDimensionalImagesMapped(false);
-        setHasWhiteBgImagesMapped(false);
-        setHasOrdinaryImagesMapped(false);
-        setHasDiscardImagesMapped(false);
-
-        // Enable the other buttons
-        setIsThumbnailButtonDisabled(false);
-        setIsDimensionalButtonDisabled(false);
-        setIsWhiteBgButtonDisabled(false);
-        setIsOrdinaryButtonDisabled(false);
-        setIsDiscardButtonDisabled(false);
-
-        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
-        setIsFetchButtonDisabled(false);
-
+        resetAllValues()
         triggerToast("Data submited Successfully!", "success", "50px", "top-left")
-
-        setSearchQuery("")
-        setShowId('')
 
       })
       .catch((error) => {
         console.error("Error:", error);
+        setDataSubmiting(false)
+        triggerToast(`Error: ${error}`, "error", "50px", "top-left")
       });
   };
+
   const executeNoDoAbleScript = () => {
+    setDataSubmiting(true)
     // initialize an empty object to hold the structured data
     const structuredData = {
       id: {},
@@ -754,41 +732,8 @@ const ExtractionQA = (props) => {
       .then((response) => response.json()) // Assuming server responds with json
       .then((structuredData) => {
         console.log("Success:", structuredData);
-        setDefaultThumbnail([]);
-        setSelectedThumbnail([]);
-        setDefaultDimension([]);
-        setSelectedDimentional([]);
-        setSelectedWhiteBg([]);
-        setDefaultWhiteBg([]);
-        setSelectedOrdinary([]);
-        setDefaultOrdinary([]);
-        setSelectedDiscard([]);
-        setDefaultDiscard([]);
-        setVideos([]);
-        setAllImages([]);
-
-        setHasThumbnailImagesMapped(false);
-        setHasDimensionalImagesMapped(false);
-        setHasWhiteBgImagesMapped(false);
-        setHasOrdinaryImagesMapped(false);
-        setHasDiscardImagesMapped(false);
-
-        // Enable the other buttons
-        setIsThumbnailButtonDisabled(false);
-        setIsDimensionalButtonDisabled(false);
-        setIsWhiteBgButtonDisabled(false);
-        setIsOrdinaryButtonDisabled(false);
-        setIsDiscardButtonDisabled(false);
-
-        // ENABLE DISABLE BUTTON ON SUBMIT SORTED DATA
-        setIsFetchButtonDisabled(false);
-
-        setVisibilityNotDoable(false);
-
+        resetAllValues()
         triggerToast("Data submited Successfully!", "success", "50px", "top-left")
-
-        setSearchQuery('')
-
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -846,7 +791,7 @@ const ExtractionQA = (props) => {
               </div>
               <div className="">
                 {notDoable === true ? (
-                  <button className="set-btn-red d-block w-100">
+                  <button className="btn btn-danger d-block w-100">
                     Sorter declare as a Not A Doable Product!!!
                   </button>
                 ) : (
@@ -905,16 +850,16 @@ const ExtractionQA = (props) => {
         {/* radio selector  */}
         <div className="mt-5 set-fixed-bar">
 
-          <div className="mb-5 px-2">
-            {visibilityNotDoable ?
-              <button className="w-100 set-btn-red" onClick={executeNoDoAbleScript}>
-                NOT A DOABLE
-              </button>
+          <div className="mb-2 px-2">
+            <button className="btn btn-danger w-100" onClick={executeNoDoAbleScript}>
+              NOT A DOABLE
+            </button>
+            {/* {visibilityNotDoable ?
               :
               <button className="w-100 btn btn-danger">
                 NOT A DOABLE
               </button>
-            }
+            } */}
           </div>
 
           <div className="inside-div">
@@ -986,24 +931,20 @@ const ExtractionQA = (props) => {
               </select>
             </div>
 
-            <div className="w-100 px-2">
-              {mergeSelectedDefaultThumbnail.length > 0 ||
-                mergeSelectedDefaultDimension.length > 0 ||
-                selectedWhiteBg.length > 0 ||
-                selectedOrdinary.length > 0 ||
-                selectedDiscard.length > 0 ? (
-                <button
-                  onClick={jsonData}
-                  className={`w-100 btn btn-success`}
-                  style={{ backgroundColor: '#105736' }}
-                >
-                  COMPLETED
-                </button>
-              ) : (
-                <button className={`btn-danger disabled`} disabled>
-                  COMPLETED
-                </button>
-              )}
+            <div className="w-100 mt-2 px-2">
+              <button
+                disabled={showId === "" || dataSubmiting}
+                onClick={jsonData}
+                className={`w-100 btn btn-success d-flex align-items-center gap-1 justify-content-center`}
+                style={{ backgroundColor: '#105736' }}
+              >
+                COMPLETED
+                {dataSubmiting && <div
+                  style={{ width: '20px', height: '20px' }}
+                  class="spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>}
+              </button>
             </div>
           </div>
         </div>

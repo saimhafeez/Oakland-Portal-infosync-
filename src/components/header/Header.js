@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
+import { useAppContext } from "../../context/appContext";
+import { Menu } from "@mui/icons-material";
 
 const Header = (props) => {
   const navigate = useNavigate();
@@ -15,10 +17,18 @@ const Header = (props) => {
         // An error happened.
       });
   };
+
+  const { sidebarOpened, toggleSidebar } = useAppContext()
+
   return (
     <div className="navbar-my py-2">
       <div className="set-container">
         <ul>
+          {props.userRole === "admin" && <li>
+            <button className="btn " onClick={toggleSidebar}>
+              <Menu htmlColor="white" />
+            </button>
+          </li>}
           <li>
             <strong className="h1">LOGO HERE</strong>
           </li>

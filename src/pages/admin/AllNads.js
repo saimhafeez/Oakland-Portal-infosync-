@@ -5,6 +5,8 @@ import {
     Button,
     CircularProgress,
     Stack,
+    Tooltip,
+    Typography,
 } from "@mui/material";
 
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -12,6 +14,8 @@ import { firestore } from "../../firebase";
 import { formatDate } from "../../utils/formatDate";
 import SuperAdminSidebar from "../../components/sidebar/SuperAdminSidebar";
 import Header from "../../components/header/Header";
+import { useAppContext } from "../../context/appContext";
+import { InfoTwoTone } from "@mui/icons-material";
 
 
 
@@ -201,6 +205,8 @@ function AllNads(props) {
         }
     }
 
+    const { sidebarOpened } = useAppContext()
+
     return (
         <>
             <Header
@@ -211,7 +217,7 @@ function AllNads(props) {
             <SuperAdminSidebar />
 
             <Wrapper>
-                <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
+                <div className={`${sidebarOpened && "set-right-container-252"} p-3`} style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
                     <h2 className="text-center">REJECTED NADs</h2>
                     <div className="d-flex flex-row justify-content-end gap-2">
                         <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>
@@ -382,19 +388,39 @@ function AllNads(props) {
                                                     <p className="small">{item['QA-Extractor'].updatedAt && formatDate(item['QA-Extractor'].updatedAt) || 'N/A'}</p>
                                                 </td>
 
-                                                <td>
-                                                    <div className="d-flex flex-row gap-2 justify-content-center">
-                                                        {tableFilter.includes('QA') && <button
-                                                            className="btn btn-warning"
+                                                <td style={{ width: '100px' }}>
+                                                    <div className="d-flex flex-column gap-2 justify-content-center px-1 align-items-center">
+                                                        {(tableFilter.includes('QA') || tableFilter === 'Filter by Role') && <button
+                                                            style={{ width: '100px', maxHeight: '30px' }}
+                                                            disabled={!item['QA-Extractor'].updatedAt}
+                                                            className="btn btn-warning p-0 m-0 px-2"
                                                             onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-Extractor')}
-                                                        >compare</button>
+                                                        >Compare</button>
                                                         }
                                                         <button
-                                                            className="btn"
-                                                            style={{ backgroundColor: 'red', color: 'white' }}
-                                                            onClick={() => resetProduct(item.full_id, 'extractor')}
-                                                            disabled={disableResetButton(item)}
-                                                        >Reset</button>
+                                                            className="btn p-0 m-0 px-2"
+                                                            style={{ backgroundColor: item.extractor_reset_info && item.extractor_reset_info.reset_count > 0 ? colors.resetAbove : 'red', color: 'white', width: '100px', maxHeight: '30px' }}
+                                                            // style={{  }}
+                                                            onClick={() => resetProduct(item.ProductID, 'extractor')}
+                                                            // disabled={disableResetButton(item)}
+                                                            disabled={!item['QA-Extractor'].updatedAt}
+                                                        >
+                                                            <Stack direction='row' gap={1} alignItems='center' justifyContent='center'>
+                                                                <Tooltip title={
+                                                                    <Stack direction='column' spacing={1}>
+                                                                        <Typography m={0} p={0}>
+                                                                            Resets: {item.extractor_reset_info ? item.extractor_reset_info.reset_count : 0}
+                                                                        </Typography>
+                                                                        <Typography m={0} p={0}>
+                                                                            Last Reset: {item.extractor_reset_info ? formatDate(item.extractor_reset_info.last_reset) : 'N/A'}
+                                                                        </Typography>
+                                                                    </Stack>
+                                                                }>
+                                                                    <InfoTwoTone htmlColor="white" />
+                                                                </Tooltip>
+                                                                <Typography p={0} m={0}>Reset</Typography>
+                                                            </Stack>
+                                                        </button>
                                                     </div>
                                                 </td>
 
@@ -421,19 +447,38 @@ function AllNads(props) {
                                                     <p className="small">{item['QA-DimAna'].updatedAt && formatDate(item['QA-DimAna'].updatedAt) || 'N/A'}</p>
                                                 </td>
 
-                                                <td>
-                                                    <div className="d-flex flex-row gap-2 justify-content-center">
-                                                        {tableFilter.includes('QA') && <button
-                                                            className="btn btn-warning"
+                                                <td style={{ width: '120px' }}>
+                                                    <div className="d-flex flex-column gap-2 justify-content-center px-1 align-items-center">
+                                                        {(tableFilter.includes('QA') || tableFilter === 'Filter by Role') && <button
+                                                            style={{ width: '100px', maxHeight: '30px' }}
+                                                            disabled={!item['QA-DimAna'].updatedAt}
+                                                            className="btn btn-warning p-0 m-0 px-2"
                                                             onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-DimAna')}
-                                                        >compare</button>
+                                                        >Compare</button>
                                                         }
                                                         <button
-                                                            className="btn"
-                                                            style={{ backgroundColor: 'red', color: 'white' }}
-                                                            onClick={() => resetProduct(item.full_id, 'dimana')}
-                                                            disabled={disableResetButton(item)}
-                                                        >Reset</button>
+                                                            className="btn p-0 m-0 px-2"
+                                                            style={{ backgroundColor: item.dimana_reset_info && item.dimana_reset_info.reset_count > 0 ? colors.resetAbove : 'red', color: 'white', width: '100px', maxHeight: '30px' }}
+                                                            onClick={() => resetProduct(item.ProductID, 'dimana')}
+                                                            // disabled={disableResetButton(item)}
+                                                            disabled={!item['QA-DimAna'].updatedAt}
+                                                        >
+                                                            <Stack direction='row' gap={1} alignItems='center' justifyContent='center'>
+                                                                <Tooltip title={
+                                                                    <Stack direction='column' spacing={1}>
+                                                                        <Typography m={0} p={0}>
+                                                                            Resets: {item.dimana_reset_info ? item.dimana_reset_info.reset_count : 0}
+                                                                        </Typography>
+                                                                        <Typography m={0} p={0}>
+                                                                            Last Reset: {item.dimana_reset_info ? formatDate(item.dimana_reset_info.last_reset) : 'N/A'}
+                                                                        </Typography>
+                                                                    </Stack>
+                                                                }>
+                                                                    <InfoTwoTone htmlColor="white" />
+                                                                </Tooltip>
+                                                                <Typography p={0} m={0}>Reset</Typography>
+                                                            </Stack>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>

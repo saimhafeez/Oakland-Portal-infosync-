@@ -28,8 +28,15 @@ import PropsModel from '../../res/PropsModel';
 import HeaderSignOut from '../../components/header/HeaderSignOut';
 import { getDimTableData } from '../../utils/getDimTableData';
 import { getImagesByID } from '../../utils/getImagesByID';
+import { CloseTwoTone } from '@mui/icons-material';
 
-function DimAnaComparision(props) {
+function DimAnaComparision({ closeCallback, pid, vid, job, result }) {
+
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const pid = urlParams.get('pid');
+    // const vid = urlParams.get('vid');
+    // const job = urlParams.get('job');
+    // const result = urlParams.get('result');
 
     const highlightedRowsColor = '#ff9090';
 
@@ -100,206 +107,242 @@ function DimAnaComparision(props) {
         }
     };
 
+    const init = async () => {
 
-    useEffect(async () => {
+        var DimAnaWorkerData = []
+        DimAnaWorkerData = await getDimTableData({ table_type: 'worker', pid: pid })
+        if (result !== 'qaOnly') {
+        }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const pid = urlParams.get('pid');
-        const job = urlParams.get('job');
+        var DimAnaQAData = []
+        if (job === 'QA-DimAna') {
+            DimAnaQAData = await getDimTableData({ table_type: 'qa', pid: pid })
+        }
 
-
-        console.log(pid, job);
-
-        const lt = (new Date().getTime() / 1000).toFixed(0)
-
-        const DimAnaWorkerData = await getDimTableData({ table_type: 'worker', pid: pid })
-
-        const DimAnaQAData = await getDimTableData({ table_type: 'qa', pid: pid })
-
+        // console.log('DimAnaWorkerData', DimAnaWorkerData);
         setInfo({
             isLoading: false,
-            images: DimAnaQAData.data.final.images,
-            sku: DimAnaQAData.sku,
-            weightAndDimentions: DimAnaQAData.data.final['weight and dimensions']
+            images: DimAnaWorkerData.data.analysed.images,
+            sku: DimAnaWorkerData.sku,
+            weightAndDimentions: DimAnaWorkerData.data.analysed['weight and dimensions']
         })
 
-        setPreviewImage(DimAnaQAData.data.final.images[0])
+        setPreviewImage(DimAnaWorkerData.data.analysed.images[0])
 
-        console.log('uncle SAM: DimAnaWorkerData', DimAnaWorkerData);
+        // console.log('uncle SAM: DimAnaWorkerData', DimAnaWorkerData);
 
-        console.log('uncle SAM: DimAnaQAData', DimAnaQAData);
+        // console.log('uncle SAM: DimAnaQAData', DimAnaQAData);
 
-        const productProperties = DimAnaQAData.data.final.productProperties
+        var productProperties = {
+            ironPipeRows: [],
+            woodenSheetRows: [],
+            woodTapeRows: [],
+            miscTableRows: []
+        }
+        if (job === 'QA-DimAna' || result === 'qaOnly') {
+            productProperties = DimAnaQAData.data.final.productProperties
+        }
+
+        // const productProperties = {}
         const productPropertiesOld = DimAnaWorkerData.data.analysed.productProperties
 
-        // filling rows
-        if (productProperties.ironPipeRows.length > productPropertiesOld.ironPipeRows.length) {
-            const margin = productProperties.ironPipeRows.length - productPropertiesOld.ironPipeRows.length
+        if (job !== 'DimAna' && result !== 'qaOnly') {
+            // filling rows
+            if (productProperties.ironPipeRows.length > productPropertiesOld.ironPipeRows.length) {
+                const margin = productProperties.ironPipeRows.length - productPropertiesOld.ironPipeRows.length
 
-            for (var i = 0; i < margin; i++) {
-                productPropertiesOld.ironPipeRows.push({})
+                for (var i = 0; i < margin; i++) {
+                    productPropertiesOld.ironPipeRows.push({})
+                }
+            } else if (productPropertiesOld.ironPipeRows.length > productProperties.ironPipeRows.length) {
+                const margin = productPropertiesOld.ironPipeRows.length - productProperties.ironPipeRows.length
+
+                for (var i = 0; i < margin; i++) {
+                    productProperties.ironPipeRows.push({})
+                }
             }
-        } else if (productPropertiesOld.ironPipeRows.length > productProperties.ironPipeRows.length) {
-            const margin = productPropertiesOld.ironPipeRows.length - productProperties.ironPipeRows.length
+            // --------------------
+            if (productProperties.woodenSheetRows.length > productPropertiesOld.woodenSheetRows.length) {
+                const margin = productProperties.woodenSheetRows.length - productPropertiesOld.woodenSheetRows.length
 
-            for (var i = 0; i < margin; i++) {
-                productProperties.ironPipeRows.push({})
+                for (var i = 0; i < margin; i++) {
+                    productPropertiesOld.woodenSheetRows.push(PropsModel.woodenSheetRows)
+                }
+            } else if (productPropertiesOld.woodenSheetRows.length > productProperties.woodenSheetRows.length) {
+                const margin = productPropertiesOld.woodenSheetRows.length - productProperties.woodenSheetRows.length
+
+                for (var i = 0; i < margin; i++) {
+                    productProperties.woodenSheetRows.push(PropsModel.woodenSheetRows)
+                }
             }
-        }
-        // --------------------
-        if (productProperties.woodenSheetRows.length > productPropertiesOld.woodenSheetRows.length) {
-            const margin = productProperties.woodenSheetRows.length - productPropertiesOld.woodenSheetRows.length
+            // ------------------
+            if (productProperties.woodTapeRows.length > productPropertiesOld.woodTapeRows.length) {
+                const margin = productProperties.woodTapeRows.length - productPropertiesOld.woodenSheetRows.length
 
-            for (var i = 0; i < margin; i++) {
-                productPropertiesOld.woodenSheetRows.push(PropsModel.woodenSheetRows)
+                for (var i = 0; i < margin; i++) {
+                    productPropertiesOld.woodTapeRows.push(PropsModel.woodTapeRows)
+                }
+            } else if (productPropertiesOld.woodTapeRows.length > productProperties.woodTapeRows.length) {
+                const margin = productPropertiesOld.woodTapeRows.length - productProperties.woodTapeRows.length
+
+                for (var i = 0; i < margin; i++) {
+                    productProperties.woodTapeRows.push(PropsModel.woodTapeRows)
+                }
             }
-        } else if (productPropertiesOld.woodenSheetRows.length > productProperties.woodenSheetRows.length) {
-            const margin = productPropertiesOld.woodenSheetRows.length - productProperties.woodenSheetRows.length
+            // ------------------
+            if (productProperties.miscTableRows.length > productPropertiesOld.miscTableRows.length) {
+                const margin = productProperties.miscTableRows.length - productPropertiesOld.woodenSheetRows.length
 
-            for (var i = 0; i < margin; i++) {
-                productProperties.woodenSheetRows.push(PropsModel.woodenSheetRows)
+                for (var i = 0; i < margin; i++) {
+                    productPropertiesOld.miscTableRows.push(PropsModel.miscTableRows)
+                }
+            } else if (productPropertiesOld.miscTableRows.length > productProperties.miscTableRows.length) {
+                const margin = productPropertiesOld.miscTableRows.length - productProperties.miscTableRows.length
+
+                for (var i = 0; i < margin; i++) {
+                    productProperties.miscTableRows.push(PropsModel.miscTableRows)
+                }
             }
-        }
-        // ------------------
-        if (productProperties.woodTapeRows.length > productPropertiesOld.woodTapeRows.length) {
-            const margin = productProperties.woodTapeRows.length - productPropertiesOld.woodenSheetRows.length
 
-            for (var i = 0; i < margin; i++) {
-                productPropertiesOld.woodTapeRows.push(PropsModel.woodTapeRows)
+
+            // calculating row differences
+
+            // Iron Pipe Row
+            const ironPipeRows_highlighted = []
+            for (let i = 0; i < productProperties.ironPipeRows.length; i++) {
+                const props = Object.keys(productProperties.ironPipeRows[i]);
+                if (Object.keys(productProperties.ironPipeRows[i]).length === 0 || Object.keys(productPropertiesOld.ironPipeRows[i]).length === 0) {
+                    ironPipeRows_highlighted.push(i);
+                } else {
+                    for (const prop of props) {
+                        if (productProperties.ironPipeRows[i][prop] !== productPropertiesOld.ironPipeRows[i][prop]) {
+                            ironPipeRows_highlighted.push(i);
+                            break;
+                        }
+                    }
+                }
             }
-        } else if (productPropertiesOld.woodTapeRows.length > productProperties.woodTapeRows.length) {
-            const margin = productPropertiesOld.woodTapeRows.length - productProperties.woodTapeRows.length
+            console.log('ironPipeRows_highlighted', ironPipeRows_highlighted);
 
-            for (var i = 0; i < margin; i++) {
-                productProperties.woodTapeRows.push(PropsModel.woodTapeRows)
-            }
-        }
-        // ------------------
-        if (productProperties.miscTableRows.length > productPropertiesOld.miscTableRows.length) {
-            const margin = productProperties.miscTableRows.length - productPropertiesOld.woodenSheetRows.length
+            // Wooden Sheet Row
+            const woodenSheetRows_highlighted = []
+            for (let i = 0; i < productProperties.woodenSheetRows.length; i++) {
+                const props = Object.keys(productProperties.woodenSheetRows[i]);
 
-            for (var i = 0; i < margin; i++) {
-                productPropertiesOld.miscTableRows.push(PropsModel.miscTableRows)
-            }
-        } else if (productPropertiesOld.miscTableRows.length > productProperties.miscTableRows.length) {
-            const margin = productPropertiesOld.miscTableRows.length - productProperties.miscTableRows.length
-
-            for (var i = 0; i < margin; i++) {
-                productProperties.miscTableRows.push(PropsModel.miscTableRows)
-            }
-        }
-
-
-        // calculating row differences
-
-        // Iron Pipe Row
-        const ironPipeRows_highlighted = []
-        for (let i = 0; i < productProperties.ironPipeRows.length; i++) {
-            const props = Object.keys(productProperties.ironPipeRows[i]);
-            if (Object.keys(productProperties.ironPipeRows[i]).length === 0 || Object.keys(productPropertiesOld.ironPipeRows[i]).length === 0) {
-                ironPipeRows_highlighted.push(i);
-            } else {
                 for (const prop of props) {
-                    if (productProperties.ironPipeRows[i][prop] !== productPropertiesOld.ironPipeRows[i][prop]) {
-                        ironPipeRows_highlighted.push(i);
+                    if (productProperties.woodenSheetRows[i][prop] !== productPropertiesOld.woodenSheetRows[i][prop]) {
+                        woodenSheetRows_highlighted.push(i);
                         break;
                     }
                 }
             }
-        }
-        console.log('ironPipeRows_highlighted', ironPipeRows_highlighted);
+            console.log('woodenSheetRows_highlighted', woodenSheetRows_highlighted);
 
-        // Wooden Sheet Row
-        const woodenSheetRows_highlighted = []
-        for (let i = 0; i < productProperties.woodenSheetRows.length; i++) {
-            const props = Object.keys(productProperties.woodenSheetRows[i]);
+            // Wood Tope Row
+            const woodTapeRows_highlighted = []
+            for (let i = 0; i < productProperties.woodTapeRows.length; i++) {
+                const props = Object.keys(productProperties.woodTapeRows[i]);
 
-            for (const prop of props) {
-                if (productProperties.woodenSheetRows[i][prop] !== productPropertiesOld.woodenSheetRows[i][prop]) {
-                    woodenSheetRows_highlighted.push(i);
-                    break;
+                for (const prop of props) {
+                    if (productProperties.woodTapeRows[i][prop] !== productPropertiesOld.woodTapeRows[i][prop]) {
+                        woodTapeRows_highlighted.push(i);
+                        break;
+                    }
                 }
             }
-        }
-        console.log('woodenSheetRows_highlighted', woodenSheetRows_highlighted);
+            console.log('woodTapeRows_highlighted', woodTapeRows_highlighted);
 
-        // Wood Tope Row
-        const woodTapeRows_highlighted = []
-        for (let i = 0; i < productProperties.woodTapeRows.length; i++) {
-            const props = Object.keys(productProperties.woodTapeRows[i]);
+            // Misc Row
+            const miscTableRows_highlighted = []
+            for (let i = 0; i < productProperties.miscTableRows.length; i++) {
+                const props = Object.keys(productProperties.miscTableRows[i]);
 
-            for (const prop of props) {
-                if (productProperties.woodTapeRows[i][prop] !== productPropertiesOld.woodTapeRows[i][prop]) {
-                    woodTapeRows_highlighted.push(i);
-                    break;
+                for (const prop of props) {
+                    if (productProperties.miscTableRows[i][prop] !== productPropertiesOld.miscTableRows[i][prop]) {
+                        // console.log('----> ', productProperties.miscTableRows[i][prop], productPropertiesOld.miscTableRows[i][prop]);
+                        // console.log('----> ', typeof productProperties.miscTableRows[i][prop], typeof productPropertiesOld.miscTableRows[i][prop]);
+                        // console.log('----> ', productProperties.miscTableRows[i][prop].length, productPropertiesOld.miscTableRows[i][prop].length);
+                        miscTableRows_highlighted.push(i);
+                        break;
+                    }
                 }
             }
+            console.log('miscTableRows_highlighted', miscTableRows_highlighted);
+
+            setHighlightedRows({
+                ironPipeRows: ironPipeRows_highlighted,
+                woodenSheetRows: woodenSheetRows_highlighted,
+                woodTapeRows: woodTapeRows_highlighted,
+                miscTableRows: miscTableRows_highlighted
+            })
         }
-        console.log('woodTapeRows_highlighted', woodTapeRows_highlighted);
 
-        // Misc Row
-        const miscTableRows_highlighted = []
-        for (let i = 0; i < productProperties.miscTableRows.length; i++) {
-            const props = Object.keys(productProperties.miscTableRows[i]);
 
-            for (const prop of props) {
-                if (productProperties.miscTableRows[i][prop] !== productPropertiesOld.miscTableRows[i][prop]) {
-                    // console.log('----> ', productProperties.miscTableRows[i][prop], productPropertiesOld.miscTableRows[i][prop]);
-                    // console.log('----> ', typeof productProperties.miscTableRows[i][prop], typeof productPropertiesOld.miscTableRows[i][prop]);
-                    // console.log('----> ', productProperties.miscTableRows[i][prop].length, productPropertiesOld.miscTableRows[i][prop].length);
-                    miscTableRows_highlighted.push(i);
-                    break;
-                }
-            }
+        if (result !== 'qaOnly') {
+            setDimAnaData((pre) => ({
+                ...pre,
+                isLoading: false,
+                data: productPropertiesOld,
+                buildMaterial: DimAnaWorkerData.data.analysed.buildMaterial,
+                status: DimAnaWorkerData.data.analysed.change
+            }))
+        } else {
+            setDimAnaData((pre) => ({
+                ...pre,
+                isLoading: false,
+            }))
         }
-        console.log('miscTableRows_highlighted', miscTableRows_highlighted);
-
-        setHighlightedRows({
-            ironPipeRows: ironPipeRows_highlighted,
-            woodenSheetRows: woodenSheetRows_highlighted,
-            woodTapeRows: woodTapeRows_highlighted,
-            miscTableRows: miscTableRows_highlighted
-        })
 
 
-        setDimAnaData((pre) => ({
-            ...pre,
-            isLoading: false,
-            data: productPropertiesOld,
-            buildMaterial: DimAnaWorkerData.data.analysed.buildMaterial,
-            status: DimAnaWorkerData.data.analysed.change
-        }))
+        if (job === 'QA-DimAna') {
+            setQADimAnaData((pre) => ({
+                ...pre,
+                isLoading: false,
+                data: productProperties,
+                buildMaterial: DimAnaQAData.data.final.buildMaterial,
+                status: DimAnaQAData.data.final.change,
+            }))
+        } else {
+            setQADimAnaData((pre) => ({
+                ...pre,
+                isLoading: false,
+                data: {
+                    ironPipeRows: [],
+                    woodenSheetRows: [],
+                    woodTapeRows: [],
+                    miscTableRows: []
+                },
+                buildMaterial: "",
+                status: "",
+            }))
+        }
 
-        setQADimAnaData((pre) => ({
-            ...pre,
-            isLoading: false,
-            data: productProperties,
-            buildMaterial: DimAnaQAData.data.final.buildMaterial,
-            status: DimAnaQAData.data.final.change,
-        }))
-
-    }, [])
-
-    const convertToInch = (valueInFT) => {
-        return (valueInFT * 12).toFixed(2)
     }
+
+    useEffect(() => {
+        init()
+    }, [])
 
     return (
         <Wrapper>
-            <HeaderSignOut
+            {/* <HeaderSignOut
                 userEmail={props.userEmail}
                 userRole={props.userRole}
                 userJdesc={props.userJdesc}
-            />
+            /> */}
             <Stack direction='row'>
                 <Stack width={'30%'}>
 
                     <Stack direction='column' width='100%' spacing={0.5} p={1}>
 
-                        <div className='bg-black text-white' style={{ textTransform: 'capitalize' }}>
+                        <div className='d-flex flex-row justify-content-between align-items-center bg-warning text-white text-center p-1'>
+                            <div></div>
                             <h4>
-                                SKU: {info.sku}
+                                {`SKU: ${info.pid}-${info.vid}`}
                             </h4>
+                            <div className='bg-black' style={{ cursor: 'pointer' }} onClick={closeCallback}>
+                                <CloseTwoTone />
+                            </div>
                         </div>
 
                         {displayProductDataType === 'images' && <img src={previewImage} width="100%" height='auto' style={{ alignSelf: 'center' }} />}
@@ -360,6 +403,7 @@ function DimAnaComparision(props) {
 
                 </Stack>
                 <Stack width='70%' direction='row' overflow='auto' height='calc(100vh - 70px)'>
+
                     <Stack width={'50%'} bgcolor={'beige'} direction='column' gap={3}>
 
                         {dimAnaData.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
@@ -367,7 +411,7 @@ function DimAnaComparision(props) {
                         </div></div>
 
                             :
-                            <>
+                            dimAnaData.buildMaterial !== "" && <>
 
                                 <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
                                     <h4>
@@ -571,6 +615,7 @@ function DimAnaComparision(props) {
                             </>}
 
                     </Stack>
+
                     <Stack width={'50%'} bgcolor={'beige'} direction='column' gap={3}>
 
                         {qaDimAnaData.isLoading ?
@@ -579,7 +624,7 @@ function DimAnaComparision(props) {
                                 <span class="visually-hidden">Loading...</span>
                             </div></div>
                             :
-                            <>
+                            qaDimAnaData.buildMaterial !== "" && <>
                                 <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
                                     <h4>
                                         QA-DimAna Selected: {(qaDimAnaData.status === null || qaDimAnaData.status === 'under_qa') ? 'Under QA' : qaDimAnaData.status === 'not_understandable' ? 'Not Understandable' : qaDimAnaData.status === 'rejcted_nad' ? 'Rejected NAD' : qaDimAnaData.status === 'minor' ? 'MINOR [QA Passed]' : qaDimAnaData.status === 'major' ? 'MAJOR [QA Passed]' : qaDimAnaData.status === 'passed' ? '100% [QA Passed]' : qaDimAnaData.status === 'rejected_nad' ? 'Not a Doable' : 'N/A'}

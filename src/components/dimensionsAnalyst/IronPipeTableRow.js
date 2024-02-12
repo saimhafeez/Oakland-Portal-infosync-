@@ -33,30 +33,6 @@ function IronPipeTableRow({
     }
   };
 
-  const [ingredients, setIngredients] = useState([])
-
-  const fetchIngredients = async () => {
-    fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).then((result) => {
-      console.log('result', result);
-      // // setIngredients(result.data)
-      // console.log(result.data);
-      const ing = []
-      Object.keys(result.data["Iron Pipe"]).map((type, index) => {
-        console.log(type);
-        if ((result.data["Iron Pipe"])[type].status === 'active') {
-          ing.push(type)
-        }
-      });
-      setIngredients(ing)
-    }).catch((e) => console.log('error occured', e))
-  }
-
-  useEffect(() => {
-    // fetchIngredients()
-    console.log('** --> ', pipeTypeAndSizes);
-  }, [])
-
-
   return (
     <TableRow>
       <TableCell>
@@ -75,13 +51,6 @@ function IronPipeTableRow({
               </MenuItem>
             );
           })}
-          {/* {PipeTypeNSize.map((item, index) => {
-            return (
-              <MenuItem key={index} value={`${item.Type}  ${item.Size}`}>
-                {`${item.Type}  ${item.Size}`}
-              </MenuItem>
-            );
-          })} */}
         </Select>
       </TableCell>
 

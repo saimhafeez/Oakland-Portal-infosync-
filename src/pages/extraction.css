@@ -29,7 +29,7 @@
   --text-danger: #f63448;
 }
 
-.btn-danger {
+/* .btn-danger {
   background: var(--bg-danger);
   background-color: var(--bg-danger);
   border-radius: 10px;
@@ -39,7 +39,7 @@
   outline: none;
   color: #fff;
   box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
-}
+} */
 
 /* .btn {
   background: var(--gradient);
@@ -269,24 +269,21 @@ footer p {
 }
 
 /* Style for the disabled button */
-.btn-danger.disabled {
+/* .btn-danger.disabled {
   background-color: #d9534f;
   color: #fff;
-}
+} */
 
-.btn-danger.disabled:hover {
+/* .btn-danger.disabled:hover {
   border: 1px solid #3a4045;
-}
+} */
 
 /* Style for the active/enabled button */
-.btn-danger:not(.disabled) {
+/* .btn-danger:not(.disabled) {
   background-color: gray;
-  /* Light gray background color */
   color: #ccc;
-  /* Light gray text color */
   cursor: not-allowed;
-  /* White text color for active/enabled button */
-}
+} */
 
 /* corss  */
 .cross {

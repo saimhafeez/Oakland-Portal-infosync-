@@ -1,5 +1,5 @@
 import { doc, getDoc } from 'firebase/firestore';
-import { firestore } from '../firebase';
+import { auth, firestore } from '../firebase';
 import { triggerToast } from './triggerToast';
 
 export const getUserByUID = async (uid) => {
@@ -24,5 +24,21 @@ export const getUserByUID = async (uid) => {
     } catch (error) {
         console.error('Error fetching user:', error.message);
         triggerToast(error.message, 'warning')
+    }
+}
+
+export const resetPasswordByUID = async (uid, newPassword) => {
+    try {
+        // Fetch the user by UID
+        const user = await auth.getUser(uid);
+
+        // Update the user's password
+        await auth.updatePassword(user.uid, newPassword);
+
+        // Display success message or perform any other actions
+        triggerToast('Password reset successfully!', 'success');
+    } catch (error) {
+        console.error('Error resetting password:', error.message);
+        triggerToast(error.message, 'warning');
     }
 }

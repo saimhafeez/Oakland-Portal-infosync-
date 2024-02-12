@@ -38,7 +38,7 @@ const demoData = {
         ]
     },
 
-    standardCosts: {
+    rawIngredients: {
         "pipe": [
             {
                 "material": "kala pipe",
@@ -119,7 +119,7 @@ const demoData = {
 
 
 
-function StandardCosts(props) {
+function RawIngredients(props) {
 
     const [open, setOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState('active')
@@ -130,8 +130,8 @@ function StandardCosts(props) {
     const [currentlyEditing, setCurrentlyEditing] = useState("");
 
     const [newPipe, setNewPipe] = useState({
-        material: '',
-        brand: '',
+        type: '',
+        size: "00'' x 00''",
         rate: '',
         length_feet: '',
         weight: '',
@@ -139,8 +139,6 @@ function StandardCosts(props) {
     })
 
     const [newSheet, setNewSheet] = useState({
-        material: '',
-        brand: '',
         rate: '',
         total_sq_feet: '',
         weight: '',
@@ -148,9 +146,6 @@ function StandardCosts(props) {
     })
 
     const [newPaint, setNewPaint] = useState({
-        type: '',
-        brand: '',
-        size: "0'' x 0''",
         rate: '',
         status: 'active'
     })
@@ -180,7 +175,7 @@ function StandardCosts(props) {
     // =================================================)
 
     const [ingredients, setIngredients] = useState()
-    const [standardCosts, setStandardCosts] = useState({
+    const [rawIngredients, setRawIngredients] = useState({
         'pipe': [],
         'sheet': [],
         'paint': [],
@@ -194,8 +189,8 @@ function StandardCosts(props) {
         const { data } = await fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).catch((e) => console.log('error occured', e));
         setIngredients(data)
         console.log('result', data);
-        if (data.standardCosts) {
-            setStandardCosts(data.standardCosts)
+        if (data.rawIngredients) {
+            setRawIngredients(data.rawIngredients)
         }
         setIsLoading(false)
     }
@@ -205,7 +200,7 @@ function StandardCosts(props) {
     }, [])
 
     const save = () => {
-        var newCosts = standardCosts
+        var newCosts = rawIngredients
 
         if (currentlyEditing !== null) {
             newCosts = {
@@ -225,7 +220,7 @@ function StandardCosts(props) {
 
         const ing = ingredients
 
-        ing.standardCosts = newCosts
+        ing.rawIngredients = newCosts
 
         console.log('newData', newCosts);
 
@@ -238,7 +233,7 @@ function StandardCosts(props) {
             body: JSON.stringify(ing),
         }).then((res) => res.json()).then((result) => {
             console.log('submitted', result);
-            setStandardCosts(newCosts)
+            setRawIngredients(newCosts)
             setOpen(false)
             reset()
             console.log('updated_data', newCosts);
@@ -247,13 +242,13 @@ function StandardCosts(props) {
 
     const changeStatus = (index, type, status) => {
 
-        var newCosts = standardCosts
+        var newCosts = rawIngredients
 
         newCosts[type][index].status = status
 
         const ing = ingredients
 
-        ing.standardCosts = newCosts
+        ing.rawIngredients = newCosts
 
         fetch('http://139.144.30.86:8000/api/ingredients', {
             method: "POST",
@@ -263,7 +258,7 @@ function StandardCosts(props) {
             body: JSON.stringify(ing),
         }).then((res) => res.json()).then((result) => {
             console.log('submitted', result); console.log('submitted', result);
-            setStandardCosts(newCosts)
+            setRawIngredients(newCosts)
             setOpen(false)
             reset()
             console.log('updated_data', newCosts);
@@ -288,16 +283,42 @@ function StandardCosts(props) {
         return <>
             <Stack gap={2}>
                 <TextField
-                    label="Material"
+                    label="Type"
                     variant="outlined"
-                    value={newPipe.material}
-                    onChange={(e) => setNewPipe((pre) => ({ ...pre, material: e.target.value.toLowerCase() }))}
+                    value={newPipe.type}
+                    onChange={(e) => setNewPipe((pre) => ({ ...pre, type: e.target.value.toLowerCase() }))}
                 />
+                <div>
+                    Size
+                    <div className='d-flex flex-row gap-2 align-items-center'>
+                        <TextField
+                            label="''"
+                            variant="outlined"
+                            type="number"
+                            value={newPipe.size.split(" x ")[0].split("''")[0]}
+                            onChange={(e) => {
+                                const pre_value = newPipe.size.split(" x ")[1]
+                                setNewPipe(pre => ({ ...pre, size: `${e.target.value.padStart(2, "0")}'' x ${pre_value}` }))
+                            }}
+                        />
+                        x
+                        <TextField
+                            label="''"
+                            variant="outlined"
+                            type="number"
+                            value={newPipe.size.split(" x ")[1].split("''")[0]}
+                            onChange={(e) => {
+                                const pre_value = newPipe.size.split(" x ")[0]
+                                setNewPipe(pre => ({ ...pre, size: `${pre_value} x ${e.target.value.padStart(2, "0")}''` }))
+                            }}
+                        />
+                    </div>
+                </div>
                 <TextField
-                    label="Brand"
+                    label="Type & Size"
                     variant="outlined"
-                    value={newPipe.brand}
-                    onChange={(e) => setNewPipe((pre) => ({ ...pre, brand: e.target.value.toLowerCase() }))}
+                    disabled={true}
+                    value={`${newPipe.type} ${newPipe.size}`}
                 />
                 <TextField
                     label="Rate"
@@ -335,18 +356,6 @@ function StandardCosts(props) {
         return <>
             <Stack gap={2}>
                 <TextField
-                    label="Material"
-                    variant="outlined"
-                    value={newSheet.material}
-                    onChange={(e) => setNewSheet((pre) => ({ ...pre, material: e.target.value.toLowerCase() }))}
-                />
-                <TextField
-                    label="Brand"
-                    variant="outlined"
-                    value={newSheet.brand}
-                    onChange={(e) => setNewSheet((pre) => ({ ...pre, brand: e.target.value.toLowerCase() }))}
-                />
-                <TextField
                     label="Rate"
                     variant="outlined"
                     type="number"
@@ -381,7 +390,7 @@ function StandardCosts(props) {
     const PaintModal = () => {
         return <>
             <Stack gap={2}>
-                <TextField
+                {/* <TextField
                     label="Type"
                     variant="outlined"
                     value={newPaint.type}
@@ -418,7 +427,7 @@ function StandardCosts(props) {
                             }}
                         />
                     </div>
-                </div>
+                </div> */}
                 <TextField
                     label="Rate"
                     variant="outlined"
@@ -552,10 +561,11 @@ function StandardCosts(props) {
         </>
     }
 
+
     const reset = () => {
         setNewPipe({
-            material: '',
-            brand: '',
+            type: '',
+            size: "00'' x 00''",
             rate: '',
             length_feet: '',
             weight: '',
@@ -563,8 +573,6 @@ function StandardCosts(props) {
         })
 
         setNewSheet({
-            material: '',
-            brand: '',
             rate: '',
             total_sq_feet: '',
             weight: '',
@@ -572,9 +580,6 @@ function StandardCosts(props) {
         })
 
         setNewPaint({
-            type: '',
-            brand: '',
-            size: "0'' x 0''",
             rate: '',
             status: 'active'
         })
@@ -613,38 +618,38 @@ function StandardCosts(props) {
 
         if (type === 'pipe') {
             setNewPipe({
-                ...standardCosts.pipe[index],
-                status: updateStatus ? status : (standardCosts.pipe[index]).status
+                ...rawIngredients.pipe[index],
+                status: updateStatus ? status : (rawIngredients.pipe[index]).status
             })
 
         } else if (type === 'sheet') {
             setNewSheet({
-                ...standardCosts.sheet[index],
-                status: updateStatus ? status : (standardCosts.sheet[index]).status
+                ...rawIngredients.sheet[index],
+                status: updateStatus ? status : (rawIngredients.sheet[index]).status
             })
 
         } else if (type === 'paint') {
             setNewPaint({
-                ...standardCosts.paint[index],
-                status: updateStatus ? status : (standardCosts.paint[index]).status
+                ...rawIngredients.paint[index],
+                status: updateStatus ? status : (rawIngredients.paint[index]).status
             })
 
         } else if (type === 'tape') {
             setNewTape({
-                ...standardCosts.tape[index],
-                status: updateStatus ? status : (standardCosts.tape[index]).status
+                ...rawIngredients.tape[index],
+                status: updateStatus ? status : (rawIngredients.tape[index]).status
             })
 
         } else if (type === 'misc') {
             setNewMisc({
-                ...standardCosts.misc[index],
-                status: updateStatus ? status : (standardCosts.misc[index]).status
+                ...rawIngredients.misc[index],
+                status: updateStatus ? status : (rawIngredients.misc[index]).status
             })
 
         } else if (type === 'shipping companies') {
             setNewShippingCompany({
-                ...(standardCosts['shipping companies'])[index],
-                status: updateStatus ? status : ((standardCosts['shipping companies'])[index]).status
+                ...(rawIngredients['shipping companies'])[index],
+                status: updateStatus ? status : ((rawIngredients['shipping companies'])[index]).status
             })
 
         }
@@ -741,8 +746,8 @@ function StandardCosts(props) {
                                     <table className="table table-bordered table-striped align-middle text-center">
                                         <thead className="table-info">
                                             <tr>
-                                                <th>Material</th>
-                                                <th>Brand</th>
+                                                <th>Type</th>
+                                                <th>Size</th>
                                                 <th>Rate</th>
                                                 <th>Length</th>
                                                 <th>Per Ft Rate</th>
@@ -752,11 +757,11 @@ function StandardCosts(props) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {standardCosts.pipe.map((pipe, index) => {
+                                            {rawIngredients.pipe.map((pipe, index) => {
                                                 if (activeFilter === pipe.status) {
                                                     return <tr tr key={index}>
-                                                        <td className="t-cell">{pipe.material}</td>
-                                                        <td className="t-cell">{pipe.brand}</td>
+                                                        <td className="t-cell">{pipe.type}</td>
+                                                        <td className="t-cell">{pipe.size}</td>
                                                         <td className="t-cell">{pipe.rate}</td>
                                                         <td className="t-cell">{pipe.length_feet} ft</td>
                                                         <td className="t-cell">{(pipe.rate / pipe.length_feet).toFixed(2)}</td>
@@ -819,27 +824,27 @@ function StandardCosts(props) {
                                     <table className="table table-bordered table-striped align-middle text-center">
                                         <thead className="table-info">
                                             <tr>
-                                                <th>Material</th>
-                                                <th>Brand</th>
                                                 <th>Rate</th>
                                                 <th>Total Sq. Feet</th>
                                                 <th>Per sq.ft Rate</th>
                                                 <th>Weight</th>
                                                 <th>Wt / Sq Ft</th>
-                                                <th style={{ width: '400px' }}>Actions</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {standardCosts.sheet.map((sheet, index) => {
+                                            {rawIngredients.sheet.map((sheet, index) => {
                                                 if (activeFilter === sheet.status) {
                                                     return <tr tr key={index}>
-                                                        <td className="t-cell">{sheet.material}</td>
-                                                        <td className="t-cell">{sheet.brand}</td>
                                                         <td className="t-cell">{sheet.rate}</td>
                                                         <td className="t-cell">{sheet.total_sq_feet} sq.ft</td>
                                                         <td className="t-cell">{(sheet.rate / sheet.total_sq_feet).toFixed(2)}</td>
                                                         <td className="t-cell">{sheet.weight}</td>
                                                         <td className="t-cell">{(sheet.weight / sheet.total_sq_feet).toFixed(2)}</td>
+                                                        <td className="t-cell"></td>
+                                                        <td className="t-cell"></td>
                                                         <td className="t-cell-action">
                                                             <Stack direction='row' justifyContent='center'>
                                                                 {activeFilter !== 'trash' && <Button
@@ -897,10 +902,10 @@ function StandardCosts(props) {
                                     <table className="table table-bordered table-striped align-middle text-center">
                                         <thead className="table-info">
                                             <tr>
-                                                <th>Type</th>
-                                                <th>Brand</th>
-                                                <th>Size</th>
                                                 <th>Rate</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
@@ -908,13 +913,13 @@ function StandardCosts(props) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {standardCosts.paint.map((paint, index) => {
+                                            {rawIngredients.paint.map((paint, index) => {
                                                 if (activeFilter === paint.status) {
                                                     return <tr tr key={index}>
-                                                        <td className="t-cell">{paint.type}</td>
-                                                        <td className="t-cell">{paint.brand}</td>
-                                                        <td className="t-cell">{paint.size}</td>
                                                         <td className="t-cell">{paint.rate}</td>
+                                                        <td className="t-cell"></td>
+                                                        <td className="t-cell"></td>
+                                                        <td className="t-cell"></td>
                                                         <td className="t-cell"></td>
                                                         <td className="t-cell"></td>
                                                         <td className="t-cell"></td>
@@ -956,6 +961,7 @@ function StandardCosts(props) {
                                 </div>
                             </div >
 
+                            {/*
                             <div className="px-5">
 
                                 <div className="d-flex flex-row align-items-center justify-content-between">
@@ -988,7 +994,7 @@ function StandardCosts(props) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {standardCosts.tape.map((tape, index) => {
+                                            {rawIngredients.tape.map((tape, index) => {
                                                 if (activeFilter === tape.status) {
                                                     return <tr tr key={index}>
                                                         <td className="t-cell">{tape.type}</td>
@@ -1068,7 +1074,7 @@ function StandardCosts(props) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {standardCosts.misc.map((misc, index) => {
+                                            {rawIngredients.misc.map((misc, index) => {
                                                 if (activeFilter === misc.status) {
                                                     return <tr tr key={index}>
                                                         <td className="t-cell">{misc.item}</td>
@@ -1148,7 +1154,7 @@ function StandardCosts(props) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {standardCosts["shipping companies"].map((shippingCompany, index) => {
+                                            {rawIngredients["shipping companies"].map((shippingCompany, index) => {
                                                 if (activeFilter === shippingCompany.status) {
                                                     return <tr tr key={index}>
                                                         <td className="t-cell">{shippingCompany.company}</td>
@@ -1195,6 +1201,8 @@ function StandardCosts(props) {
                                     </table>
                                 </div>
                             </div >
+                            
+                            */}
                         </>
                 }
 
@@ -1217,4 +1225,144 @@ const Wrapper = styled.main`
     }
 `
 
-export default StandardCosts
+export default RawIngredients
+
+
+
+const d = {
+    "portalVariables": {
+        "pipeTypesNSizes": [
+            {
+                "type": "square",
+                "size": "01'' x 01''",
+                "status": "active"
+            },
+            {
+                "type": "square",
+                "size": "0.5'' x 0.5''",
+                "status": "active"
+            },
+            {
+                "type": "solid wood",
+                "size": "1.5'' x 1.5''",
+                "status": "active"
+            },
+            {
+                "type": "square",
+                "size": "01'' x 02''",
+                "status": "active"
+            }
+        ]
+    },
+    "standardCosts": {
+        "pipe": [
+            {
+                "material": "kala pipe",
+                "brand": "china",
+                "rate": "2000",
+                "length_feet": "20",
+                "weight": "40",
+                "status": "active"
+            }
+        ],
+        "sheet": [
+            {
+                "material": "mdf",
+                "brand": "patex",
+                "rate": "5000",
+                "total_sq_feet": "32",
+                "weight": "40",
+                "status": "active"
+            }
+        ],
+        "paint": [
+            {
+                "type": "powder coat",
+                "brand": "nippon",
+                "size": "1'' x 1''",
+                "rate": "35",
+                "status": "active"
+            },
+            {
+                "type": "spray paint",
+                "brand": "nippon",
+                "size": "1'' x 1''",
+                "rate": "20",
+                "status": "active"
+            }
+        ],
+        "tape": [
+            {
+                "type": "slim",
+                "size_inch": "0.75",
+                "rate": "30",
+                "status": "active"
+            },
+            {
+                "type": "wide",
+                "size_inch": "1.5",
+                "rate": "50",
+                "status": "active"
+            }
+        ],
+        "misc": [
+            {
+                "item": "wheels",
+                "details": "small",
+                "rate": "1500",
+                "weight": "1",
+                "status": "active"
+            },
+            {
+                "item": "jaali",
+                "details": "small",
+                "rate": "1600",
+                "weight": "1",
+                "status": "active"
+            }
+        ],
+        "shipping companies": [
+            {
+                "company": "leopard",
+                "overland": "80",
+                "detain": "150",
+                "overnight": "220",
+                "status": "active"
+            }
+        ]
+    },
+    "rawIngredients": {
+        "pipe": [
+            {
+                "rate": "2000",
+                "length_feet": "20",
+                "weight": "40",
+                "status": "active",
+                "type": "square",
+                "size": "01'' x 01''"
+            },
+            {
+                "type": "square",
+                "size": "0.5'' x 0.5''",
+                "rate": "1500",
+                "length_feet": "20",
+                "weight": "40",
+                "status": "active"
+            }
+        ],
+        "sheet": [
+            {
+                "rate": "5000",
+                "total_sq_feet": "32",
+                "weight": "40",
+                "status": "active"
+            }
+        ],
+        "paint": [
+            {
+                "rate": "35",
+                "status": "active"
+            }
+        ],
+    }
+}

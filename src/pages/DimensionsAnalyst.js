@@ -59,6 +59,57 @@ function DimensionsAnalyst(props) {
   const [pipeTypeAndSizes, setPipeTypeAndSizes] = useState([])
   const [tapeSizes, setTapeSizes] = useState([])
 
+
+  const resetAllValues = () => {
+    setImages([])
+    setWeightAndDimentions({})
+    setProductID("")
+    setProductSKU("")
+    setPreviewImage("")
+    setDataLoading(false);
+    setDataLoaded(false);
+    SetFilters((pre) => ({
+      ...pre,
+      buildMaterial: "IRON PIPE / MDF"
+    }))
+
+    setProductProperties({
+      volume: {
+        length: 0,
+        width: 0,
+        height: 0
+      },
+      ironPipeRows: [
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+        PropsModel["ironPipeRows"],
+      ],
+      woodenSheetRows: [
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+        PropsModel["woodenSheetRows"],
+      ],
+      woodTapeRows: [
+        PropsModel["woodTapeRows"]
+      ],
+      miscTableRows: PropsModel["miscTableRows"],
+    })
+    setURL("");
+    setDataSubmitting(false)
+  }
+
   const executePythonScript = async () => {
     setDataLoading(true)
     console.log("props.user", props.user);
@@ -102,7 +153,7 @@ function DimensionsAnalyst(props) {
                 const { dimensional, ordinary, thumbnails, whitebg } = images[0].data.final;
                 setImages([...dimensional, ...thumbnails, ...ordinary, ...whitebg]);
                 setWeightAndDimentions(data["weight and dimensions"]);
-                setPreviewImage(dimensional[0]);
+                setPreviewImage(([...dimensional, ...thumbnails, ...ordinary, ...whitebg])[0]);
                 // setPreviewImage(images.dimen[0]);
                 setProductID(data.id);
                 setProductSKU(data.sku);
@@ -204,53 +255,8 @@ function DimensionsAnalyst(props) {
               // Handle the API response data
               console.log("API Response:", data);
 
-              setImages([])
-              setWeightAndDimentions({})
-              setProductID("")
-              setProductSKU("")
-              setPreviewImage("")
-              setDataLoading(false);
-              setDataLoaded(false);
-              SetFilters((pre) => ({
-                ...pre,
-                buildMaterial: "IRON PIPE / MDF"
-              }))
-
-              setProductProperties({
-                volume: {
-                  length: 0,
-                  width: 0,
-                  height: 0
-                },
-                ironPipeRows: [
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                ],
-                woodenSheetRows: [
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                ],
-                woodTapeRows: [
-                  PropsModel["woodTapeRows"]
-                ],
-                miscTableRows: PropsModel["miscTableRows"],
-              })
-              setURL("");
-              setDataSubmitting(false)
+              resetAllValues()
+              triggerToast('Submitted Successfully!', 'success')
 
             })
             .catch((error) => {
@@ -300,54 +306,8 @@ function DimensionsAnalyst(props) {
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
-
-              setImages([])
-              setWeightAndDimentions({})
-              setProductID("")
-              setProductSKU("")
-              setPreviewImage("")
-              setDataLoading(false);
-              setDataLoaded(false);
-              SetFilters((pre) => ({
-                ...pre,
-                buildMaterial: "IRON PIPE / MDF"
-              }))
-              setProductProperties({
-                volume: {
-                  length: 0,
-                  width: 0,
-                  height: 0
-                },
-                ironPipeRows: [
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                ],
-                woodenSheetRows: [
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                ],
-                woodTapeRows: [
-                  PropsModel["woodTapeRows"]
-                ],
-                miscTableRows: PropsModel["miscTableRows"],
-              })
-              setURL("");
-              setDataSubmitting(false)
-
+              resetAllValues()
+              triggerToast('Product Marked As NOT UNDERSTANDABLE', 'warning')
             })
             .catch((error) => {
               // Handle any errors
@@ -562,9 +522,9 @@ function DimensionsAnalyst(props) {
   const getDropdownItems = async () => {
     fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).then((result) => {
       console.log('ingredients result', result);
-      const ing = result.data.portalVariables.pipeTypesNSizes.filter((pipeTypeNSize) => pipeTypeNSize.status === 'active');
+      const ing = result.data.rawIngredients.pipe.filter((pipe) => pipe.status === 'active');
       setPipeTypeAndSizes(ing)
-      setTapeSizes(result.data.standardCosts.tape)
+      setTapeSizes(result.data.standardCosts.tape.filter((tape) => tape.status === 'active'))
     }).catch((e) => console.log('error occured', e))
   }
 
@@ -629,9 +589,6 @@ function DimensionsAnalyst(props) {
                 Fetch Data
               </button>
             </div>
-            {/* <div className="col-lg-1 col-md-4 text-end">
-              <button onClick={handleSignOut}>SignOut</button>
-            </div> */}
           </div>
         </div>
       </div>
@@ -738,13 +695,88 @@ function DimensionsAnalyst(props) {
 
             </Stack>
 
-            {/* <Stack marginBottom={2}>
-
-            </Stack> */}
-
           </Stack>
 
           <Stack direction='column' gap={3} width='35%' overflow='auto'>
+
+            <Stack>
+              <TableContainer component={Paper} variant="outlined">
+                <Table padding={0} size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-head" colSpan={8}>
+                        <Stack direction='row' justifyContent='center'>
+                          <Typography fontWeight='bold'>Build Material</Typography>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>
+                        <Select
+                          size="small"
+                          value={filters.buildMaterial}
+                          onChange={(e) => {
+                            SetFilters((pre) => ({
+                              ...pre,
+                              buildMaterial: e.target.value,
+                            }));
+                          }}
+                          name="buildMaterial"
+                          disabled={!dataLoaded || true} // INFO: Temporary Disabled as we will be working on the MDFs Only.
+                          style={{
+                            width: "100%",
+                            textAlign: 'center',
+
+                            fontWeight: filters.buildMaterial === 'Select an Option' ? 'bold' : 'normal',
+                            color: filters.buildMaterial === 'Select an Option' ? '#7b9480' : 'black',
+                            background: filters.buildMaterial === 'Select an Option' ? '#c6efce' : 'white',
+                          }}
+                        >
+                          <MenuItem value='Select an Option'>Select an Option</MenuItem>
+                          <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
+                          <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+
+            <Stack>
+              {filters.buildMaterial !== "SOLID WOOD" && (
+                <TableContainer component={Paper} variant="outlined">
+                  <Table padding={0} size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell className="table-head" colSpan={8}>
+                          <Stack direction='row' justifyContent='center'>
+                            <Typography fontWeight='bold'>Wood Tape Size</Typography>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {productProperties.woodTapeRows.map((row, index) => {
+                        return (
+                          <WoodTapeTableRow
+                            key={index}
+                            _key={index}
+                            data={row}
+                            handleEdit={handleEdit}
+                            unitSelector={filters.unitSelector}
+                            editable={dataLoaded}
+                            tapeSizes={tapeSizes}
+                          />
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Stack>
 
             <Stack>
               <TableContainer component={Paper} variant="outlined">
@@ -769,6 +801,7 @@ function DimensionsAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
+                          disabled={!dataLoaded}
                           value={productProperties.volume.length}
                           fullWidth
                           onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, length: e.target.value } }))}
@@ -779,6 +812,7 @@ function DimensionsAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
+                          disabled={!dataLoaded}
                           value={productProperties.volume.width}
                           fullWidth
                           onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, width: e.target.value } }))}
@@ -789,6 +823,7 @@ function DimensionsAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
+                          disabled={!dataLoaded}
                           value={productProperties.volume.height}
                           fullWidth
                           onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, height: e.target.value } }))}
@@ -799,7 +834,7 @@ function DimensionsAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
-                          value={productProperties.volume.length * productProperties.volume.width * productProperties.volume.height}
+                          value={(productProperties.volume.length * productProperties.volume.width * productProperties.volume.height).toFixed(2)}
                           className="cell-disabled"
                           fullWidth
                           disabled
@@ -918,58 +953,6 @@ function DimensionsAnalyst(props) {
               </TableContainer>
             </Stack>
 
-            {/* <Grid container spacing={1} direction="row">
-    <Grid item xs={12} md={5}>
-      
-    </Grid>
-  </Grid> */}
-
-            <Stack>
-              {filters.buildMaterial !== "SOLID WOOD" && (
-                <TableContainer component={Paper} variant="outlined">
-                  <Table padding={0} size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell className="table-head" colSpan={8}>
-                          <Stack direction='row' justifyContent='space-between'>
-                            <div></div>
-                            <Typography fontWeight='bold'>Wood Tape Size</Typography>
-                            <Box style={{ cursor: "pointer" }} onClick={() => setOpenModal(3)}>
-                              <ContentPasteIcon />
-                            </Box>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {productProperties.woodTapeRows.map((row, index) => {
-                        return (
-                          <WoodTapeTableRow
-                            key={index}
-                            _key={index}
-                            data={row}
-                            handleEdit={handleEdit}
-                            unitSelector={filters.unitSelector}
-                            editable={dataLoaded}
-                            tapeSizes={tapeSizes}
-                          />
-                        );
-                      })}
-                    </TableBody>
-                    {/* <TableFooter>
-                      <Button
-                        onClick={() => {
-                          addNewRow("woodTapeRows");
-                        }}
-                      >
-                        <AddCircleIcon htmlColor="#1976d2" />
-                      </Button>
-                    </TableFooter> */}
-                  </Table>
-                </TableContainer>
-              )}
-            </Stack>
-
             <Stack>
 
               <TableContainer component={Paper} variant="outlined">
@@ -1055,64 +1038,12 @@ function DimensionsAnalyst(props) {
           <Stack direction="column" width='15%' gap={4} p={1} justifyContent='space-between'>
 
             <Stack direction="column" gap={1}>
-
-              {/* <Stack direction='column' justifyContent='center'>
-                <Typography fontWeight='bold' fontSize='small' textAlign='center'>Product SKU</Typography>
-                <Typography fontWeight='bold' fontSize='small' style={{ wordBreak: 'break-all' }} color='#d32f2f'>{productSKU}</Typography>
-              </Stack> */}
-
               <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
                 style={{ backgroundColor: '#ffeb9c', color: 'black', width: 'fit-content', alignSelf: 'end' }}
               >
                 {displayHeader ? <CloseIcon /> : <MenuIcon />}
               </Button>
-
-              {/* <Stack direction='row' justifyContent='end'>
-                <TextField value={url} placeholder="Search by URL" variant="filled" onChange={(e) => setURL(e.target.value)} style={{ borderRadius: 0 }} />
-                <Button variant="contained"
-                  onClick={executePythonScript}
-                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
-                >
-
-                  <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontWeight='bold'>GO</Typography>
-                    {dataLoading && <CircularProgress size={26} color="warning" />}
-                  </Stack>
-                </Button>
-              </Stack>
-
-              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
-              <Button variant="contained"
-                onClick={executePythonScript}
-                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
-              >
-
-                <Stack direction='row' gap={2} alignItems='center'>
-                  <Typography fontWeight='bold'>Fetch</Typography>
-                  {dataLoading && <CircularProgress size={26} color="warning" />}
-                </Stack>
-              </Button> */}
-
-
-              <Stack direction="column">
-                <Typography>Build Material</Typography>
-                <Select
-                  size="small"
-                  value={filters.buildMaterial}
-                  onChange={(e) => {
-                    SetFilters((pre) => ({
-                      ...pre,
-                      buildMaterial: e.target.value,
-                    }));
-                  }}
-                  name="buildMaterial"
-                  disabled={!dataLoaded}
-                >
-                  <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
-                  <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
-                </Select>
-              </Stack>
 
               <Stack direction="column">
                 <Typography>Unit Selector</Typography>
@@ -1155,7 +1086,7 @@ function DimensionsAnalyst(props) {
               <Stack direction="column">
                 <Button variant="contained"
                   onClick={executePythonScriptSubmit}
-                  disabled={!dataLoaded || (filters.buildMaterial === 'IRON PIPE / MDF' && productProperties.woodTapeRows[0].size === 'Select an Option')}
+                  disabled={!dataLoaded || (filters.buildMaterial === 'IRON PIPE / MDF' && productProperties.woodTapeRows[0].size === 'Select an Option') || filters.buildMaterial === 'Select an Option'}
                   color="success"
                 >
                   <Stack direction='row' gap={2} alignItems='center'>
@@ -1165,6 +1096,7 @@ function DimensionsAnalyst(props) {
                 </Button>
               </Stack>
             </Stack>
+
           </Stack>
         </Stack>
       </Wrapper >
@@ -1217,59 +1149,3 @@ const Wrapper = styled.main`
 `;
 
 export default DimensionsAnalyst;
-
-// FOR NEW IMAGES FORMAT
-// UPCOMING NEW IMAGE FORMAT
-// {
-//   thumbnail: 'https://assets.wfcdn.com/im/44077389/resize-h755-w755%5Ecompr-r85/1574/157448955/Ossabaw+3+Piece+Bedroom+Set.jpg',
-//   dimen: [
-//     'https://assets.wfcdn.com/im/92000998/resize-h755-w755%5Ecompr-r85/2173/217355837/Ossabaw+3+Piece+Bedroom+Set.jpg',
-//     'https://assets.wfcdn.com/im/39043468/resize-h755-w755%5Ecompr-r85/2464/246410978/Ossabaw+3+Piece+Bedroom+Set.jpg',
-//     'https://assets.wfcdn.com/im/47924497/resize-h755-w755%5Ecompr-r85/1574/157448937/Ossabaw+3+Piece+Bedroom+Set.jpg'
-//   ],
-//   supporting: [
-//     'https://assets.wfcdn.com/im/70782765/resize-h755-w755%5Ecompr-r85/1574/157448944/Ossabaw+3+Piece+Bedroom+Set.jpg',
-//     'https://assets.wfcdn.com/im/42118335/resize-h755-w755%5Ecompr-r85/1714/171434297/Ossabaw+3+Piece+Bedroom+Set.jpg',
-//     'https://assets.wfcdn.com/im/40131680/resize-h755-w755%5Ecompr-r85/1714/171428743/Ossabaw+3+Piece+Bedroom+Set.jpg'
-//   ]
-// }
-
-{/* <Stack direction='row' overflow='auto' width='100%' spacing={1}>
-  {images.dimen.map((source, index) => {
-    return (
-      <img
-        onClick={() => setPreviewImage(source)}
-        width="90px"
-        src={source}
-        key={index}
-        style={{
-          border: `2px solid ${source === previewImage ? 'red' : 'black'}`
-        }}
-      />
-    );
-  })}
-  <img
-    onClick={() => setPreviewImage(images.thumbnail)}
-    width="90px"
-    src={images.thumbnail}
-    style={{
-      border: `2px solid ${images.thumbnail === previewImage ? 'red' : 'black'}`
-    }}
-  />
-  {images.supporting.map((source, index) => {
-    return (
-      <img
-        onClick={() => {
-          console.log('source', source);
-          setPreviewImage(source)
-        }}
-        width="90px"
-        src={source}
-        key={index}
-        style={{
-          border: `2px solid ${source === previewImage ? 'red' : 'black'}`
-        }}
-      />
-    );
-  })}
-</Stack> */}

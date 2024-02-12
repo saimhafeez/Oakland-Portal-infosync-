@@ -12,6 +12,7 @@ import { firestore } from "../../firebase";
 import { formatDate } from "../../utils/formatDate";
 import SuperAdminSidebar from "../../components/sidebar/SuperAdminSidebar";
 import Header from "../../components/header/Header";
+import { useAppContext } from "../../context/appContext";
 
 
 
@@ -90,27 +91,6 @@ function ReadyToLive(props) {
             }))
 
         }).catch((e) => console.log('error occured', e))
-    }
-
-    const fetchUserList = async () => {
-        const usersCollectionRef = collection(firestore, "users");
-
-        // Use a query to filter users with role=manager
-        const q = query(usersCollectionRef);
-
-        // Fetch data based on the query
-        const snapshot = await getDocs(q);
-
-        let users = [];
-        snapshot.forEach((doc) => {
-            if (doc.data().role !== 'admin') {
-                users.push(`${doc.data().name} | ${doc.data().role}-${doc.data().jdesc} # ${doc.id}`);
-            }
-
-        });
-
-        setUserList(users)
-
     }
 
     useEffect(() => {
@@ -201,6 +181,8 @@ function ReadyToLive(props) {
         }
     }
 
+    const { sidebarOpened } = useAppContext()
+
     return (
         <>
             <Header
@@ -211,7 +193,7 @@ function ReadyToLive(props) {
             <SuperAdminSidebar />
 
             <Wrapper>
-                <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
+                <div className={`${sidebarOpened && "set-right-container-252"} p-3`} style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
                     <h2 className="text-center">Ready To Live</h2>
                     <div className="d-flex flex-row justify-content-end gap-2">
                         <div className="d-flex flex-column justify-content-end align-items-center" style={{ border: "2px solid #e8e8e8" }}>

@@ -29,13 +29,16 @@ function StatsTable({ user, job = null }) {
             console.log('stats result', result);
 
             const attempted = result.attempts;
-            var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+            // var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
+            var rejected_nad = (job || user.jdesc).includes('Extractor') ? result.rejects : 0;
+            var not_understandable = (job || user.jdesc).includes('DimAna') ? result.rejects : 0;
+
             var under_qa = result.not_validated;
             var minor = result.minor_changes;
             var major = result.major_changes;
             var passed = result.qa_passed
             var earnings = result.earning;
-            var resets = `${result.resets / attempted} %`;
+            var resets = `${((result.resets / attempted) * 100).toFixed(0)} %`;
             if (attempted === 0) {
                 resets = '0 %'
             }
@@ -43,7 +46,7 @@ function StatsTable({ user, job = null }) {
             setTableDataStats(pre => ({
                 ...pre,
                 isLoading: false,
-                data: [attempted, rejected_nad, under_qa, minor, major, passed, resets]
+                data: (job || user.jdesc).includes('Extractor') ? [attempted, rejected_nad, under_qa, minor, major, passed, resets] : [attempted, not_understandable, under_qa, minor, major, passed, resets]
             }))
 
         }).catch((e) => console.log('error occured', e))

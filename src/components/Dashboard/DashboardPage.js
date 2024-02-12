@@ -2,13 +2,11 @@ import React from "react";
 import Header from "../header/Header";
 import Sidebar from "../sidebar/Sidebar";
 import { useNavigate } from "react-router";
-import ManagerExtractorTable from "../tables/ManagerExtractorTable";
-import ManagerQAExtractorTable from "../tables/ManagerQAExtractorTable";
-import ManagerDimensionsTable from "../tables/ManagerDimensionsTable";
-import ManagerQADimensionsTable from "../tables/ManagerQADimensionsTable";
 import SuperAdmin from "../../pages/SuperAdmin";
 import SuperAdminSidebar from "../sidebar/SuperAdminSidebar";
 import UserDashboard from "../tables/UserDashboard";
+import { useAppContext } from "../../context/appContext";
+import ManagersDashboard from "../tables/ManagersDashboard";
 
 const DashboardPage = (props) => {
   const navigate = useNavigate();
@@ -24,6 +22,10 @@ const DashboardPage = (props) => {
       navigate("/dimensional-qa-analyst");
     }
   };
+
+  const { sidebarOpened } = useAppContext()
+
+
   return (
     <>
       <Header
@@ -35,7 +37,9 @@ const DashboardPage = (props) => {
 
       {props.userRole === "admin" ? <SuperAdminSidebar /> : <Sidebar />}
 
-      <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
+      <div
+        className={`${(sidebarOpened || props.userRole !== "admin") && "set-right-container-252"} p-3`} style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}
+      >
         <div className="row align-items-center">
           <div className="col-lg-6 text-center text-lg-start">
             <h5>
@@ -57,14 +61,7 @@ const DashboardPage = (props) => {
 
         {props.userRole === "admin" && <SuperAdmin />}
 
-
-        {props.userRole === "manager" && props.userJdesc === "Extractor" && <ManagerExtractorTable />}
-
-        {props.userRole === "manager" && props.userJdesc === "QA-Extractor" && <ManagerQAExtractorTable />}
-
-        {props.userRole === "manager" && props.userJdesc === "DimAna" && <ManagerDimensionsTable />}
-
-        {props.userRole === "manager" && props.userJdesc === "QA-DimAna" && <ManagerQADimensionsTable />}
+        {props.userRole === "manager" && <ManagersDashboard user={props.user} />}
 
       </div>
     </>

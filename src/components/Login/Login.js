@@ -28,11 +28,11 @@ const Login = (props) => {
     }
     //  CONNECT WITH FIREBASE
     setSubmitButtonDisabled(true);
-    const loginData = await signInWithEmailAndPassword(auth, values.email, values.password)
-
-    console.log('loginData', loginData.user.email);
 
     try {
+      const loginData = await signInWithEmailAndPassword(auth, values.email, values.password)
+
+      console.log('loginData', loginData.user.email);
       // Reference to the users collection
       const usersCollectionRef = collection(firestore, "users");
 
@@ -62,37 +62,16 @@ const Login = (props) => {
       } else {
         // No user found with the specified UID
         console.log("User not found");
+        triggerToast("User not found", "error")
+        setSubmitButtonDisabled(false)
         return null;
       }
     } catch (error) {
-      console.error("Error fetching user:", error);
-      throw error;
+      console.error("Error fetching user:", error.message);
+      triggerToast(`Error fetching user`, "error")
+      setSubmitButtonDisabled(false)
+      // throw error;
     }
-
-    // .then(async (res) => {
-    //   setSubmitButtonDisabled(false);
-    //   if (props.userRole === "admin") {
-    //     navigate("/dimensions-analyst");
-    //   } else if (props.userRole === "manager") {
-    //     navigate("/dimensions-analyst");
-    //   } else if (props.userRole === "worker") {
-    //     navigate("/dashboard");
-    //   } else {
-    //     return null;
-    //   }
-    //   // navigate("/extraction");
-    //   const user = res.user;
-    //   console.log("User UID", user.uid);
-    //   triggerToast(`Welcome ${props.userEmail}`, "success")
-    //   // console.log("User Display Name", user.displayName);
-    // })
-    // .catch((err) => {
-    //   setSubmitButtonDisabled(false);
-    //   // setErrorMsg(err.message);
-    //   triggerToast("Invalid Email or Password", "error")
-    //   // OR
-    //   // email already in use
-    // });
   };
 
   return (

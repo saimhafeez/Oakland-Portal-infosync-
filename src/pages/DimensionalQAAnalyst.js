@@ -38,7 +38,7 @@ import MiscItemSize from '../res/MiscItemSize.json'
 import { triggerToast } from "../utils/triggerToast";
 
 
-const defualt_state = {
+const default_state = {
   volume: {
     length: 0,
     width: 0,
@@ -100,7 +100,36 @@ function DimensionalQAAnalyst(props) {
   const [pipeTypeAndSizes, setPipeTypeAndSizes] = useState([])
   const [tapeSizes, setTapeSizes] = useState([])
 
+  const [productProperties, setProductProperties] = useState(default_state);
+  const [displayHeader, setDisplayHeader] = useState(false)
 
+  const [suggestEdit, setSuggestEdit] = useState(false);
+  const [previewImage, setPreviewImage] = useState();
+
+  const [filters, setFilters] = useState({
+    unitSelector: "Inch",
+    buildMaterial: "Select an Option",
+    qaScorecard: "QA Scorecard",
+  });
+
+  const resetValues = () => {
+    setImages([])
+    setWeightAndDimentions({})
+    setProductID("")
+    setProductSKU("")
+    setPreviewImage("")
+    setProductNotUnderstandable(false)
+    setDataLoading(false);
+    setDataLoaded(false);
+    setFilters((pre) => ({
+      ...pre,
+      buildMaterial: "Select an Option",
+      qaScorecard: 'QA Scorecard'
+    }))
+    setProductProperties(default_state)
+    setURL("");
+    setDataSubmitting(false)
+  }
 
   const executePythonScript = async () => {
     setDataLoading(true)
@@ -238,6 +267,7 @@ function DimensionalQAAnalyst(props) {
 
     const payload = exportData();
     console.log("body", payload);
+    setDataSubmitting(true)
 
     if (props.user) {
       // Get the authentication token
@@ -266,49 +296,8 @@ function DimensionalQAAnalyst(props) {
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
-              setImages([])
-              setWeightAndDimentions({})
-              setProductID("")
-              setProductSKU("")
-              setPreviewImage("")
-              setProductNotUnderstandable(false)
-              setDataLoading(false);
-              setDataLoaded(false);
-              setFilters((pre) => ({
-                ...pre,
-                buildMaterial: "IRON PIPE / MDF",
-                qaScorecard: 'QA Scorecard'
-              }))
-              setProductProperties({
-                ironPipeRows: [
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                  PropsModel["ironPipeRows"],
-                ],
-                woodenSheetRows: [
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                  PropsModel["woodenSheetRows"],
-                ],
-                woodTapeRows: [
-                  PropsModel["woodTapeRows"]
-                ],
-                miscTableRows: PropsModel["miscTableRows"],
-              })
-              setURL("");
-              setDataSubmitting(false)
+              resetValues();
+              triggerToast('Submitted Successfully!', 'success')
             })
             .catch((error) => {
               // Handle any errors
@@ -329,6 +318,7 @@ function DimensionalQAAnalyst(props) {
     const payload = exportData();
     payload.change = 'not_understandable'
     console.log("body", payload);
+    setDataSubmitting(true)
 
     if (props.user) {
       // Get the authentication token
@@ -357,22 +347,8 @@ function DimensionalQAAnalyst(props) {
             .then((data) => {
               // Handle the API response data
               console.log("API Response:", data);
-              setImages([])
-              setWeightAndDimentions({})
-              setProductID("")
-              setProductSKU("")
-              setPreviewImage("")
-              setProductNotUnderstandable(false)
-              setDataLoading(false);
-              setDataLoaded(false);
-              setFilters((pre) => ({
-                ...pre,
-                buildMaterial: "IRON PIPE / MDF",
-                qaScorecard: 'QA Scorecard'
-              }))
-              setProductProperties(defualt_state)
-              setURL("");
-              setDataSubmitting(false)
+              triggerToast('Product Marked As NOT UNDERSTANDABLE', 'warning')
+              resetValues()
             })
             .catch((error) => {
               // Handle any errors
@@ -385,50 +361,6 @@ function DimensionalQAAnalyst(props) {
         });
     }
   };
-
-  const [suggestEdit, setSuggestEdit] = useState(false);
-  const [previewImage, setPreviewImage] = useState();
-
-  const [filters, setFilters] = useState({
-    unitSelector: "Inch",
-    buildMaterial: "IRON PIPE / MDF",
-    qaScorecard: "QA Scorecard",
-  });
-
-  // const getFilledRows = (propType) => {
-  //   const filledData = Array.from(productPropertiesOld[propType]);
-  //   for (var i = filledData.length; i < 9; i++) {
-  //     filledData.push(PropsModel[propType]);
-  //   }
-  //   return filledData;
-  // };
-
-  const getMiscTableRows = () => {
-    const rows = PropsModel["miscTableRows"];
-    // console.log('productPropertiesOld.miscTableRows', productPropertiesOld.miscTableRows);
-    const newRows = [];
-    rows.map((row) => {
-      productPropertiesOld.miscTableRows.map((misc) => {
-        if (misc.item.toLowerCase() === row.item.toLowerCase()) {
-          console.log('matched -> ', {
-            item: misc.item,
-            qty: misc.qty,
-            size: misc.size
-          });
-          newRows.push({
-            item: misc.item,
-            qty: misc.qty,
-            size: misc.size
-          })
-          // rows[row].qty = misc.qty;
-          // rows[row].size = misc.size;
-        }
-      });
-    });
-    return newRows;
-  };
-
-  const [productProperties, setProductProperties] = useState(defualt_state);
 
   const addNewRow = (propType) => {
     setProductProperties((pre) => ({
@@ -505,15 +437,12 @@ function DimensionalQAAnalyst(props) {
     return miscItems.filter(item => !miscItem.includes(item));
   }
 
-
-  const [displayHeader, setDisplayHeader] = useState(false)
-
   const getDropdownItems = async () => {
     fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).then((result) => {
       console.log('ingredients result', result);
-      const ing = result.data.portalVariables.pipeTypesNSizes.filter((pipeTypeNSize) => pipeTypeNSize.status === 'active');
+      const ing = result.data.rawIngredients.pipe.filter((pipe) => pipe.status === 'active');
       setPipeTypeAndSizes(ing)
-      setTapeSizes(result.data.standardCosts.tape)
+      setTapeSizes(result.data.standardCosts.tape.filter((tape) => tape.status === 'active'))
     }).catch((e) => console.log('error occured', e))
   }
 
@@ -579,9 +508,6 @@ function DimensionalQAAnalyst(props) {
                 Fetch Data
               </button>
             </div>
-            {/* <div className="col-lg-1 col-md-4 text-end">
-              <button onClick={handleSignOut}>SignOut</button>
-            </div> */}
           </div>
         </div>
       </div>
@@ -650,12 +576,85 @@ function DimensionalQAAnalyst(props) {
 
             </Stack>
 
-            {/* <Stack marginBottom={2}>
-              
-            </Stack> */}
           </Stack>
 
           <Stack direction='column' gap={3} width='35%' overflow='auto'>
+
+            <Stack>
+              <TableContainer component={Paper} variant="outlined">
+                <Table padding={0} size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-head" colSpan={8}>
+                        <Stack direction='row' justifyContent='center'>
+                          <Typography fontWeight='bold'>Build Material</Typography>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>
+                        <Select
+                          size="small"
+                          value={filters.buildMaterial}
+                          onChange={(e) => {
+                            setFilters((pre) => ({
+                              ...pre,
+                              buildMaterial: e.target.value,
+                            }));
+                          }}
+                          name="buildMaterial"
+                          disabled={!dataLoaded || !suggestEdit || true} // INFO: Temporary Disabled as we will be working on the MDFs Only. 
+                          style={{
+                            width: "100%",
+                            textAlign: 'center',
+                            fontWeight: filters.buildMaterial === 'Select an Option' ? 'bold' : 'normal',
+                            color: filters.buildMaterial === 'Select an Option' ? '#7b9480' : 'black',
+                            background: filters.buildMaterial === 'Select an Option' ? '#c6efce' : 'white',
+                          }}
+                        >
+                          <MenuItem value='Select an Option'>Select an Option</MenuItem>
+                          <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
+                          <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Stack>
+
+            {filters.buildMaterial !== "SOLID WOOD" && (
+              <Stack>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table padding={0} size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell className="table-head" colSpan={8}>
+                          Wood Tape Size
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {productProperties.woodTapeRows.map((row, index) => {
+                        return (
+                          <WoodTapeTableRow
+                            key={index}
+                            _key={index}
+                            data={row}
+                            handleEdit={handleEdit}
+                            unitSelector={filters.unitSelector}
+                            editable={suggestEdit}
+                            tapeSizes={tapeSizes}
+                          />
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Stack>
+            )}
 
             <Stack>
               <TableContainer component={Paper} variant="outlined">
@@ -680,6 +679,7 @@ function DimensionalQAAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
+                          disabled={!suggestEdit}
                           value={productProperties.volume && productProperties.volume.length}
                           fullWidth
                           onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, length: e.target.value } }))}
@@ -690,6 +690,7 @@ function DimensionalQAAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
+                          disabled={!suggestEdit}
                           value={productProperties.volume && productProperties.volume.width}
                           fullWidth
                           onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, width: e.target.value } }))}
@@ -700,6 +701,7 @@ function DimensionalQAAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
+                          disabled={!suggestEdit}
                           value={productProperties.volume && productProperties.volume.height}
                           fullWidth
                           onChange={(e) => setProductProperties(pre => ({ ...pre, volume: { ...pre.volume, height: e.target.value } }))}
@@ -710,7 +712,7 @@ function DimensionalQAAnalyst(props) {
                         <TextField
                           size="small"
                           variant="outlined"
-                          value={productProperties.volume && (productProperties.volume.length * productProperties.volume.width * productProperties.volume.height)}
+                          value={productProperties.volume && (productProperties.volume.length * productProperties.volume.width * productProperties.volume.height).toFixed(2)}
                           className="cell-disabled"
                           fullWidth
                           disabled
@@ -821,37 +823,6 @@ function DimensionalQAAnalyst(props) {
               </TableContainer>
             </Stack>
 
-            {filters.buildMaterial !== "SOLID WOOD" && (
-              <Stack>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table padding={0} size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell className="table-head" colSpan={8}>
-                          Wood Tape Size
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {productProperties.woodTapeRows.map((row, index) => {
-                        return (
-                          <WoodTapeTableRow
-                            key={index}
-                            _key={index}
-                            data={row}
-                            handleEdit={handleEdit}
-                            unitSelector={filters.unitSelector}
-                            editable={suggestEdit}
-                            tapeSizes={tapeSizes}
-                          />
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Stack>
-            )}
-
             <Stack>
               <TableContainer component={Paper} variant="outlined">
                 <Table padding={0} size="small">
@@ -933,61 +904,12 @@ function DimensionalQAAnalyst(props) {
 
             <Stack direction="column" gap={1}>
 
-              {/* <Stack direction='column' justifyContent='center'>
-                <Typography fontWeight='bold' fontSize='small' textAlign='center'>Product SKU</Typography>
-                <Typography fontWeight='bold' fontSize='small' style={{ wordBreak: 'break-all' }} color='#d32f2f'>{productSKU}</Typography>
-              </Stack> */}
-
               <Button variant="contained"
                 onClick={() => setDisplayHeader(!displayHeader)}
                 style={{ backgroundColor: '#ffeb9c', color: 'black', width: 'fit-content', alignSelf: 'end' }}
               >
                 {displayHeader ? <CloseIcon /> : <MenuIcon />}
               </Button>
-
-              {/* <Stack direction='row' justifyContent='end'>
-                <TextField value={url} onChange={(e) => setURL(e.target.value)} placeholder="Search by URL" variant="filled" style={{ borderRadius: 0 }} />
-                <Button variant="contained"
-                  onClick={executePythonScript}
-                  style={{ backgroundColor: "black", color: "white", borderRadius: 0 }}
-                >
-
-                  <Stack direction='row' gap={2} alignItems='center'>
-                    <Typography fontWeight='bold'>GO</Typography>
-                    {dataLoading && <CircularProgress size={26} color="warning" />}
-                  </Stack>
-                </Button>
-              </Stack>
-              <Typography textAlign='center' fontSize={16} fontWeight='bold'>or</Typography>
-              <Button variant="contained"
-                onClick={executePythonScript}
-                style={{ backgroundColor: '#ffeb9c', color: 'black' }}
-              >
-
-                <Stack direction='row' gap={2} alignItems='center'>
-                  <Typography fontWeight='bold'>Fetch</Typography>
-                  {dataLoading && <CircularProgress size={26} color="warning" />}
-                </Stack>
-              </Button> */}
-
-              <Stack direction="column">
-                <Typography>Build Material</Typography>
-                <Select
-                  size="small"
-                  value={filters.buildMaterial}
-                  onChange={(e) => {
-                    setFilters((pre) => ({
-                      ...pre,
-                      buildMaterial: e.target.value,
-                    }));
-                  }}
-                  name="buildMaterial"
-                  disabled={!suggestEdit}
-                >
-                  <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
-                  <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
-                </Select>
-              </Stack>
 
               <Stack direction="column">
                 <Typography>Unit Selector</Typography>
@@ -1013,9 +935,6 @@ function DimensionalQAAnalyst(props) {
                 <Switch
                   disabled={!dataLoaded}
                   onChange={(e) => {
-                    // if (suggestEdit) {
-                    //   setProductProperties(productPropertiesOld);
-                    // }
                     setSuggestEdit(!suggestEdit);
                   }}
                 />
@@ -1023,9 +942,7 @@ function DimensionalQAAnalyst(props) {
 
             </Stack>
 
-
             <Stack direction='column' alignSelf='end' width='100%' gap={2}>
-
 
               <Stack direction="column">
                 {productNotUnderstandable ? <Typography textAlign='center' fontWeight='bold' fontStyle='italic'>Product Decleared as NOT UNDERSTANDABLE</Typography> : <Typography >Report Issue</Typography>}
@@ -1062,8 +979,11 @@ function DimensionalQAAnalyst(props) {
                   <MenuItem value="major">MAJOR Fixes</MenuItem>
                   {productNotUnderstandable === false && <MenuItem value="passed">100% [QA Passed]</MenuItem>}
                 </Select>
-                <Button variant='contained' color="success" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded || (filters.buildMaterial === 'IRON PIPE / MDF' && productProperties.woodTapeRows[0].size === 'Select an Option')} onClick={executePythonScriptSubmit}>
-                  submit
+                <Button variant='contained' color="success" disabled={filters.qaScorecard === 'QA Scorecard' || !dataLoaded || (filters.buildMaterial === 'IRON PIPE / MDF' && productProperties.woodTapeRows[0].size === 'Select an Option') || filters.buildMaterial === 'Select an Option'} onClick={executePythonScriptSubmit}>
+                  <Stack direction='row' gap={2} alignItems='center'>
+                    <Typography fontWeight='bold'>Submit</Typography>
+                    {dataSubmitting && <CircularProgress size={26} color="info" />}
+                  </Stack>
                 </Button>
               </Stack>
 

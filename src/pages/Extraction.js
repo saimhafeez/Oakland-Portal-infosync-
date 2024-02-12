@@ -10,6 +10,7 @@ const Extraction = (props) => {
   // =========================================================================
   const [searchQuery, setSearchQuery] = useState('')
   const [searchQueryType, setSearchQueryType] = useState('URL')
+  const [dataSubmiting, setDataSubmiting] = useState(false);
   // =========================================================================
 
   const [allImages, setAllImages] = useState([]);
@@ -105,6 +106,10 @@ const Extraction = (props) => {
     setVisibilityNotDoable(false);
 
     setSearchQuery("")
+    setDataSubmiting(false)
+
+    setSku({})
+    setShowId("")
   }
 
 
@@ -320,6 +325,7 @@ const Extraction = (props) => {
     setIsOrdinarylEditMode(false);
     setIsDiscardlEditMode(false);
   };
+
   const selectMyItem = (item) => {
     setSelectedImage(item);
 
@@ -444,6 +450,7 @@ const Extraction = (props) => {
       ordinary: [],
       discard: [],
       not_doable: false,
+      buildMaterial: ""
     };
     structuredData.id = sku;
     if (mergeSelectedDefaultThumbnail.length > 0) {
@@ -461,6 +468,7 @@ const Extraction = (props) => {
     if (selectedDiscard.length > 0) {
       structuredData.discard = selectedDiscard;
     }
+    setDataSubmiting(true)
     // Define the API endpoint and data payload
     const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
     // Send the POST request
@@ -483,8 +491,45 @@ const Extraction = (props) => {
       });
   };
 
+  const executeSolidWoodBuildMaterial = () => {
+
+    const structuredData = {
+      id: sku,
+      sku: showId,
+      dimensional: defaultDimension,
+      thumbnails: defaultThumbnail,
+      unsorted: allImages,
+      not_doable: false,
+      change: '',
+      buildMaterial: "SOLID WOOD"
+    };
+
+    const apiUrl = `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`;
+
+    // Send the POST request
+    fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(structuredData),
+    })
+      .then((response) => response.json()) // Assuming server responds with json
+      .then((structuredData) => {
+        console.log("Success:", structuredData);
+        resetAllValues()
+        triggerToast("SOLID WOOD Product Submited Successfully!", "success", "50px", "top-left")
+
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+  }
+
   const executeNoDoAbleScript = () => {
-    console.log("click");
+    setDataSubmiting(true)
     // initialize an empty object to hold the structured data
     const structuredData = {
       id: {},
@@ -494,6 +539,7 @@ const Extraction = (props) => {
       unsorted: [],
       not_doable: true,
       change: 'rejected_nad',
+      buildMaterial: ""
     };
     structuredData.id = sku;
     structuredData.sku = showId;
@@ -630,17 +676,27 @@ const Extraction = (props) => {
         {/* radio selector  */}
         <div className="mt-5 set-fixed-bar">
 
-          <div className="mb-5 px-2">
-            {visibilityNotDoable === true ? (
+          <div className="mb-1 px-2">
+            {visibilityNotDoable &&
               <button
-                className="set-btn-red d-block w-100"
+                className="btn btn-danger d-block w-100"
                 onClick={executeNoDoAbleScript}
               >
                 NOT A DOABLE
               </button>
-            ) : (
-              ""
-            )}
+            }
+          </div>
+
+          <div className="mb-2 px-2">
+            {visibilityNotDoable &&
+              <button
+                className="btn d-block w-100"
+                style={{ color: 'white', background: "#654231" }}
+                onClick={executeSolidWoodBuildMaterial}
+              >
+                SOLID WOOD
+              </button>
+            }
           </div>
 
           <div className="inside-div">
@@ -701,27 +757,20 @@ const Extraction = (props) => {
 
           </div>
 
-          <div className="w-100 mt-5 px-2">
-            {mergeSelectedDefaultThumbnail.length > 0 ||
-              mergeSelectedDefaultDimension.length > 0 ||
-              selectedWhiteBg.length > 0 ||
-              selectedOrdinary.length > 0 ||
-              selectedDiscard.length > 0 ? (
-              <button
-                onClick={jsonData}
-                className={`w-100 btn btn-success`}
-                style={{ backgroundColor: '#105736' }}
-              // className={`w-100 btn btn-success ${areAllImagesSorted() ? "disabled" : ""}`}
-
-              // disabled={!areAllImagesSorted()}
-              >
-                COMPLETED
-              </button>
-            ) : (
-              <button className={`btn-danger disabled`} disabled>
-                COMPLETED
-              </button>
-            )}
+          <div className="w-100 mt-2 px-2">
+            <button
+              disabled={showId === "" || dataSubmiting}
+              onClick={jsonData}
+              className={`w-100 btn btn-success d-flex align-items-center gap-1 justify-content-center`}
+              style={{ backgroundColor: '#105736' }}
+            >
+              COMPLETED
+              {dataSubmiting && <div
+                style={{ width: '20px', height: '20px' }}
+                class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>}
+            </button>
           </div>
         </div>
 

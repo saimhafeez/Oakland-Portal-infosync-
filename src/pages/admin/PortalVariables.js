@@ -13,7 +13,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import SuperAdminSidebar from "../../components/sidebar/SuperAdminSidebar";
-import HeaderSignOut from "../../components/header/HeaderSignOut";
+import Header from "../../components/header/Header";
+import { useAppContext } from "../../context/appContext";
 
 function PortalVariables(props) {
 
@@ -24,20 +25,8 @@ function PortalVariables(props) {
     // =================================================
     const [currentlyAdding, setCurrentlyAdding] = useState("");
     const [currentlyEditing, setCurrentlyEditing] = useState("");
-    const [newIronPipe, setNewIronPipe] = useState({
-        type: '',
-        size: '',
-        price: 0,
-        unit: '',
-        totalQuantity: 0,
-        status: 'active'
-    })
 
-    const [newMisc, setNewMisc] = useState({
-        name: '',
-        price: 0,
-        status: 'active'
-    })
+
     // =================================================)
 
     const [ingredients, setIngredients] = useState()
@@ -56,171 +45,6 @@ function PortalVariables(props) {
     useEffect(() => {
         fetchIngredients()
     }, [])
-
-    const editIronPipeIngredient = (ironPipe) => {
-        setCurrentlyAdding("Iron Pipe")
-        setCurrentlyEditing(ironPipe.toString())
-        setNewIronPipe({
-            type: ironPipe.split('  ')[0],
-            size: ironPipe.split('  ')[1],
-            price: (ingredients['Iron Pipe'])[ironPipe].price,
-            unit: (ingredients['Iron Pipe'])[ironPipe].unit,
-            totalQuantity: (ingredients['Iron Pipe'])[ironPipe].totalQuantity
-        })
-        setOpen(true)
-    }
-
-    const changeActiveStatusIronPipeIngredient = (ironPipe, status) => {
-
-        const newData = {
-            ...ingredients,
-            ['Iron Pipe']: {
-                ...(ingredients['Iron Pipe']),
-                [ironPipe]: {
-                    ...((ingredients['Iron Pipe'])[ironPipe]),
-                    status
-                }
-            }
-        }
-
-        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(newData),
-        }).then((res) => res.json()).then((result) => {
-            console.log('submitted', result);
-            fetchIngredients()
-        }).catch((e) => console.log('error occured', e))
-        // console.log('original', (ingredients["Iron Pipe"])[currentlyEditing])
-        // console.log('changes', changes);
-    }
-
-    const saveIronPipeIngredient = () => {
-        const changes = {
-            [`${newIronPipe.type}  ${newIronPipe.size}`]: {
-                price: parseInt(newIronPipe.price),
-                status: currentlyEditing ? ((ingredients["Iron Pipe"])[currentlyEditing]).status : newIronPipe.status,
-                unit: newIronPipe.unit,
-                totalQuantity: parseInt(newIronPipe.totalQuantity)
-            }
-        }
-        console.log('original', (ingredients["Iron Pipe"])[currentlyEditing])
-        console.log('changes', changes);
-
-        const newData = {
-            ...ingredients,
-            ['Iron Pipe']: {
-                ...(ingredients['Iron Pipe']),
-                ...changes
-            }
-        }
-
-        setOpen(false)
-        setCurrentlyAdding(null)
-        setCurrentlyEditing(null)
-        setNewIronPipe({
-            type: '',
-            size: '',
-            price: 0,
-            unit: '',
-            totalQuantity: 0,
-            status: 'active'
-        })
-
-        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(newData),
-        }).then((res) => res.json()).then((result) => {
-            console.log('submitted', result);
-            fetchIngredients()
-        }).catch((e) => console.log('error occured', e))
-
-        console.log('newData', newData);
-
-    }
-
-    const editMiscIngredient = (misc) => {
-        setCurrentlyAdding("Misc")
-        // console.log('misc.toString()', misc.toString());
-        setCurrentlyEditing(misc.toString())
-        console.log('misc', misc);
-        setNewMisc({
-            name: misc,
-            price: (ingredients['Misc'])[misc].price,
-            unit: (ingredients['Misc'])[misc].unit,
-        })
-        setOpen(true)
-    }
-
-    const saveMiscIngredient = () => {
-        const changes = {
-            [`${newMisc.name}`]: {
-                price: parseInt(newMisc.price),
-                status: currentlyEditing ? ((ingredients["Misc"])[currentlyEditing]).status : newMisc.status,
-            }
-        }
-        console.log('original', (ingredients["Misc"])[currentlyEditing])
-        console.log('changes', changes);
-
-        const newData = {
-            ...ingredients,
-            ['Misc']: {
-                ...(ingredients['Misc']),
-                ...changes
-            }
-        }
-
-        setOpen(false)
-        setCurrentlyAdding(null)
-        setCurrentlyEditing(null)
-        setNewMisc({
-            name: '',
-            price: 0,
-            status: 'active'
-        })
-
-        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(newData),
-        }).then((res) => res.json()).then((result) => {
-            console.log('submitted', result);
-            fetchIngredients()
-        }).catch((e) => console.log('error occured', e))
-
-        console.log('newData', newData);
-    }
-
-    const changeActiveStatusMiscIngredient = (ing, status) => {
-        const newData = {
-            ...ingredients,
-            ['Misc']: {
-                ...(ingredients['Misc']),
-                [ing]: {
-                    ...((ingredients['Misc'])[ing]),
-                    status
-                }
-            }
-        }
-
-        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(newData),
-        }).then((res) => res.json()).then((result) => {
-            console.log('submitted', result);
-            fetchIngredients()
-        }).catch((e) => console.log('error occured', e))
-    }
 
     // useEffect(() => {
     //     const ingredient = {
@@ -252,53 +76,6 @@ function PortalVariables(props) {
     //         console.log('submitted', result);
     //     })
     // })
-
-    const IronPipeModal = () => {
-        return <>
-            <Stack gap={2}>
-                <TextField
-                    label="Type"
-                    variant="outlined"
-                    value={newIronPipe.type}
-                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, type: e.target.value }))}
-                />
-                <TextField
-                    label="Size"
-                    variant="outlined"
-                    value={newIronPipe.size}
-                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, size: e.target.value }))}
-                />
-                <TextField
-                    label="Price"
-                    variant="outlined"
-                    type="number"
-                    value={newIronPipe.price}
-                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, price: e.target.value }))}
-                />
-                <TextField
-                    label="Unit"
-                    variant="outlined"
-                    type="text"
-                    value={newIronPipe.unit}
-                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, unit: e.target.value }))}
-                />
-                <TextField
-                    label="Total Quantity"
-                    variant="outlined"
-                    type="number"
-                    value={newIronPipe.totalQuantity}
-                    onChange={(e) => setNewIronPipe((pre) => ({ ...pre, totalQuantity: e.target.value }))}
-                />
-                <Button
-                    onClick={saveIronPipeIngredient}
-                    variant="contained"
-                    style={{ width: 'fit-content', borderRadius: 0, margin: '10px', alignSelf: 'end', gap: 2 }}
-                >
-                    Save
-                </Button>
-            </Stack>
-        </>
-    }
 
     const [newPipeTypeNSize, setNewPipeTypeNSize] = useState({
         type: '',
@@ -416,9 +193,11 @@ function PortalVariables(props) {
         })
     }
 
+    const { sidebarOpened } = useAppContext()
+
     return (
         <>
-            <HeaderSignOut
+            <Header
                 userEmail={props.userEmail}
                 userRole={props.userRole}
                 userJdesc={props.userJdesc}
@@ -429,13 +208,6 @@ function PortalVariables(props) {
                 onClose={() => {
                     setOpen(false)
                     setCurrentlyEditing(null)
-                    setNewIronPipe({
-                        name: '',
-                        price: 0,
-                        unit: '',
-                        totalQuantity: 0,
-                        status: 'active'
-                    })
                     setCurrentlyAdding(null)
                 }}
                 aria-labelledby="modal-modal-title"
@@ -458,7 +230,7 @@ function PortalVariables(props) {
 
             <SuperAdminSidebar />
 
-            <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
+            <div className={`${sidebarOpened && "set-right-container-252"} p-3`} style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
 
                 <Stack direction='row' justifyContent='center'>
                     <Stack direction='row' margin='10px' gap={1}>

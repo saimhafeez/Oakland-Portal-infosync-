@@ -12,8 +12,10 @@ import {
     MenuItem,
     Select,
     Stack,
+    Switch,
     TableContainer,
     TableFooter,
+    TextField,
     Typography,
     colors,
 } from "@mui/material";
@@ -23,9 +25,14 @@ import HeaderSignOut from '../../components/header/HeaderSignOut';
 import { getDimTableData } from '../../utils/getDimTableData';
 import generatePDF, { Margin, Resolution, usePDF } from 'react-to-pdf';
 import { triggerToast } from '../../utils/triggerToast';
+import WoodenSheetType from "../../res/WoodenSheetType.json";
 
 function ActualCost(props) {
     const urlParams = new URLSearchParams(window.location.search);
+
+    const [enableLegacyEdit, setEnableLegacyEdit] = useState(false)
+    const [pipeTypeAndSizes, setPipeTypeAndSizes] = useState([])
+    const [tapeSizes, setTapeSizes] = useState([])
 
     const [editable, setEditable] = useState(true)
     const [displayProductDataType, setDisplayProductDataType] = useState('images');
@@ -43,10 +50,12 @@ function ActualCost(props) {
 
         const currentTimeStamp = new Date().getTime();
 
+        const old_timebasedData = costingSheet ? costingSheet.timebasedData : {}
+
         const costingS = {
             currentVersion: currentTimeStamp,
             timebasedData: {
-                ...costingSheet.timebasedData,
+                ...old_timebasedData,
                 [currentTimeStamp]: {
                     summary,
                     actualCostTable,
@@ -75,6 +84,7 @@ function ActualCost(props) {
     }
 
     useEffect(() => {
+        getDropdownItems()
 
         const apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/cost_table/${urlParams.get('pid')}`
         const version = urlParams.get('version');
@@ -125,6 +135,7 @@ function ActualCost(props) {
     })
 
     const [actualCostTable, setActualCostTable] = useState({
+        isLoading: true,
         pipe: [],
         sheet: [],
         misc: [],
@@ -207,6 +218,10 @@ function ActualCost(props) {
         const apiURL_ingredients = `${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`
 
         // getStandardCosts
+        setActualCostTable(pre => ({
+            ...pre,
+            isLoading: true
+        }))
         fetch(apiURL_ingredients).then(res => res.json()).then((result) => {
             console.log('getIngredients', result);
 
@@ -218,6 +233,7 @@ function ActualCost(props) {
 
 
             const actualCTable = {
+                isLoading: false,
                 pipe: [],
                 sheet: [],
                 misc: [],
@@ -238,10 +254,12 @@ function ActualCost(props) {
 
             DimAnaQAData.data.final.productProperties.woodenSheetRows.map((sheet, index) => {
 
-                const tape_used = DimAnaQAData.data.final.productProperties.woodTapeRows[0].size.toLowerCase() === 'small' ? 0 : 1;
+                // const tape_used = DimAnaQAData.data.final.productProperties.woodTapeRows[0].size.toLowerCase() === 'small' ? 0 : 1;
+                const tape_used = DimAnaQAData.data.final.productProperties.woodTapeRows[0].size;
                 actualCTable.sheet.push({
                     material: "",
-                    tape: `${result.data.standardCosts.tape[tape_used].type} - ${result.data.standardCosts.tape[tape_used].size_inch}`
+                    // tape: `${result.data.standardCosts.tape[tape_used].type} - ${result.data.standardCosts.tape[tape_used].size_inch}`
+                    tape: tape_used
                 })
 
             })
@@ -464,11 +482,52 @@ function ActualCost(props) {
         },
     };
 
+    const getDropdownItems = async () => {
+        fetch(`${process.env.REACT_APP_SERVER_ADDRESS}/api/ingredients`).then((res) => res.json()).then((result) => {
+            console.log('ingredients result', result);
+            const ing = result.data.rawIngredients.pipe.filter((pipe) => pipe.status === 'active');
+            setPipeTypeAndSizes(ing)
+            setTapeSizes(result.data.standardCosts.tape.filter((tape) => tape.status === 'active'))
+        }).catch((e) => console.log('error occured', e))
+    }
+
+    // const handleEdit = (e, key, propType) => {
+    //     setProductProperties((pre) => {
+    //         const updatedRows = [...pre[propType]];
+    //         updatedRows[key] = {
+    //             ...updatedRows[key],
+    //             [e.target.name]: e.target.value,
+    //         };
+    //         return { ...pre, [propType]: updatedRows };
+    //     });
+    // };
+    const handleEdit = (e, key, propType) => {
+        setQADimAnaData((prevData) => {
+            const updatedData = {
+                ...prevData,
+                data: {
+                    ...prevData.data,
+                    [propType]: prevData.data[propType].map((item, index) =>
+                        index === key
+                            ? {
+                                ...item,
+                                [e.target.name]: e.target.value,
+                            }
+                            : item
+                    ),
+                },
+            };
+            return updatedData;
+        });
+    };
+
     useEffect(() => {
-        calculatePipeTotals()
-        calculateSheetTotals()
-        calculateMiscTotals()
-    }, [actualCostTable])
+        if (!qaDimAnaData.isLoading && !actualCostTable.isLoading) {
+            calculatePipeTotals()
+            calculateSheetTotals()
+            calculateMiscTotals()
+        }
+    }, [actualCostTable, qaDimAnaData.buildMaterial, qaDimAnaData.data])
 
     return (
         <Wrapper>
@@ -483,7 +542,7 @@ function ActualCost(props) {
 
                         <Stack direction='column' width='100%' spacing={0.5}>
 
-                            <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
+                            <div className='bg-black text-white text-center p-1' style={{ textTransform: 'capitalize' }}>
                                 <h4>
                                     SKU: {info.sku}
                                 </h4>
@@ -556,10 +615,35 @@ function ActualCost(props) {
                                 </div></div>
                                 :
                                 <>
-                                    <div className='bg-black text-white text-center' style={{ textTransform: 'capitalize' }}>
+                                    <div className='bg-black text-white text-center d-flex flex-row align-items-center justify-content-between gap-2 p-1' style={{ textTransform: 'capitalize' }}>
+                                        <div></div>
                                         <h4>
                                             COST TABLE
                                         </h4>
+                                        {editable ?
+                                            <Stack direction='row' alignItems='center' gap={2} bgcolor='white' borderRadius={2} color='black' paddingX={1}>
+                                                <Stack direction='row' gap={1} alignItems='center'>
+                                                    <Switch
+                                                        color="secondary"
+                                                        disabled={enableLegacyEdit}
+                                                        checked={enableLegacyEdit}
+                                                        onChange={(e) => setEnableLegacyEdit(pre => !pre)}
+                                                        inputProps={{ 'aria-label': 'controlled' }}
+                                                    />
+                                                    <Typography>Edit Fields?</Typography>
+                                                </Stack>
+                                                {enableLegacyEdit && <Button
+                                                    style={{ padding: 2, paddingRight: 10, paddingLeft: 10 }}
+                                                    variant='contained'
+                                                    onClick={() => setEnableLegacyEdit(false)}
+                                                >
+                                                    Save Fields
+                                                </Button>}
+                                            </Stack>
+                                            :
+                                            <div></div>
+                                        }
+
                                     </div>
 
                                     <Stack>
@@ -577,7 +661,24 @@ function ActualCost(props) {
                                                 <TableBody>
                                                     <TableRow>
                                                         <TableCell className='cell'>
-                                                            {qaDimAnaData.buildMaterial}
+                                                            {enableLegacyEdit ?
+                                                                <Select
+                                                                    size="small"
+                                                                    value={qaDimAnaData.buildMaterial}
+                                                                    onChange={(e) => {
+                                                                        setQADimAnaData((pre) => ({
+                                                                            ...pre,
+                                                                            buildMaterial: e.target.value,
+                                                                        }));
+                                                                    }}
+                                                                    name="buildMaterial"
+                                                                >
+                                                                    <MenuItem value="IRON PIPE / MDF">IRON PIPE / MDF</MenuItem>
+                                                                    <MenuItem value="SOLID WOOD">SOLID WOOD</MenuItem>
+                                                                </Select>
+                                                                :
+                                                                qaDimAnaData.buildMaterial
+                                                            }
                                                         </TableCell>
                                                     </TableRow>
                                                 </TableBody>
@@ -637,11 +738,55 @@ function ActualCost(props) {
                                                                     </select>
                                                                 </TableCell>
 
-                                                                <TableCell className='cell'>{row.pipeTypeNSize}</TableCell>
+                                                                <TableCell className='cell'>
 
-                                                                <TableCell className='cell'>{getValue(row.length)}''</TableCell>
+                                                                    {enableLegacyEdit ?
 
-                                                                <TableCell className='cell'>{row.qty}</TableCell>
+                                                                        <Select
+                                                                            size="small"
+                                                                            value={row.pipeTypeNSize}
+                                                                            onChange={(e) => handleEdit(e, index, "ironPipeRows")}
+                                                                            fullWidth
+                                                                            name="pipeTypeNSize"
+                                                                        >
+                                                                            {pipeTypeAndSizes.map((pipeTypeNSize, index) => {
+                                                                                return (
+                                                                                    <MenuItem key={index} value={`${pipeTypeNSize.type}  ${pipeTypeNSize.size}`}>
+                                                                                        {`${pipeTypeNSize.type}  ${pipeTypeNSize.size}`}
+                                                                                    </MenuItem>
+                                                                                );
+                                                                            })}
+                                                                        </Select>
+
+                                                                        : row.pipeTypeNSize
+
+                                                                    }
+
+                                                                </TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {enableLegacyEdit ?
+                                                                        <TextField
+                                                                            name="length"
+                                                                            value={row.length}
+                                                                            onChange={(e) => handleEdit(e, index, "ironPipeRows")}
+                                                                        />
+                                                                        :
+                                                                        `${getValue(row.length)} ''`
+                                                                    }
+                                                                </TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {enableLegacyEdit ?
+                                                                        <TextField
+                                                                            name="qty"
+                                                                            value={row.qty}
+                                                                            onChange={(e) => handleEdit(e, index, "ironPipeRows")}
+                                                                        />
+                                                                        :
+                                                                        row.qty
+                                                                    }
+                                                                </TableCell>
 
                                                                 <TableCell className='cell'>
                                                                     {`${getTotal('Iron Pipe', { length: row.length, qty: row.qty })} '' [${(getTotal('Iron Pipe', { length: row.length, qty: row.qty }) / 12).toFixed(2)} ft]`}
@@ -749,9 +894,72 @@ function ActualCost(props) {
                                                                         })}
                                                                     </select>
                                                                 </TableCell>
-                                                                <TableCell className='cell'>{row.type}</TableCell>
-                                                                <TableCell className='cell'>{getValue(row.length)}'' x {getValue(row.width)}''</TableCell>
-                                                                <TableCell className='cell'>{row.qty}</TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {enableLegacyEdit ?
+
+                                                                        <Select
+                                                                            size="small"
+                                                                            value={row.type}
+                                                                            onChange={(e) => handleEdit(e, index, "woodenSheetRows")}
+                                                                            // style={{ width: "130px" }}
+                                                                            fullWidth
+                                                                            name="type"
+                                                                            disabled={!editable}
+                                                                        >
+                                                                            {WoodenSheetType.map((item, index) => {
+                                                                                return (
+                                                                                    <MenuItem key={index} value={item.Type}>
+                                                                                        {item.Type}
+                                                                                    </MenuItem>
+                                                                                );
+                                                                            })}
+                                                                        </Select>
+                                                                        :
+                                                                        row.type
+                                                                    }
+                                                                </TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {enableLegacyEdit ?
+
+                                                                        <Stack spacing={1} direction='row'>
+
+                                                                            <TextField
+                                                                                label='length'
+                                                                                value={row.length}
+                                                                                name="length"
+                                                                                fullWidth
+                                                                                onChange={(e) => handleEdit(e, index, "woodenSheetRows")}
+                                                                            />
+
+                                                                            <TextField
+                                                                                label='width'
+                                                                                value={row.width}
+                                                                                name="width"
+                                                                                fullWidth
+                                                                                onChange={(e) => handleEdit(e, index, "woodenSheetRows")}
+                                                                            />
+
+                                                                        </Stack>
+                                                                        :
+                                                                        `${row.length}'' x ${row.width}''`
+                                                                    }
+                                                                </TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {enableLegacyEdit ?
+                                                                        <TextField
+                                                                            label='Quantity'
+                                                                            value={row.qty}
+                                                                            name="qty"
+                                                                            fullWidth
+                                                                            onChange={(e) => handleEdit(e, index, "woodenSheetRows")}
+                                                                        />
+                                                                        :
+                                                                        row.qty
+                                                                    }
+                                                                </TableCell>
 
                                                                 <TableCell className='cell'>
                                                                     {`${(getTotal('Wooden Sheet', { length: row.length, width: row.width, qty: row.qty }) / 12).toFixed(2)} Sq Ft`}
@@ -762,7 +970,37 @@ function ActualCost(props) {
                                                                 </TableCell>
 
                                                                 <TableCell className='cell'>
-                                                                    {actualCostTable.sheet[index].tape}
+                                                                    {enableLegacyEdit ?
+                                                                        <Select
+                                                                            value={actualCostTable.sheet[index].tape}
+                                                                            onChange={(e) => {
+
+                                                                                const sheets = actualCostTable.sheet;
+                                                                                sheets[index].tape = e.target.value;
+                                                                                setActualCostTable(pre => ({
+                                                                                    ...pre,
+                                                                                    sheet: sheets
+                                                                                }))
+
+                                                                                handleEdit(e, index, "woodTapeRows")
+                                                                            }}
+                                                                            name="size"
+                                                                            style={{
+                                                                                width: "100%",
+                                                                                textAlign: 'center',
+                                                                            }}
+                                                                        >
+                                                                            {tapeSizes.map((tape, index) => {
+                                                                                return (
+                                                                                    <MenuItem key={index} value={`${tape.type} - ${tape.size_inch}`}>
+                                                                                        {`${tape.type} - ${tape.size_inch}`}
+                                                                                    </MenuItem>
+                                                                                );
+                                                                            })}
+                                                                        </Select>
+                                                                        :
+                                                                        actualCostTable.sheet[index].tape
+                                                                    }
                                                                 </TableCell>
 
                                                                 <TableCell className='cell'>
@@ -820,7 +1058,21 @@ function ActualCost(props) {
                                                         return (
                                                             <TableRow>
                                                                 <TableCell className='cell' style={{ textTransform: 'capitalize' }}>{row.item}</TableCell>
-                                                                <TableCell className='cell'>{row.qty}</TableCell>
+
+                                                                <TableCell className='cell'>
+                                                                    {enableLegacyEdit ?
+                                                                        <TextField
+                                                                            name="qty"
+                                                                            fullWidth
+                                                                            onChange={(e) => {
+                                                                                handleEdit(e, index, "miscTableRows");
+                                                                            }}
+                                                                            value={row.qty}
+                                                                        />
+                                                                        :
+                                                                        row.qty
+                                                                    }
+                                                                </TableCell>
                                                                 <TableCell className='cell'>
                                                                     {`${getMiscStandanrdCost(actualCostTable.misc[index].item).rate}  
                                                                 [${getMiscStandanrdCost(actualCostTable.misc[index].item).rate * row.qty}]`}
@@ -871,7 +1123,25 @@ function ActualCost(props) {
                                                             Length
                                                         </TableCell>
                                                         <TableCell className='cell'>
-                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.length) || 0}
+                                                            {enableLegacyEdit ?
+                                                                <TextField
+                                                                    style={{ maxWidth: '150px' }}
+                                                                    onChange={(e) => {
+                                                                        setQADimAnaData(pre => ({
+                                                                            ...pre,
+                                                                            data: {
+                                                                                ...pre.data,
+                                                                                volume: {
+                                                                                    ...pre.data.volume,
+                                                                                    length: e.target.value
+                                                                                }
+                                                                            }
+                                                                        }))
+                                                                    }}
+                                                                    value={(qaDimAnaData.data.volume && qaDimAnaData.data.volume.length) || 0}
+                                                                />
+                                                                :
+                                                                (qaDimAnaData.data.volume && qaDimAnaData.data.volume.length) || 0}
                                                         </TableCell>
 
                                                         <TableCell className='cell'>
@@ -887,7 +1157,28 @@ function ActualCost(props) {
                                                             Width
                                                         </TableCell>
                                                         <TableCell className='cell'>
-                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.width) || 0}
+                                                            {enableLegacyEdit ?
+
+                                                                <TextField
+                                                                    style={{ maxWidth: '150px' }}
+                                                                    onChange={(e) => {
+                                                                        setQADimAnaData(pre => ({
+                                                                            ...pre,
+                                                                            data: {
+                                                                                ...pre.data,
+                                                                                volume: {
+                                                                                    ...pre.data.volume,
+                                                                                    width: e.target.value
+                                                                                }
+                                                                            }
+                                                                        }))
+                                                                    }}
+                                                                    value={(qaDimAnaData.data.volume && qaDimAnaData.data.volume.width) || 0}
+                                                                />
+
+                                                                :
+                                                                (qaDimAnaData.data.volume && qaDimAnaData.data.volume.width) || 0
+                                                            }
                                                         </TableCell>
 
                                                         <TableCell className='cell'>
@@ -903,7 +1194,26 @@ function ActualCost(props) {
                                                             Height
                                                         </TableCell>
                                                         <TableCell className='cell'>
-                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.height) || 0}
+                                                            {enableLegacyEdit ?
+                                                                <TextField
+                                                                    style={{ maxWidth: '150px' }}
+                                                                    onChange={(e) => {
+                                                                        setQADimAnaData(pre => ({
+                                                                            ...pre,
+                                                                            data: {
+                                                                                ...pre.data,
+                                                                                volume: {
+                                                                                    ...pre.data.volume,
+                                                                                    height: e.target.value
+                                                                                }
+                                                                            }
+                                                                        }))
+                                                                    }}
+                                                                    value={(qaDimAnaData.data.volume && qaDimAnaData.data.volume.height) || 0}
+                                                                />
+                                                                :
+                                                                (qaDimAnaData.data.volume && qaDimAnaData.data.volume.height) || 0
+                                                            }
                                                         </TableCell>
 
                                                         <TableCell className='cell'></TableCell>
@@ -915,7 +1225,7 @@ function ActualCost(props) {
                                                             Volume
                                                         </TableCell>
                                                         <TableCell className='cell'>
-                                                            {(qaDimAnaData.data.volume && qaDimAnaData.data.volume.length * qaDimAnaData.data.volume.width * qaDimAnaData.data.volume.height) || 0}
+                                                            {(qaDimAnaData.data.volume && (qaDimAnaData.data.volume.length * qaDimAnaData.data.volume.width * qaDimAnaData.data.volume.height).toFixed(2)) || 0}
                                                         </TableCell>
 
                                                         <TableCell className='cell'></TableCell>
@@ -993,7 +1303,7 @@ function ActualCost(props) {
                                                                 <Button
                                                                     variant='contained'
                                                                     color='success'
-                                                                    disabled={!activateSaveButton()}
+                                                                    disabled={!activateSaveButton() || enableLegacyEdit}
                                                                     onClick={() => generatePDF(targetPDFRef, PDFoptions)}
                                                                 >
                                                                     Generate PDF
@@ -1001,7 +1311,7 @@ function ActualCost(props) {
 
                                                                 {editable && <Button
                                                                     variant='contained'
-                                                                    disabled={!activateSaveButton()}
+                                                                    disabled={!activateSaveButton() || enableLegacyEdit}
                                                                     onClick={uploadData}
                                                                 >
                                                                     Save

@@ -1,12 +1,16 @@
 import React from 'react'
 import HeaderSignOut from '../../components/header/HeaderSignOut'
 import SuperAdminSidebar from '../../components/sidebar/SuperAdminSidebar'
-import { firestore, secondaryApp } from '../../firebase';
-import { collection, doc, getDocs, getFirestore, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { auth, firestore, secondaryApp } from '../../firebase';
+import { collection, deleteDoc, doc, getDoc, getDocs, getFirestore, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { CircularProgress, Stack, Typography, Button, Box, TextField, Select, MenuItem, Modal, FormControl, InputLabel } from '@mui/material';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { createUserWithEmailAndPassword, deleteUser, getAuth } from 'firebase/auth';
+import Header from '../../components/header/Header';
+import { useAppContext } from '../../context/appContext';
+import { getUserByUID, resetPasswordByUID } from '../../utils/firebaseActions';
+import { triggerToast } from '../../utils/triggerToast';
 
 function UserManagement(props) {
 
@@ -187,15 +191,99 @@ function UserManagement(props) {
         }
     };
 
+    const updateDocId = async (collectionName, oldDocId, newDocId) => {
+        try {
+            const firestore = getFirestore();
+            const collectionRef = collection(firestore, collectionName);
+
+            // Get the existing document data
+            const oldDocRef = doc(collectionRef, oldDocId);
+            const oldDocSnapshot = await getDoc(oldDocRef);
+
+            if (oldDocSnapshot.exists()) {
+                // Create a new document with the desired ID
+                const newDocRef = doc(collectionRef, newDocId);
+
+                // Copy data from the old document to the new one
+                await setDoc(newDocRef, oldDocSnapshot.data());
+
+                // If you want, delete the old document
+                await deleteDoc(oldDocRef);
+
+                console.log('Document ID updated successfully');
+            } else {
+                console.error('Document not found');
+            }
+        } catch (error) {
+            console.error('Error updating document ID:', error.message);
+        }
+    };
+
+    const deleteUserFromAuth = async (uid) => {
+        try {
+            // Delete the user from Authentication
+            await auth.deleteUser(uid);
+
+            // Display success message or perform any other actions
+            triggerToast('User deleted from Authentication successfully!', 'success');
+        } catch (error) {
+            console.error('Error deleting user from Authentication:', error.message);
+            triggerToast(error.message, 'warning');
+        }
+    }
+
+    const resetUser = async (uid) => {
+        try {
+
+            const existingUser = await getUserByUID(uid)
+
+            if (!existingUser) {
+                console.log('user not found');
+                return
+            }
+
+
+            const userInfo = {
+                email: existingUser.email,
+                password: 'Saim1122'
+            }
+
+            await deleteUserFromAuth(uid)
+
+            // Create user in Authentication
+            const auth = getAuth(secondaryApp);
+            const { email, password } = userInfo;
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userId = userCredential.user.uid;
+
+            await updateDocId("users", uid, userId)
+            console.log('User reseted and uid replaced to Firestore successfully');
+            setOpen(false)
+            setNewEmployee({
+                name: '',
+                email: '',
+                password: '',
+                jdesc: 'Extractor',
+                role: 'worker',
+                status: 'active'
+            })
+            getAllUsers()
+        } catch (error) {
+            console.error('Error creating user and adding to Firestore:', error.message);
+        }
+    }
+
     const addNewEmployee = () => {
         if (newEmployee.email !== "" && newEmployee.password !== "" && newEmployee.name !== "") {
             createUserAndAddToFirestore(newEmployee)
         }
     }
 
+    const { sidebarOpened } = useAppContext()
+
     return (
         <>
-            <HeaderSignOut
+            <Header
                 userEmail={props.userEmail}
                 userRole={props.userRole}
                 userJdesc={props.userJdesc}
@@ -308,7 +396,7 @@ function UserManagement(props) {
                 </Box>
             </Modal>
 
-            <div className="set-right-container-252 p-3" style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
+            <div className={`${sidebarOpened && "set-right-container-252"} p-3`} style={{ height: 'calc(100vh - 70px)', overflow: 'auto' }}>
 
                 <Stack direction='row' justifyContent='space-between'>
                     <div></div>
@@ -465,14 +553,16 @@ function UserManagement(props) {
                                     </select>
                                 </td>
                                 <td>
-                                    {
-                                        <button className='btn btn-fetch btn-go-fetch'
-                                            onClick={() => updateUserStatus(item.id, filter.status === 'active' ? 'inactive' : 'active')}
-                                        >
-                                            {filter.status === 'active' ? 'Deactivate Account' : 'Activate Account'}
-                                        </button>
-                                    }
-
+                                    <button className='btn btn-fetch btn-go-fetch'
+                                        onClick={() => updateUserStatus(item.id, filter.status === 'active' ? 'inactive' : 'active')}
+                                    >
+                                        {filter.status === 'active' ? 'Deactivate Account' : 'Activate Account'}
+                                    </button>
+                                    {/* <button className='btn btn-fetch btn-go-fetch'
+                                        onClick={() => resetUser(item.id)}
+                                    >
+                                        Reset Password
+                                    </button> */}
                                 </td>
                             </tr>
                         ))}

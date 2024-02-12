@@ -28,6 +28,7 @@ import PortalVariables from './pages/admin/PortalVariables';
 import StandardCosts from './pages/admin/StandardCosts';
 import ActualCostProducts from './pages/admin/ActualCostProducts';
 import ActualCost from './pages/admin/ActualCost';
+import RawIngredients from './pages/admin/RawIngredients';
 
 const auth = getAuth();
 
@@ -309,9 +310,9 @@ function App() {
                 }
               />
               <Route
-                path="/portal-variables"
+                path="/raw-ingredients"
                 element={
-                  <PortalVariables
+                  <RawIngredients
                     userEmail={userEmail}
                     userRole={userRole}
                     userJdesc={userJdesc}

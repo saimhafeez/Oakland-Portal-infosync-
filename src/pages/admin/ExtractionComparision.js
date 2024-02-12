@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { getExtractorImages } from '../../utils/getExtractorImages';
 import HeaderSignOut from '../../components/header/HeaderSignOut';
+import { Box, Stack } from '@mui/material';
+import { CloseFullscreen, CloseTwoTone } from '@mui/icons-material';
 
-const default_imageSet = {
-    thumbnails: [],
-    dimensional: [],
-    ordinary: [],
-    whitebg: [],
-    discard: []
-}
+function ExtractionComparision({ closeCallback, pid, vid, job, result }) {
 
-function ExtractionComparision(props) {
+    const default_imageSet = {
+        thumbnails: [],
+        dimensional: [],
+        ordinary: [],
+        whitebg: [],
+        discard: []
+    }
+
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const pid = urlParams.get('pid');
+    // const vid = urlParams.get('vid');
+    // const job = urlParams.get('job');
+    // const result = urlParams.get('result');
 
     const [extractionData, setExtractionData] = useState({
         isLoading: true,
@@ -28,49 +36,71 @@ function ExtractionComparision(props) {
         vid: ""
     })
 
-
-    useEffect(async () => {
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const pid = urlParams.get('pid');
-        const vid = urlParams.get('vid');
-        const job = urlParams.get('job');
-
+    const init = async () => {
         setInfo({
             idLoading: false,
             pid, vid
         })
 
-        console.log(pid, job);
+        var workerData = []
+        if (result !== 'qaOnly') {
 
-        const lt = (new Date().getTime() / 1000).toFixed(0)
+            workerData = await getExtractorImages({ table_type: 'worker', pid, vid })
+        }
 
-        const workerData = await getExtractorImages({ table_type: 'worker', pid, vid })
-
-        const qaWorkerData = await getExtractorImages({ table_type: 'qa', pid, vid })
-
-        console.log('workerData -> ', workerData);
-        console.log('qaWorkerData -> ', qaWorkerData);
+        console.log('workerData', workerData);
 
 
-        // console.log('---------------------------');
-        // console.log(workerData.data.sorted.change !== 'rejected_nad' ? workerData.data.sorted : default_imageSet);
-        // console.log('---------------------------');
-        // console.log(qaWorkerData.data.final.change !== 'rejected_nad' ? qaWorkerData.data.final : default_imageSet);
+        var qaWorkerData = []
 
-        setExtractionData({
-            isLoading: false,
-            data: workerData.data.sorted.change !== 'rejected_nad' ? workerData.data.sorted : default_imageSet,
-            status: workerData.data.sorted.change
-        })
+        if (job === 'QA-Extractor') {
+            qaWorkerData = await getExtractorImages({ table_type: 'qa', pid, vid })
+        }
 
-        setQAExtractionData({
-            isLoading: false,
-            data: qaWorkerData.data.final.change !== 'rejected_nad' ? qaWorkerData.data.final : default_imageSet,
-            status: qaWorkerData.data.final.change
-        })
+        if (result !== 'qaOnly') {
+            setExtractionData({
+                isLoading: false,
+                data: workerData.data.sorted.change !== 'rejected_nad' ? workerData.data.sorted : default_imageSet,
+                status: workerData.data.sorted.change
+            })
+        } else {
+            setExtractionData({
+                isLoading: false,
+                data: {
+                    thumbnails: [],
+                    dimensional: [],
+                    whitebg: [],
+                    ordinary: [],
+                    discard: []
+                },
+                status: ""
+            })
+        }
 
 
+        if (job === 'QA-Extractor') {
+            setQAExtractionData({
+                isLoading: false,
+                data: qaWorkerData.data.final.change !== 'rejected_nad' ? qaWorkerData.data.final : default_imageSet,
+                status: qaWorkerData.data.final.change
+            })
+        } else {
+            setQAExtractionData({
+                isLoading: false,
+                data: {
+                    thumbnails: [],
+                    dimensional: [],
+                    whitebg: [],
+                    ordinary: [],
+                    discard: []
+                },
+                status: ""
+            })
+        }
+    }
+
+    useEffect(() => {
+        init()
     }, [])
 
     const ImagesContainer = ({ containerTitle, imageSet, column }) => {
@@ -107,15 +137,19 @@ function ExtractionComparision(props) {
 
     return (
         <div>
-            <HeaderSignOut
+            {/* <HeaderSignOut
                 userEmail={props.userEmail}
                 userRole={props.userRole}
                 userJdesc={props.userJdesc}
-            />
-            <div className='bg-warning text-white text-center'>
+            /> */}
+            <div className='d-flex flex-row justify-content-between align-items-center bg-warning text-white text-center p-1'>
+                <div></div>
                 <h4>
                     {`SKU: ${info.pid}-${info.vid}`}
                 </h4>
+                <div className='bg-black' style={{ cursor: 'pointer' }} onClick={closeCallback}>
+                    <CloseTwoTone />
+                </div>
             </div>
             <div className='d-flex flex-row'>
                 <div className='w-100'>
@@ -165,6 +199,7 @@ function ExtractionComparision(props) {
 
 
                 </div>
+
                 <div className='w-100'>
                     {qaextractionData.isLoading ? <div className=" d-flex flex-row justify-content-center"> <div class="spinner-border" role="status">
                         <span class="visually-hidden">Loading...</span>

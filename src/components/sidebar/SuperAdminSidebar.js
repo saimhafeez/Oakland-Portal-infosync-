@@ -1,20 +1,36 @@
 import React from "react";
+import { useAppContext } from "../../context/appContext";
 
 const SuperAdminSidebar = () => {
+
+    const { sidebarOpened } = useAppContext()
+
     return (
         <>
-            <div className="set-max-width-252">
+            {sidebarOpened && <div className="set-max-width-252">
                 <ul>
                     <li>
                         <a href="/dashboard" className="link-light" underline="hover">
                             Dashboard
                         </a>
                     </li>
+
                     <li>
-                        <a href="/standard-costs" className="link-light" underline="hover">
-                            Standard Costs
+                        <a href="/actual-costs" className="link-light" underline="hover">
+                            Actual Costs
                         </a>
                     </li>
+                    <li>
+                        <a href="/standard-costs" className="link-light" underline="hover">
+                            Actual Ingredients
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/raw-ingredients" className="link-light" underline="hover">
+                            Raw Ingredients
+                        </a>
+                    </li>
+
                     <li>
                         <a href="/user-management" className="link-light" underline="hover">
                             User Management
@@ -40,18 +56,8 @@ const SuperAdminSidebar = () => {
                             NOT UNDERSTANDABLEs
                         </a>
                     </li>
-                    <li>
-                        <a href="/actual-costs" className="link-light" underline="hover">
-                            Actual Costs
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/portal-variables" className="link-light" underline="hover">
-                            Portal Variables
-                        </a>
-                    </li>
                 </ul>
-            </div>
+            </div>}
         </>
     );
 };
