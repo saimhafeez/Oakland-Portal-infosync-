@@ -30,8 +30,12 @@ import { getDimTableData } from '../../utils/getDimTableData';
 import { getImagesByID } from '../../utils/getImagesByID';
 import { CloseTwoTone } from '@mui/icons-material';
 
-function DimAnaComparision({ closeCallback, pid, vid, job, result }) {
+function DimAnaComparision(props) {
 
+    const pid = props.pid;
+    const vid = props.vid;
+    const job = props.job;
+    const result = props.result;
     // const urlParams = new URLSearchParams(window.location.search);
     // const pid = urlParams.get('pid');
     // const vid = urlParams.get('vid');
@@ -108,6 +112,33 @@ function DimAnaComparision({ closeCallback, pid, vid, job, result }) {
     };
 
     const init = async () => {
+
+        setInfo({
+            isLoading: true,
+            images: [],
+            sku: "",
+            weightAndDimentions: {}
+        })
+        setHighlightedRows({
+            ironPipeRows: [],
+            woodenSheetRows: [],
+            woodTapeRows: [],
+            miscTableRows: []
+        })
+        setDimAnaData({
+            isLoading: true,
+            data: [],
+            differentRows: [],
+            buildMaterial: "",
+            status: ""
+        })
+        setQADimAnaData({
+            isLoading: true,
+            data: [],
+            differentRows: [],
+            buildMaterial: "",
+            status: ""
+        })
 
         var DimAnaWorkerData = []
         DimAnaWorkerData = await getDimTableData({ table_type: 'worker', pid: pid })
@@ -321,7 +352,7 @@ function DimAnaComparision({ closeCallback, pid, vid, job, result }) {
 
     useEffect(() => {
         init()
-    }, [])
+    }, [props])
 
     return (
         <Wrapper>
@@ -336,11 +367,12 @@ function DimAnaComparision({ closeCallback, pid, vid, job, result }) {
                     <Stack direction='column' width='100%' spacing={0.5} p={1}>
 
                         <div className='d-flex flex-row justify-content-between align-items-center bg-warning text-white text-center p-1'>
-                            <div></div>
+                            <div>
+                            </div>
                             <h4>
-                                {`SKU: ${info.pid}-${info.vid}`}
+                                {`SKU: ${pid}-${vid}`}
                             </h4>
-                            <div className='bg-black' style={{ cursor: 'pointer' }} onClick={closeCallback}>
+                            <div className='bg-black' style={{ cursor: 'pointer' }} onClick={props.closeCallback}>
                                 <CloseTwoTone />
                             </div>
                         </div>

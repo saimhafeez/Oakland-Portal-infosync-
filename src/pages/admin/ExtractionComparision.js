@@ -4,8 +4,8 @@ import HeaderSignOut from '../../components/header/HeaderSignOut';
 import { Box, Stack } from '@mui/material';
 import { CloseFullscreen, CloseTwoTone } from '@mui/icons-material';
 
-function ExtractionComparision({ closeCallback, pid, vid, job, result }) {
-
+function ExtractionComparision(props) {
+    // { closeCallback, pid, vid, job, result }
     const default_imageSet = {
         thumbnails: [],
         dimensional: [],
@@ -14,7 +14,12 @@ function ExtractionComparision({ closeCallback, pid, vid, job, result }) {
         discard: []
     }
 
+
     // const urlParams = new URLSearchParams(window.location.search);
+    const pid = props.pid;
+    const vid = props.vid;
+    const job = props.job;
+    const result = props.result;
     // const pid = urlParams.get('pid');
     // const vid = urlParams.get('vid');
     // const job = urlParams.get('job');
@@ -40,6 +45,16 @@ function ExtractionComparision({ closeCallback, pid, vid, job, result }) {
         setInfo({
             idLoading: false,
             pid, vid
+        })
+        setExtractionData({
+            isLoading: true,
+            data: default_imageSet,
+            status: ""
+        })
+        setQAExtractionData({
+            isLoading: true,
+            data: default_imageSet,
+            status: ""
         })
 
         var workerData = []
@@ -101,7 +116,7 @@ function ExtractionComparision({ closeCallback, pid, vid, job, result }) {
 
     useEffect(() => {
         init()
-    }, [])
+    }, [props])
 
     const ImagesContainer = ({ containerTitle, imageSet, column }) => {
         return <div className="container-fluid py-2" style={{ borderRight: column === 1 ? '3px solid #7b9480' : '0px solid black' }}>
@@ -143,11 +158,12 @@ function ExtractionComparision({ closeCallback, pid, vid, job, result }) {
                 userJdesc={props.userJdesc}
             /> */}
             <div className='d-flex flex-row justify-content-between align-items-center bg-warning text-white text-center p-1'>
-                <div></div>
+                <div >
+                </div>
                 <h4>
                     {`SKU: ${info.pid}-${info.vid}`}
                 </h4>
-                <div className='bg-black' style={{ cursor: 'pointer' }} onClick={closeCallback}>
+                <div className='bg-black' style={{ cursor: 'pointer' }} onClick={props.closeCallback}>
                     <CloseTwoTone />
                 </div>
             </div>

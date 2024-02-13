@@ -49,8 +49,11 @@ function SuperAdmin(props) {
         job: "",
         pid: "",
         vid: "",
-        result: ""
+        result: "",
+        index: "",
+        page: ""
     })
+
 
     const lt = (new Date().getTime() / 1000).toFixed(0)
 
@@ -178,7 +181,7 @@ function SuperAdmin(props) {
                 if (!result) {
                     return []
                 }
-                console.log(`stats [${worker.name}]`, result);
+                // console.log(`stats [${worker.name}]`, result);
 
                 const attempted = result.attempts;
                 // var rejected_nad = result.attempts - result.not_validated - result.minor_changes - result.major_changes - result.qa_passed;
@@ -273,7 +276,7 @@ function SuperAdmin(props) {
         console.log('chchaa fetching user list of jdesc', tableFilter);
 
         // Use a query to filter users with role=manager
-        const q = query(usersCollectionRef, where("jdesc", "==", tableFilter), where("status", "==", "active"));
+        const q = query(usersCollectionRef, where("role", "==", 'worker'), where("jdesc", "==", tableFilter), where("status", "==", "active"));
 
         // Fetch data based on the query
         const snapshot = await getDocs(q);
@@ -372,14 +375,15 @@ function SuperAdmin(props) {
         // window.location.href = `/product-detail-info?job=${tableFilter}&pid=${productID}`
     }
 
-    const navigateToComparisionSheet = (product, productID, variantID, job) => {
+    const navigateToComparisionSheet = (product, productID, variantID, job, index) => {
 
         const props = {
             state: true,
             job: "",
             pid: productID,
             vid: variantID,
-            result: ""
+            result: "",
+            index
         }
 
         if (tableFilter === 'Filter by Role') {
@@ -414,7 +418,9 @@ function SuperAdmin(props) {
             job: "",
             pid: "",
             vid: "",
-            result: ""
+            result: "",
+            index: "",
+            page: ""
         })
     }
 
@@ -432,6 +438,50 @@ function SuperAdmin(props) {
             fetchManagersTableData()
 
         }).catch((e) => console.log('error occured', e))
+    }
+
+    const moveComparisionModalTo = (type) => {
+        console.log('openComparisionModal.index', openComparisionModal.index);
+        const index = type === "NEXT" ? parseInt(openComparisionModal.index) + 1 : parseInt(openComparisionModal.index) - 1
+
+        if (index >= tableData.data.length || index < 0) {
+            resetComparisionModal()
+            return
+        }
+
+        const product = tableData.data[index];
+        console.log('product', product, index);
+        const productID = product.ProductID
+        const variantID = product.VariantID
+        const job = tableFilter.includes('Extractor') ? 'Extractor' : 'DimAna'
+
+
+        const props = {
+            state: true,
+            job: "",
+            pid: productID,
+            vid: variantID,
+            result: "",
+            index
+        }
+
+        if (tableFilter === 'Filter by Role') {
+
+            if (!product[`QA-${job}`].updatedAt && product[job].updatedAt) {
+                props.job = job
+            } else if (product[`QA-${job}`].updatedAt) {
+                props.job = `QA-${job}`
+            } else {
+                props.state = false
+                props.pid = ""
+                props.result = ""
+            }
+
+        } else {
+            props.job = tableFilter
+        }
+        setOpenComparisionModal(props)
+        console.log('props 2 --> ', props);
     }
 
     return (
@@ -691,7 +741,7 @@ function SuperAdmin(props) {
                                                                 style={{ width: '100px', maxHeight: '30px' }}
                                                                 // disabled={!item['QA-Extractor'].updatedAt}
                                                                 className="btn btn-warning p-0 m-0 px-2"
-                                                                onClick={() => navigateToComparisionSheet(item, item.ProductID, item.VariantID, 'Extractor')}
+                                                                onClick={() => navigateToComparisionSheet(item, item.ProductID, item.VariantID, 'Extractor', index)}
                                                             >Compare</button>
 
                                                             <button
@@ -750,7 +800,7 @@ function SuperAdmin(props) {
                                                                 style={{ width: '100px', maxHeight: '30px' }}
                                                                 // disabled={!item['QA-DimAna'].updatedAt}
                                                                 className="btn btn-warning p-0 m-0 px-2"
-                                                                onClick={() => navigateToComparisionSheet(item, item.ProductID, item.VariantID, 'DimAna')}
+                                                                onClick={() => navigateToComparisionSheet(item, item.ProductID, item.VariantID, 'DimAna', index)}
                                                             >Compare</button>
 
                                                             <button
@@ -854,6 +904,27 @@ function SuperAdmin(props) {
                 onClose={resetComparisionModal}
                 fullScreen
             >
+                {tableFilter !== 'Filter by Role' && <DialogTitle>
+                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+
+                        <Button
+                            variant='contained'
+                            onClick={() => moveComparisionModalTo("PRE")}
+                            color="warning"
+                        >
+                            Previous
+                        </Button>
+                        <Typography>{openComparisionModal.index + 1}/{tableData.data.length}</Typography>
+                        <Button
+                            variant="contained"
+                            onClick={() => moveComparisionModalTo("NEXT")}
+                            color="info"
+                        >
+                            Next
+                        </Button>
+
+                    </Stack>
+                </DialogTitle>}
                 <DialogContent>
                     {
                         openComparisionModal.job.includes('Extractor') ?

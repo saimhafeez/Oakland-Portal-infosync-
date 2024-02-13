@@ -18,7 +18,7 @@
 
 export const formatDate = (timestamp) => {
 
-    console.log('timestamp', timestamp);
+    // console.log('timestamp', timestamp);
 
     // Adding 5 hours to the timestamp
     const adjustedTimestamp = new Date(timestamp);

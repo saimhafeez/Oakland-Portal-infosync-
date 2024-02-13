@@ -41,11 +41,11 @@ const SuperAdminSidebar = () => {
                             100% Completed
                         </a>
                     </li>
-                    <li>
+                    {/* <li>
                         <a href="/reseted" className="link-light" underline="hover">
                             Partial Completed
                         </a>
-                    </li>
+                    </li> */}
                     <li>
                         <a href="/all-nads" className="link-light" underline="hover">
                             NADs

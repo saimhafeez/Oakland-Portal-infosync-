@@ -4,7 +4,12 @@ import styled from "styled-components";
 import {
     Button,
     CircularProgress,
+    Dialog,
+    DialogContent,
+    DialogTitle,
     Stack,
+    Tooltip,
+    Typography,
 } from "@mui/material";
 
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -13,6 +18,9 @@ import { formatDate } from "../../utils/formatDate";
 import SuperAdminSidebar from "../../components/sidebar/SuperAdminSidebar";
 import Header from "../../components/header/Header";
 import { useAppContext } from "../../context/appContext";
+import { InfoTwoTone } from "@mui/icons-material";
+import ExtractionComparision from "./ExtractionComparision";
+import DimAnaComparision from "./DimAnaComparision";
 
 
 
@@ -21,7 +29,8 @@ function ReadyToLive(props) {
     const colors = {
         major: '#f1c232',
         minor: '#ffe599',
-        not_understandable: '#F8D465'
+        not_understandable: '#F8D465',
+        resetAbove: '#6C22A6',
     }
 
     const [searchByID, setSearchByID] = useState("");
@@ -59,7 +68,7 @@ function ReadyToLive(props) {
 
         const only_passed = '&dimana_status=passed&dimana_status=minor&dimana_status=major'
 
-        var apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}${only_passed}`
+        var apiURL = `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${tableData.lessThanDate}&gt=${tableData.greaterThanDate}&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}`
         // var apiURL = filterByQAStatus !== 'qa-status' ? `${process.env.REACT_APP_SERVER_ADDRESS}/api/super_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${lt}&gt=0&page=${currentPage}&status=${filterByQAStatus}&items_per_page=${tableData.totalProductsPerPage}`
         //     : `${process.env.REACT_APP_SERVER_ADDRESS}/api/better_table?job=${tableFilter === 'Filter by Role' ? 'Extractor' : tableFilter}&lt=${lt}&gt=0&page=${currentPage}&items_per_page=${tableData.totalProductsPerPage}`
 
@@ -69,6 +78,8 @@ function ReadyToLive(props) {
             } else {
                 apiURL = apiURL + `&dimana_status=${filterByQAStatus}`
             }
+        } else {
+            apiURL = apiURL + only_passed
         }
 
         if (pid !== '') {
@@ -93,27 +104,42 @@ function ReadyToLive(props) {
         }).catch((e) => console.log('error occured', e))
     }
 
-    useEffect(() => {
-        fetchSuperAdminData(0)
-    }, [tableData.reset])
-
-    useEffect(() => {
-        fetchSuperAdminData(0)
-    }, [tableFilter, tableData.totalProductsPerPage, filterByUser])
+    var [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
         fetchSuperAdminData()
+        setIsLoaded(true)
+    }, [])
+
+    useEffect(() => {
+        if (isLoaded) {
+            fetchSuperAdminData(0)
+        }
+    }, [tableData.reset])
+
+    useEffect(() => {
+        if (isLoaded) {
+            fetchSuperAdminData(0)
+        }
+    }, [tableFilter, tableData.totalProductsPerPage, filterByUser])
+
+    useEffect(() => {
+        if (isLoaded) {
+            fetchSuperAdminData()
+        }
     }, [tableData.currentPage])
 
 
     useEffect(() => {
-        setTableData(pre => ({
-            ...pre,
-            isLoading: true,
-            currentPage: 0,
-            totalPages: 1,
-        }))
-        fetchSuperAdminData(0)
+        // setTableData(pre => ({
+        //     ...pre,
+        //     isLoading: true,
+        //     currentPage: 0,
+        //     totalPages: 1,
+        // }))
+        if (isLoaded) {
+            fetchSuperAdminData(0)
+        }
     }, [filterByQAStatus])
 
     const fetchByProductID = () => {
@@ -146,12 +172,56 @@ function ReadyToLive(props) {
         // window.location.href = `/product-detail-info?job=${tableFilter}&pid=${productID}`
     }
 
-    const navigateToComparisionSheet = (productID, variantID, _tableFilter) => {
-        if (_tableFilter === 'QA-Extractor') {
-            window.open(`/extraction-comparision?job=${_tableFilter}&pid=${productID}&vid=${variantID}`, "_blank", "noreferrer");
-        } else if (_tableFilter === 'QA-DimAna') {
-            window.open(`/dimana-comparision?job=${_tableFilter}&pid=${productID}&vid${variantID}`, "_blank", "noreferrer");
+    const [openComparisionModal, setOpenComparisionModal] = useState({
+        state: false,
+        job: "",
+        pid: "",
+        vid: "",
+        result: "",
+        index: "",
+        page: ""
+    })
+
+    const navigateToComparisionSheet = (product, productID, variantID, job) => {
+
+        const props = {
+            state: true,
+            job: "",
+            pid: productID,
+            vid: variantID,
+            result: ""
         }
+
+        if (!product[`QA-${job}`].updatedAt && product[job].updatedAt) {
+            props.job = job
+        } else if (product[`QA-${job}`].updatedAt) {
+            props.job = `QA-${job}`
+        } else {
+            props.state = false
+            props.pid = ""
+            props.result = ""
+        }
+
+        // if (_tableFilter === 'QA-Extractor') {
+        //     window.open(`/extraction-comparision?job=${_tableFilter}&pid=${productID}&vid=${variantID}`, "_blank", "noreferrer");
+        // } else if (_tableFilter === 'QA-DimAna') {
+        //     window.open(`/dimana-comparision?job=${_tableFilter}&pid=${productID}&vid${variantID}`, "_blank", "noreferrer");
+        // }
+        console.log('props --> ', props);
+        setOpenComparisionModal(props)
+
+    }
+
+    const resetComparisionModal = () => {
+        setOpenComparisionModal({
+            state: false,
+            job: "",
+            pid: "",
+            vid: "",
+            result: "",
+            index: "",
+            page: ""
+        })
     }
 
     const resetProduct = (sku, selector) => {
@@ -166,19 +236,6 @@ function ReadyToLive(props) {
             fetchSuperAdminData(0)
 
         }).catch((e) => console.log('error occured', e))
-    }
-
-    const disableResetButton = (item) => {
-        if (
-            (item['Extractor'] && item['Extractor'].name && !item['Extractor'].updatedAt) ||
-            (item['QA-Extractor'] && item['QA-Extractor'].name && !item['QA-Extractor'].updatedAt) ||
-            (item['DimAna'] && item['DimAna'].name && !item['DimAna'].updatedAt) ||
-            (item['QA-DimAna'] && item['QA-DimAna'].name && !item['QA-DimAna'].updatedAt)
-        ) {
-            return true
-        } else {
-            return false
-        }
     }
 
     const { sidebarOpened } = useAppContext()
@@ -296,9 +353,6 @@ function ReadyToLive(props) {
                                                     disabled={tableFilter === 'Filter by Role'}
                                                 >
                                                     <option value="qa-status">Filter by Status</option>
-                                                    <option value="under_qa">Under QA</option>
-                                                    <option value="not_understandable">Not Understandable</option>
-                                                    <option value="rejected_nad">Not a Doable</option>
                                                     <option value="passed">100% [QA Passed]</option>
                                                     <option value="minor">MINOR [QA Passed]</option>
                                                     <option value="major">MAJOR [QA Passed]</option>
@@ -319,11 +373,11 @@ function ReadyToLive(props) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {tableData.data.length === 0 && <tr>
-                                            <td colSpan={6}>
-                                                <h4 className="text-center p-2 w-100">0 Results</h4>
-                                            </td>
-                                        </tr>}
+                                        {/* {tableData.data.length === 0 && <tr>
+                                                <td colSpan={9}>
+                                                    <h4 className="text-center">0 Results</h4>
+                                                </td>
+                                            </tr>} */}
                                         {tableData.data.map((item, index) => (
                                             <tr key={index}>
                                                 <td>{(tableData.currentPage * tableData.totalProductsPerPage) + (index + 1)}</td>
@@ -350,7 +404,7 @@ function ReadyToLive(props) {
                                                         style={{ border: '2px solid black', margin: 4, backgroundColor: (item['Extractor Status'] !== 'passed' && item['Extractor Status'] !== 'under_qa') && colors[item['Extractor Status']] }}
                                                     >
                                                         {
-                                                            item['Extractor'].status !== null ? 'NOT A DOABLE' : ((item['Extractor Status'] === null || item['Extractor Status'] === 'under_qa') ? 'Under QA' : item['Extractor Status'] === 'not_understandable' ? 'Not Understandable' : item['Extractor Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['Extractor Status'] === 'minor' ? 'MINOR [QA Passed]' : item['Extractor Status'] === 'major' ? 'MAJOR [QA Passed]' : item['Extractor Status'] === 'passed' ? '100% [QA Passed]' : item['Extractor Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A')
+                                                            (item['Extractor'].status !== null && item['Extractor'].status !== "") ? 'NOT A DOABLE' : ((item['Extractor Status'] === null || item['Extractor Status'] === 'under_qa') ? 'Under QA' : item['Extractor Status'] === 'not_understandable' ? 'Not Understandable' : item['Extractor Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['Extractor Status'] === 'minor' ? 'MINOR [QA Passed]' : item['Extractor Status'] === 'major' ? 'MAJOR [QA Passed]' : item['Extractor Status'] === 'passed' ? '100% [QA Passed]' : item['Extractor Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A')
                                                         }
                                                     </p>
                                                     <p className="small">{item['Extractor'].updatedAt && formatDate(item['Extractor'].updatedAt) || 'N/A'}</p>
@@ -365,19 +419,40 @@ function ReadyToLive(props) {
                                                     <p className="small">{item['QA-Extractor'].updatedAt && formatDate(item['QA-Extractor'].updatedAt) || 'N/A'}</p>
                                                 </td>
 
-                                                <td>
-                                                    <div className="d-flex flex-row gap-2 justify-content-center">
-                                                        {tableFilter.includes('QA') && <button
-                                                            className="btn btn-warning"
-                                                            onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-Extractor')}
-                                                        >compare</button>
-                                                        }
+                                                <td style={{ width: '100px' }}>
+                                                    <div className="d-flex flex-column gap-2 justify-content-center px-1 align-items-center">
+
                                                         <button
-                                                            className="btn"
-                                                            style={{ backgroundColor: 'red', color: 'white' }}
-                                                            onClick={() => resetProduct(item.full_id, 'extractor')}
-                                                            disabled={disableResetButton(item)}
-                                                        >Reset</button>
+                                                            style={{ width: '100px', maxHeight: '30px' }}
+                                                            // disabled={!item['QA-Extractor'].updatedAt}
+                                                            className="btn btn-warning p-0 m-0 px-2"
+                                                            onClick={() => navigateToComparisionSheet(item, item.ProductID, item.VariantID, 'Extractor', index)}
+                                                        >Compare</button>
+
+                                                        <button
+                                                            className="btn p-0 m-0 px-2"
+                                                            style={{ backgroundColor: item.extractor_reset_info && item.extractor_reset_info.reset_count > 0 ? colors.resetAbove : 'red', color: 'white', width: '100px', maxHeight: '30px' }}
+                                                            // style={{  }}
+                                                            onClick={() => resetProduct(item.ProductID, 'extractor')}
+                                                            // disabled={disableResetButton(item)}
+                                                            disabled={!item['QA-Extractor'].updatedAt}
+                                                        >
+                                                            <Stack direction='row' gap={1} alignItems='center' justifyContent='center'>
+                                                                <Tooltip title={
+                                                                    <Stack direction='column' spacing={1}>
+                                                                        <Typography m={0} p={0}>
+                                                                            Resets: {item.extractor_reset_info ? item.extractor_reset_info.reset_count : 0}
+                                                                        </Typography>
+                                                                        <Typography m={0} p={0}>
+                                                                            Last Reset: {item.extractor_reset_info ? formatDate(item.extractor_reset_info.last_reset) : 'N/A'}
+                                                                        </Typography>
+                                                                    </Stack>
+                                                                }>
+                                                                    <InfoTwoTone htmlColor="white" />
+                                                                </Tooltip>
+                                                                <Typography p={0} m={0}>Reset</Typography>
+                                                            </Stack>
+                                                        </button>
                                                     </div>
                                                 </td>
 
@@ -389,7 +464,7 @@ function ReadyToLive(props) {
                                                         {
                                                             (item['DimAna'].name && item['DimAna'].status === null && (item['DimAna Status'] === null || item['DimAna Status'] === 'under_qa')) ? 'UNDER QA'
                                                                 :
-                                                                (item['DimAna'].status !== null ? 'NOT UNDERSTANDABLE'
+                                                                ((item['DimAna'].status !== null && item['DimAna'].status !== "") ? 'NOT UNDERSTANDABLE'
                                                                     : item['DimAna Status'] === 'not_understandable' ? 'Not Understandable' : item['DimAna Status'] === 'rejcted_nad' ? 'Rejected NAD' : item['DimAna Status'] === 'minor' ? 'MINOR [QA Passed]' : item['DimAna Status'] === 'major' ? 'MAJOR [QA Passed]' : item['DimAna Status'] === 'passed' ? '100% [QA Passed]' : item['DimAna Status'] === 'rejected_nad' ? 'Not a Doable' : 'N/A')
                                                         }
                                                     </p>
@@ -404,19 +479,38 @@ function ReadyToLive(props) {
                                                     <p className="small">{item['QA-DimAna'].updatedAt && formatDate(item['QA-DimAna'].updatedAt) || 'N/A'}</p>
                                                 </td>
 
-                                                <td>
-                                                    <div className="d-flex flex-row gap-2 justify-content-center">
-                                                        {tableFilter.includes('QA') && <button
-                                                            className="btn btn-warning"
-                                                            onClick={() => navigateToComparisionSheet(item.ProductID, item.VariantID, 'QA-DimAna')}
-                                                        >compare</button>
-                                                        }
+                                                <td style={{ width: '120px' }}>
+                                                    <div className="d-flex flex-column gap-2 justify-content-center px-1 align-items-center">
                                                         <button
-                                                            className="btn"
-                                                            style={{ backgroundColor: 'red', color: 'white' }}
-                                                            onClick={() => resetProduct(item.full_id, 'dimana')}
-                                                            disabled={disableResetButton(item)}
-                                                        >Reset</button>
+                                                            style={{ width: '100px', maxHeight: '30px' }}
+                                                            // disabled={!item['QA-DimAna'].updatedAt}
+                                                            className="btn btn-warning p-0 m-0 px-2"
+                                                            onClick={() => navigateToComparisionSheet(item, item.ProductID, item.VariantID, 'DimAna', index)}
+                                                        >Compare</button>
+
+                                                        <button
+                                                            className="btn p-0 m-0 px-2"
+                                                            style={{ backgroundColor: item.dimana_reset_info && item.dimana_reset_info.reset_count > 0 ? colors.resetAbove : 'red', color: 'white', width: '100px', maxHeight: '30px' }}
+                                                            onClick={() => resetProduct(item.ProductID, 'dimana')}
+                                                            // disabled={disableResetButton(item)}
+                                                            disabled={!item['QA-DimAna'].updatedAt}
+                                                        >
+                                                            <Stack direction='row' gap={1} alignItems='center' justifyContent='center'>
+                                                                <Tooltip title={
+                                                                    <Stack direction='column' spacing={1}>
+                                                                        <Typography m={0} p={0}>
+                                                                            Resets: {item.dimana_reset_info ? item.dimana_reset_info.reset_count : 0}
+                                                                        </Typography>
+                                                                        <Typography m={0} p={0}>
+                                                                            Last Reset: {item.dimana_reset_info ? formatDate(item.dimana_reset_info.last_reset) : 'N/A'}
+                                                                        </Typography>
+                                                                    </Stack>
+                                                                }>
+                                                                    <InfoTwoTone htmlColor="white" />
+                                                                </Tooltip>
+                                                                <Typography p={0} m={0}>Reset</Typography>
+                                                            </Stack>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -481,6 +575,33 @@ function ReadyToLive(props) {
                 </div>
 
             </Wrapper >
+
+            <Dialog
+                open={openComparisionModal.state}
+                onClose={resetComparisionModal}
+                fullScreen
+            >
+                <DialogContent>
+                    {
+                        openComparisionModal.job.includes('Extractor') ?
+                            openComparisionModal.state && <ExtractionComparision
+                                job={openComparisionModal.job}
+                                pid={openComparisionModal.pid}
+                                vid={openComparisionModal.vid}
+                                result={openComparisionModal.result}
+                                closeCallback={resetComparisionModal}
+                            />
+                            :
+                            openComparisionModal.state && <DimAnaComparision
+                                job={openComparisionModal.job}
+                                pid={openComparisionModal.pid}
+                                vid={openComparisionModal.vid}
+                                result={openComparisionModal.result}
+                                closeCallback={resetComparisionModal}
+                            />
+                    }
+                </DialogContent>
+            </Dialog>
 
         </>
     );
